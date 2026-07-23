@@ -205,12 +205,14 @@
       <button class="tab-btn active" id="tabDashboardBtn" onclick="switchTab('dashboard')">📊 Advertiser</button>
       <button class="tab-btn" id="tabInputBtn" onclick="switchTab('input')">📝 Input Data</button>
       <button class="tab-btn" id="tabMarketplaceBtn" onclick="switchTab('marketplace')">🛒 Marketplace</button>
+      <button class="tab-btn" id="tabAffiliateBtn" onclick="switchTab('affiliate')">🤝 Affiliate</button>
       <button class="tab-btn" id="tabSettingsBtn" onclick="switchTab('settings')">⚙️ Pengaturan &amp; Panduan</button>
     </div>
     <div id="filterControls">
       <label id="filterLabel1">Periode:</label>
       <select id="periodeSelect"></select>
       <select id="mpPeriodeSelect" onchange="loadMarketplaceDashboard()" style="display:none;"></select>
+      <select id="affPeriodeSelect" onchange="loadAffiliateDashboard()" style="display:none;"></select>
     </div>
     <div id="filterControls2">
       <label id="filterLabel2">Advertiser:</label>
@@ -228,6 +230,7 @@
   </div>
   <div id="inputContent" style="display:none;"></div>
   <div id="marketplaceContent" style="display:none;"></div>
+  <div id="affiliateContent" style="display:none;"></div>
   <div id="settingsContent" style="display:none;"></div>
 </div>
 
@@ -251,7 +254,7 @@ let charts = {};
      submit form di tab "Input Data" otomatis "Kirim" ke spreadsheet.
    ====================================================================== */
 const LOCAL_KEY = 'marketingDashboardState_v1';
-let appState = { appsScriptUrl: '', targetRows: [], aktualRows: [], marketplaceTargetRows: [], marketplaceAktualRows: [] };
+let appState = { appsScriptUrl: '', targetRows: [], aktualRows: [], marketplaceTargetRows: [], marketplaceAktualRows: [], affiliateTargetRows: [], affiliateAktualRows: [] };
 
 function saveLocalState(){
   try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(appState)); }
@@ -265,6 +268,8 @@ function loadLocalState(){
     appState.appsScriptUrl = parsed.appsScriptUrl || '';
     appState.targetRows = Array.isArray(parsed.targetRows) ? parsed.targetRows : [];
     appState.aktualRows = Array.isArray(parsed.aktualRows) ? parsed.aktualRows : [];
+    appState.affiliateTargetRows = Array.isArray(parsed.affiliateTargetRows) ? parsed.affiliateTargetRows : [];
+    appState.affiliateAktualRows = Array.isArray(parsed.affiliateAktualRows) ? parsed.affiliateAktualRows : [];
     // Migrasi dari versi lama (1 sheet gabungan "Marketplace") kalau masih ada di localStorage lama.
     if (Array.isArray(parsed.marketplaceRows) && !parsed.marketplaceTargetRows && !parsed.marketplaceAktualRows){
       appState.marketplaceTargetRows = parsed.marketplaceRows
@@ -303,7 +308,9 @@ function doGet(e){
   var aktual = sheetToObjects(ss.getSheetByName('Aktual'));
   var targetMarketplace = sheetToObjects(ss.getSheetByName('Target Marketplace'));
   var aktualMarketplace = sheetToObjects(ss.getSheetByName('Aktual Marketplace'));
-  return jsonOutput({ target: target, aktual: aktual, targetmarketplace: targetMarketplace, aktualmarketplace: aktualMarketplace });
+  var targetAffiliate = sheetToObjects(ss.getSheetByName('Target Affiliate'));
+  var aktualAffiliate = sheetToObjects(ss.getSheetByName('Aktual Affiliate'));
+  return jsonOutput({ target: target, aktual: aktual, targetmarketplace: targetMarketplace, aktualmarketplace: aktualMarketplace, targetaffiliate: targetAffiliate, aktualaffiliate: aktualAffiliate });
 }
 
 function doPost(e){
@@ -322,6 +329,8 @@ function doPost(e){
     else if (data.type === 'aktual') upsertAktual(ss, data);
     else if (data.type === 'marketplaceTarget') upsertMarketplaceTarget(ss, data);
     else if (data.type === 'marketplaceAktual') upsertMarketplaceAktual(ss, data);
+    else if (data.type === 'affiliateTarget') upsertAffiliateTarget(ss, data);
+    else if (data.type === 'affiliateAktual') upsertAffiliateAktual(ss, data);
   } finally {
     lock.releaseLock();
   }
@@ -430,6 +439,42 @@ function upsertMarketplaceAktual(ss, data){
     }
   }
   sh.appendRow([data.tanggal, data.marketplace, data.spending, data.omzet]);
+}
+
+// Sheet "Target Affiliate" — target bulanan divisi Affiliate Specialist,
+// data TOTALAN (bukan per-nama affiliate). Upsert berdasarkan Periode saja
+// (satu baris per bulan). Kolom: Periode | Target Konten | Target Order |
+// Target GMV | Target Komisi | Target Sample
+function upsertAffiliateTarget(ss, data){
+  var sh = ss.getSheetByName('Target Affiliate');
+  var rows = sh.getDataRange().getValues();
+  var periode = String(data.periode).trim();
+  var rowValues = [data.periode, data.targetkonten, data.targetorder, data.targetgmv, data.targetkomisi, data.targetsample];
+  for (var i = 1; i < rows.length; i++){
+    if (String(rows[i][0]).trim() === periode){
+      sh.getRange(i + 1, 1, 1, 6).setValues([rowValues]);
+      return;
+    }
+  }
+  sh.appendRow(rowValues);
+}
+
+// Sheet "Aktual Affiliate" — realisasi harian divisi Affiliate Specialist,
+// TOTALAN per hari (bukan per-nama affiliate). Upsert berdasarkan Tanggal
+// saja (satu baris per hari). Kolom: Tanggal | Konten | Order | GMV |
+// Komisi | Sample
+function upsertAffiliateAktual(ss, data){
+  var sh = ss.getSheetByName('Aktual Affiliate');
+  var rows = sh.getDataRange().getValues();
+  var tanggal = String(data.tanggal).trim();
+  var rowValues = [data.tanggal, data.konten, data.order, data.gmv, data.komisi, data.sample];
+  for (var i = 1; i < rows.length; i++){
+    if (formatCellDate(rows[i][0]) === tanggal){
+      sh.getRange(i + 1, 1, 1, 6).setValues([rowValues]);
+      return;
+    }
+  }
+  sh.appendRow(rowValues);
 }`;
 
 /* ======================================================================
@@ -522,6 +567,28 @@ async function pullFromSheet(){
       };
     }).filter(function(r){ return r.tanggal && r.marketplace; });
 
+    appState.affiliateTargetRows = (json.targetaffiliate || []).map(function(r){
+      return {
+        periode: normalizePeriode(r.periode),
+        targetKonten: parseLocaleNumber(r.targetkonten),
+        targetOrder: parseLocaleNumber(r.targetorder),
+        targetGmv: parseLocaleNumber(r.targetgmv),
+        targetKomisi: parseLocaleNumber(r.targetkomisi),
+        targetSample: parseLocaleNumber(r.targetsample)
+      };
+    }).filter(function(r){ return r.periode; });
+
+    appState.affiliateAktualRows = (json.aktualaffiliate || []).map(function(r){
+      return {
+        tanggal: String(r.tanggal || '').trim(),
+        konten: parseLocaleNumber(r.konten),
+        order: parseLocaleNumber(r.order),
+        gmv: parseLocaleNumber(r.gmv),
+        komisi: parseLocaleNumber(r.komisi),
+        sample: parseLocaleNumber(r.sample)
+      };
+    }).filter(function(r){ return r.tanggal; });
+
     saveLocalState();
     return 'ok';
   }catch(err){
@@ -572,6 +639,14 @@ async function pushAllToSheet(){
   }
   for (const r of appState.marketplaceAktualRows){
     const res = await pushToSheet({ type:'marketplaceAktual', tanggal:r.tanggal, marketplace:r.marketplace, spending:r.spending, omzet:r.omzet });
+    if (res !== 'ok') allOk = false;
+  }
+  for (const r of appState.affiliateTargetRows){
+    const res = await pushToSheet({ type:'affiliateTarget', periode:r.periode, targetkonten:r.targetKonten, targetorder:r.targetOrder, targetgmv:r.targetGmv, targetkomisi:r.targetKomisi, targetsample:r.targetSample });
+    if (res !== 'ok') allOk = false;
+  }
+  for (const r of appState.affiliateAktualRows){
+    const res = await pushToSheet({ type:'affiliateAktual', tanggal:r.tanggal, konten:r.konten, order:r.order, gmv:r.gmv, komisi:r.komisi, sample:r.sample });
     if (res !== 'ok') allOk = false;
   }
   return allOk ? 'ok' : 'error';
@@ -751,10 +826,12 @@ function switchTab(tab){
   const dashBtn = document.getElementById('tabDashboardBtn');
   const inputBtn = document.getElementById('tabInputBtn');
   const mpBtn = document.getElementById('tabMarketplaceBtn');
+  const affBtn = document.getElementById('tabAffiliateBtn');
   const setBtn = document.getElementById('tabSettingsBtn');
   const dashEl = document.getElementById('content');
   const inputEl = document.getElementById('inputContent');
   const mpEl = document.getElementById('marketplaceContent');
+  const affEl = document.getElementById('affiliateContent');
   const setEl = document.getElementById('settingsContent');
   // 2 slot filter tetap (posisi tidak pernah berubah). Slot ini selalu
   // "reserve" tempatnya di topbar (pakai visibility, bukan display) supaya
@@ -768,14 +845,17 @@ function switchTab(tab){
   const akunSelect = document.getElementById('akunSelect');
   const mpPeriodeSelect = document.getElementById('mpPeriodeSelect');
   const mpFilterSelect = document.getElementById('mpFilterSelect');
+  const affPeriodeSelect = document.getElementById('affPeriodeSelect');
 
   dashBtn.classList.remove('active');
   inputBtn.classList.remove('active');
   mpBtn.classList.remove('active');
+  affBtn.classList.remove('active');
   setBtn.classList.remove('active');
   dashEl.style.display = 'none';
   inputEl.style.display = 'none';
   mpEl.style.display = 'none';
+  affEl.style.display = 'none';
   setEl.style.display = 'none';
 
   if (tab === 'settings'){
@@ -798,9 +878,21 @@ function switchTab(tab){
     label2.textContent = 'Marketplace:';
     periodeSelect.style.display = 'none';
     mpPeriodeSelect.style.display = '';
+    affPeriodeSelect.style.display = 'none';
     akunSelect.style.display = 'none';
     mpFilterSelect.style.display = '';
     renderMarketplace();
+  } else if (tab === 'affiliate'){
+    affBtn.classList.add('active');
+    affEl.style.display = 'block';
+    // Tab Affiliate cuma perlu filter Periode (data totalan, tanpa breakdown
+    // nama), jadi slot filter kedua (Advertiser/Marketplace) disembunyikan.
+    filters.style.visibility = 'visible';
+    filters2.style.visibility = 'hidden';
+    periodeSelect.style.display = 'none';
+    mpPeriodeSelect.style.display = 'none';
+    affPeriodeSelect.style.display = '';
+    renderAffiliate();
   } else {
     dashBtn.classList.add('active');
     dashEl.style.display = 'block';
@@ -809,6 +901,7 @@ function switchTab(tab){
     label2.textContent = 'Advertiser:';
     periodeSelect.style.display = '';
     mpPeriodeSelect.style.display = 'none';
+    affPeriodeSelect.style.display = 'none';
     akunSelect.style.display = '';
     mpFilterSelect.style.display = 'none';
   }
@@ -858,6 +951,14 @@ function renderInputForm(){
 
   const mpAktualRows = appState.marketplaceAktualRows.slice().sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal); }).map(function(r){
     return '<tr><td>'+r.tanggal+'</td><td>'+r.marketplace+'</td><td>'+fmtIDR(r.spending)+'</td><td>'+fmtIDR(r.omzet)+'</td></tr>';
+  }).join('');
+
+  const affTargetRows = appState.affiliateTargetRows.slice().sort(function(a,b){ return b.periode.localeCompare(a.periode); }).map(function(r){
+    return '<tr><td>'+r.periode+'</td><td>'+Math.round(r.targetKonten).toLocaleString('id-ID')+'</td><td>'+Math.round(r.targetOrder).toLocaleString('id-ID')+'</td><td>'+fmtIDR(r.targetGmv)+'</td><td>'+fmtIDR(r.targetKomisi)+'</td><td>'+Math.round(r.targetSample).toLocaleString('id-ID')+'</td></tr>';
+  }).join('');
+
+  const affAktualRows = appState.affiliateAktualRows.slice().sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal); }).map(function(r){
+    return '<tr><td>'+r.tanggal+'</td><td>'+Math.round(r.konten).toLocaleString('id-ID')+'</td><td>'+Math.round(r.order).toLocaleString('id-ID')+'</td><td>'+fmtIDR(r.gmv)+'</td><td>'+fmtIDR(r.komisi)+'</td><td>'+Math.round(r.sample).toLocaleString('id-ID')+'</td></tr>';
   }).join('');
 
   const connected = !!getAppsScriptUrl();
@@ -1009,6 +1110,87 @@ function renderInputForm(){
         <tbody>${mpAktualRows || '<tr><td colspan="4" style="color:var(--sub)">Belum ada data harian marketplace.</td></tr>'}</tbody>
       </table>
     </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">🤝 Input Data Affiliate</div>
+      <p class="metric-sub" style="margin:-4px 0 12px;">Data <b>totalan harian</b> (tanpa breakdown per-nama affiliate). Target &amp; Aktual disimpan di <b>2 sheet terpisah</b> — <b>"Target Affiliate"</b> (diisi sekali di awal bulan) dan <b>"Aktual Affiliate"</b> (diisi tiap hari, satu baris per tanggal).</p>
+      <div class="settings-grid">
+        <div class="card" style="border-style:dashed;">
+          <div class="section-title" style="font-size:13.5px;">🎯 Set Target Bulanan</div>
+          <div class="form-row">
+            <label>Periode (Bulan)</label>
+            <input type="month" id="fAffTargetPeriode">
+          </div>
+          <div class="form-row">
+            <label>Target Jumlah Konten</label>
+            <input type="number" id="fAffTargetKonten" placeholder="cth: 120">
+          </div>
+          <div class="form-row">
+            <label>Target Order</label>
+            <input type="number" id="fAffTargetOrder" placeholder="cth: 900">
+          </div>
+          <div class="form-row">
+            <label>Target GMV/Omzet (IDR)</label>
+            <input type="number" id="fAffTargetGmv" placeholder="cth: 300000000">
+          </div>
+          <div class="form-row">
+            <label>Target Komisi (Budget, IDR)</label>
+            <input type="number" id="fAffTargetKomisi" placeholder="cth: 30000000">
+          </div>
+          <div class="form-row">
+            <label>Target Sample Dikirim</label>
+            <input type="number" id="fAffTargetSample" placeholder="cth: 50">
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="submitAffiliateTargetForm()">💾 Simpan Target</button>
+          </div>
+          <div id="affTargetFormStatus" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card" style="border-style:dashed;">
+          <div class="section-title" style="font-size:13.5px;">📅 Input Harian (Aktual)</div>
+          <div class="form-row">
+            <label>Tanggal</label>
+            <input type="date" id="fAffTanggal">
+          </div>
+          <div class="form-row">
+            <label>Jumlah Konten Hari Ini</label>
+            <input type="number" id="fAffKonten" placeholder="cth: 6">
+          </div>
+          <div class="form-row">
+            <label>Order Hari Ini</label>
+            <input type="number" id="fAffOrder" placeholder="cth: 35">
+          </div>
+          <div class="form-row">
+            <label>GMV/Omzet Hari Ini (IDR)</label>
+            <input type="number" id="fAffGmv" placeholder="cth: 12000000">
+          </div>
+          <div class="form-row">
+            <label>Komisi Hari Ini (IDR)</label>
+            <input type="number" id="fAffKomisi" placeholder="cth: 1200000">
+          </div>
+          <div class="form-row">
+            <label>Sample Dikirim Hari Ini</label>
+            <input type="number" id="fAffSample" placeholder="cth: 2">
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="submitAffiliateAktualForm()">💾 Simpan Data Harian</button>
+          </div>
+          <div id="affFormStatus" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <p style="font-size:12.5px;font-weight:600;margin:16px 0 4px;">Target Affiliate (Bulanan)</p>
+      <table>
+        <thead><tr><th>Periode</th><th>Target Konten</th><th>Target Order</th><th>Target GMV</th><th>Target Komisi</th><th>Target Sample</th></tr></thead>
+        <tbody>${affTargetRows || '<tr><td colspan="6" style="color:var(--sub)">Belum ada data target affiliate.</td></tr>'}</tbody>
+      </table>
+      <p style="font-size:12.5px;font-weight:600;margin:16px 0 4px;">Aktual Affiliate (Harian)</p>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Konten</th><th>Order</th><th>GMV</th><th>Komisi</th><th>Sample</th></tr></thead>
+        <tbody>${affAktualRows || '<tr><td colspan="6" style="color:var(--sub)">Belum ada data harian affiliate.</td></tr>'}</tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -1153,8 +1335,8 @@ function renderSettings(){
         <div class="guide-step">
           <div class="num">1</div>
           <div class="body">
-            <h4>Siapkan Google Spreadsheet dengan 4 sheet</h4>
-            <p>Buat spreadsheet baru, lalu buat 4 tab dengan nama persis seperti di bawah (tanpa spasi/typo). Target &amp; Aktual masing-masing (Advertiser maupun Marketplace) sengaja dipisah sheet-nya sendiri-sendiri, supaya input harian tidak akan pernah menyentuh/menimpa data target, dan sebaliknya.</p>
+            <h4>Siapkan Google Spreadsheet dengan 6 sheet</h4>
+            <p>Buat spreadsheet baru, lalu buat 6 tab dengan nama persis seperti di bawah (tanpa spasi/typo). Target &amp; Aktual masing-masing (Advertiser, Marketplace, maupun Affiliate) sengaja dipisah sheet-nya sendiri-sendiri, supaya input harian tidak akan pernah menyentuh/menimpa data target, dan sebaliknya.</p>
             <p><b>Sheet "Target"</b> — target bulanan per advertiser:</p>
             <table>
               <thead><tr><th>Periode</th><th>Advertiser</th><th>Target Spending</th><th>Target Leads</th><th>Target CPL</th></tr></thead>
@@ -1177,6 +1359,17 @@ function renderSettings(){
               <tbody><tr><td>2026-07-01</td><td>Shopee</td><td>500000</td><td>2500000</td></tr></tbody>
             </table>
             <p>Kolom header harus persis: <i>Periode, Marketplace, Target Spending Bulanan, Target Omzet Bulanan</i> dan <i>Tanggal, Marketplace, Spending, Omzet</i>. Target cukup diisi satu baris per bulan per marketplace di sheet "Target Marketplace" — tidak perlu diulang tiap hari, dan tidak akan pernah tertimpa oleh input harian karena beda sheet.</p>
+            <p><b>Sheet "Target Affiliate"</b> — target bulanan divisi Affiliate Specialist (dipakai oleh menu 🤝 Affiliate). Data totalan, tanpa breakdown per-nama affiliate, satu baris per bulan:</p>
+            <table>
+              <thead><tr><th>Periode</th><th>Target Konten</th><th>Target Order</th><th>Target GMV</th><th>Target Komisi</th><th>Target Sample</th></tr></thead>
+              <tbody><tr><td>2026-07</td><td>120</td><td>900</td><td>300000000</td><td>30000000</td><td>50</td></tr></tbody>
+            </table>
+            <p><b>Sheet "Aktual Affiliate"</b> — realisasi harian, totalan (bukan per-nama affiliate), satu baris per tanggal:</p>
+            <table>
+              <thead><tr><th>Tanggal</th><th>Konten</th><th>Order</th><th>GMV</th><th>Komisi</th><th>Sample</th></tr></thead>
+              <tbody><tr><td>2026-07-01</td><td>6</td><td>35</td><td>12000000</td><td>1200000</td><td>2</td></tr></tbody>
+            </table>
+            <p>Kolom header harus persis: <i>Periode, Target Konten, Target Order, Target GMV, Target Komisi, Target Sample</i> dan <i>Tanggal, Konten, Order, GMV, Komisi, Sample</i>.</p>
           </div>
         </div>
 
@@ -1192,7 +1385,7 @@ function renderSettings(){
           <div class="num">3</div>
           <div class="body">
             <h4>Tempel kode backend (Code.gs)</h4>
-            <p>Hapus isi <code>Code.gs</code> bawaan, lalu tempel script berikut. Script ini membaca &amp; menulis data ke keempat sheet ("Target", "Aktual", "Target Marketplace", "Aktual Marketplace") lewat sebuah URL Web App, terpisah dari file dashboard ini.</p>
+            <p>Hapus isi <code>Code.gs</code> bawaan, lalu tempel script berikut. Script ini membaca &amp; menulis data ke keenam sheet ("Target", "Aktual", "Target Marketplace", "Aktual Marketplace", "Target Affiliate", "Aktual Affiliate") lewat sebuah URL Web App, terpisah dari file dashboard ini.</p>
             <div class="code-block" id="codeGsBlockGuide"><button class="copy-btn" onclick="copyCode()">📋 Salin</button>${APPS_SCRIPT_CODE.replace(/</g,'&lt;')}</div>
           </div>
         </div>
@@ -1298,7 +1491,7 @@ async function manualPush(){
 }
 
 function resetLocalData(){
-  appState = { appsScriptUrl:'', targetRows:[], aktualRows:[], marketplaceTargetRows:[], marketplaceAktualRows:[] };
+  appState = { appsScriptUrl:'', targetRows:[], aktualRows:[], marketplaceTargetRows:[], marketplaceAktualRows:[], affiliateTargetRows:[], affiliateAktualRows:[] };
   try{ localStorage.removeItem(LOCAL_KEY); }catch(e){}
   updateConnBanner();
   refreshDropdownsFromLocalState();
@@ -1722,6 +1915,445 @@ function generateMarketplaceInsights(data){
   }
 
   return insights;
+}
+
+/* ======================================================================
+   ==========================  TAB AFFILIATE  ============================
+   Menu untuk divisi Affiliate Specialist. Data TOTALAN harian (tanpa
+   breakdown per-nama affiliate), 2 sheet terpisah persis pola Marketplace:
+   - "Target Affiliate": target bulanan (satu baris per Periode)
+   - "Aktual Affiliate": realisasi harian (satu baris per Tanggal)
+   Metrik: Jumlah Konten, Order, GMV, Komisi, Sample Dikirim.
+   ====================================================================== */
+function getAffiliatePeriodsLocal(){
+  const bulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const set = new Set();
+  appState.affiliateTargetRows.forEach(function(r){ if (r.periode) set.add(r.periode); });
+  appState.affiliateAktualRows.forEach(function(r){
+    if (r.tanggal && /^\d{4}-\d{2}/.test(r.tanggal)) set.add(r.tanggal.slice(0,7));
+  });
+  return Array.from(set).sort().reverse().map(function(p){
+    const parts = p.split('-');
+    return { value: p, label: (bulan[parseInt(parts[1],10)] || parts[1]) + ' ' + parts[0] };
+  });
+}
+
+function getLatestAffiliateTarget(periode){
+  const rows = appState.affiliateTargetRows.filter(function(r){ return r.periode === periode; });
+  const out = { konten:0, order:0, gmv:0, komisi:0, sample:0 };
+  rows.forEach(function(r){
+    out.konten += r.targetKonten; out.order += r.targetOrder; out.gmv += r.targetGmv;
+    out.komisi += r.targetKomisi; out.sample += r.targetSample;
+  });
+  return out;
+}
+
+function getAffiliateDashboardDataLocal(periode){
+  const target = getLatestAffiliateTarget(periode);
+  const daysInMonth = 28;
+
+  let totalKonten=0, totalOrder=0, totalGmv=0, totalKomisi=0, totalSample=0;
+  const dailyMap = {};
+  appState.affiliateAktualRows.forEach(function(r){
+    if (r.tanggal.slice(0,7) !== periode) return;
+    totalKonten += r.konten; totalOrder += r.order; totalGmv += r.gmv;
+    totalKomisi += r.komisi; totalSample += r.sample;
+    const dayKey = Number(r.tanggal.slice(8,10));
+    if (!dailyMap[dayKey]) dailyMap[dayKey] = { konten:0, order:0, gmv:0, komisi:0, sample:0 };
+    dailyMap[dayKey].konten += r.konten; dailyMap[dayKey].order += r.order;
+    dailyMap[dayKey].gmv += r.gmv; dailyMap[dayKey].komisi += r.komisi; dailyMap[dayKey].sample += r.sample;
+  });
+
+  const dayKeys = Object.keys(dailyMap).map(Number);
+  const daysElapsed = dayKeys.length ? Math.max.apply(null, dayKeys) : 0;
+  const daysRemaining = daysInMonth - daysElapsed;
+  const py = periode.split('-').map(Number);
+
+  const dailyTrend = [];
+  for (let d = 1; d <= daysElapsed; d++){
+    const v = dailyMap[d] || { konten:0, order:0, gmv:0, komisi:0, sample:0 };
+    dailyTrend.push({
+      label: d + ' ' + String(py[1]).padStart(2,'0'),
+      konten: Math.round(v.konten), order: Math.round(v.order),
+      gmv: Math.round(v.gmv), komisi: Math.round(v.komisi), sample: Math.round(v.sample)
+    });
+  }
+
+  const komisiRateAktual = totalGmv > 0 ? (totalKomisi / totalGmv) * 100 : 0;
+  const komisiRateTarget = target.gmv > 0 ? (target.komisi / target.gmv) * 100 : 0;
+
+  function gapPct(t, a){ return t > 0 ? (a / t) * 100 : 0; }
+  function reqDaily(t, a){ return daysRemaining > 0 ? Math.max(0, t - a) / daysRemaining : 0; }
+
+  return {
+    target: { konten: target.konten, order: target.order, gmv: target.gmv, komisi: target.komisi, sample: target.sample, komisiRate: komisiRateTarget },
+    aktual: { konten: totalKonten, order: totalOrder, gmv: totalGmv, komisi: totalKomisi, sample: totalSample, komisiRate: komisiRateAktual },
+    gap: {
+      konten: target.konten - totalKonten, order: target.order - totalOrder, gmv: target.gmv - totalGmv,
+      komisi: target.komisi - totalKomisi, sample: target.sample - totalSample, komisiRate: komisiRateAktual - komisiRateTarget,
+      pctKonten: gapPct(target.konten, totalKonten), pctOrder: gapPct(target.order, totalOrder), pctGmv: gapPct(target.gmv, totalGmv),
+      pctKomisi: gapPct(target.komisi, totalKomisi), pctSample: gapPct(target.sample, totalSample)
+    },
+    daysInMonth: daysInMonth, daysElapsed: daysElapsed, daysRemaining: daysRemaining,
+    requiredDaily: {
+      konten: reqDaily(target.konten, totalKonten), order: reqDaily(target.order, totalOrder), gmv: reqDaily(target.gmv, totalGmv),
+      komisi: reqDaily(target.komisi, totalKomisi), sample: reqDaily(target.sample, totalSample)
+    },
+    dailyTrend: dailyTrend
+  };
+}
+
+function generateAffiliateInsights(data){
+  const insights = [];
+  const target = data.target, aktual = data.aktual, gap = data.gap;
+  const daysInMonth = data.daysInMonth, daysElapsed = data.daysElapsed;
+  const expectedPct = daysInMonth > 0 ? (daysElapsed / daysInMonth) * 100 : 0;
+
+  if (daysElapsed === 0){
+    insights.push({level:'info', icon:'ℹ️', html:'Belum ada data aktual harian untuk periode ini — insight otomatis akan muncul begitu data mulai masuk.'});
+    return insights;
+  }
+
+  if (target.gmv > 0){
+    const diff = gap.pctGmv - expectedPct;
+    if (diff >= 5){
+      insights.push({level:'success', icon:'🚀', tag:'On Pace', html:'GMV affiliate sudah <b>'+pct(gap.pctGmv)+'</b> tercapai, lebih cepat dari pace waktu yang baru <b>'+pct(expectedPct)+'</b> berjalan.'});
+    } else if (diff <= -5){
+      insights.push({level:'warn', icon:'⚠️', tag:'Tertinggal', html:'GMV affiliate baru <b>'+pct(gap.pctGmv)+'</b> tercapai, padahal waktu berjalan sudah <b>'+pct(expectedPct)+'</b> — perlu percepatan konten/order agar target bulanan tetap realistis.'});
+    } else {
+      insights.push({level:'info', icon:'⏱️', tag:'Sesuai Pace', html:'Perolehan GMV affiliate berjalan sesuai pace waktu (<b>'+pct(gap.pctGmv)+'</b> tercapai vs <b>'+pct(expectedPct)+'</b> waktu berjalan).'});
+    }
+  }
+
+  if (target.komisi > 0 && target.gmv > 0){
+    if (aktual.komisiRate <= target.komisiRate + 0.01){
+      insights.push({level:'success', icon:'✅', tag:'Rasio Komisi Sehat', html:'Rasio komisi aktual <b>'+aktual.komisiRate.toFixed(1)+'%</b> masih sesuai/lebih baik dari target <b>'+target.komisiRate.toFixed(1)+'%</b> dari GMV.'});
+    } else {
+      insights.push({level:'warn', icon:'💸', tag:'Rasio Komisi Membengkak', html:'Rasio komisi aktual <b>'+aktual.komisiRate.toFixed(1)+'%</b> melebihi target <b>'+target.komisiRate.toFixed(1)+'%</b> dari GMV — komisi yang dibayar relatif lebih besar dibanding penjualan yang dihasilkan.'});
+    }
+  }
+
+  if (target.konten > 0 || target.order > 0){
+    const diffKonten = gap.pctKonten - expectedPct;
+    const diffOrder = gap.pctOrder - expectedPct;
+    if (target.konten > 0 && diffKonten <= -10){
+      insights.push({level:'amber', icon:'📉', tag:'Konten Kurang', html:'Jumlah konten baru <b>'+pct(gap.pctKonten)+'</b> dari target, tertinggal dari pace waktu (<b>'+pct(expectedPct)+'</b>) — perlu dorong lebih banyak affiliate untuk posting.'});
+    }
+    if (target.order > 0 && diffOrder <= -10){
+      insights.push({level:'amber', icon:'📦', tag:'Order Kurang', html:'Jumlah order baru <b>'+pct(gap.pctOrder)+'</b> dari target, tertinggal dari pace waktu (<b>'+pct(expectedPct)+'</b>).'});
+    }
+  }
+
+  if (target.sample > 0){
+    const diffSample = gap.pctSample - expectedPct;
+    if (diffSample >= 15){
+      insights.push({level:'info', icon:'📮', tag:'Sample Terkirim Cepat', html:'Sample sudah terkirim <b>'+pct(gap.pctSample)+'</b> dari target bulanan, lebih cepat dari pace waktu — pastikan stok sample masih cukup sampai akhir bulan.'});
+    }
+  }
+
+  return insights;
+}
+
+function refreshAffiliateDropdowns(){
+  const periods = getAffiliatePeriodsLocal();
+  const periodeSel = document.getElementById('affPeriodeSelect');
+  if (!periodeSel) return;
+  const prevPeriode = periodeSel.value;
+  periodeSel.innerHTML = '';
+  periods.forEach(function(p){
+    const o = document.createElement('option');
+    o.value = p.value; o.textContent = p.label;
+    periodeSel.appendChild(o);
+  });
+  if (periods.some(function(p){ return p.value === prevPeriode; })) periodeSel.value = prevPeriode;
+
+  if (periods.length){
+    loadAffiliateDashboard();
+  } else {
+    document.getElementById('affDashboardArea').innerHTML = '<div class="loading">Belum ada data affiliate. Isi lewat form input di bawah, atau hubungkan Google Sheets di tab Pengaturan &amp; Panduan.</div>';
+  }
+}
+
+function loadAffiliateDashboard(){
+  const periodeSel = document.getElementById('affPeriodeSelect');
+  if (!periodeSel || !periodeSel.value) return;
+  try{
+    const data = getAffiliateDashboardDataLocal(periodeSel.value);
+    renderAffiliateDashboardArea(data);
+  }catch(err){
+    document.getElementById('affDashboardArea').innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
+  }
+}
+
+function renderAffiliateDashboardArea(data){
+  const area = document.getElementById('affDashboardArea');
+  const komisiRateOk = data.target.komisiRate > 0 ? data.aktual.komisiRate <= data.target.komisiRate : true;
+
+  area.innerHTML = `
+    <div class="grid-top">
+      <div class="card">
+        <h3>🧾 GMV / Omzet Affiliate</h3>
+        <div class="metric-val">${fmtIDR(data.aktual.gmv)}</div>
+        <div class="metric-sub">Target: ${fmtIDR(data.target.gmv)} (${pct(data.gap.pctGmv)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(data.gap.pctGmv,100)}%;background:var(--green)"></div></div>
+        <div class="gap-row">
+          <span>Sisa menuju target</span>
+          <b class="${data.gap.gmv>0?'neg':'pos'}">${data.gap.gmv>0? fmtIDR(data.gap.gmv)+' lagi' : 'Terlampaui '+fmtIDR(-data.gap.gmv)}</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>💸 Komisi Dibayar</h3>
+        <div class="metric-val">${fmtIDR(data.aktual.komisi)}</div>
+        <div class="metric-sub">Target: ${fmtIDR(data.target.komisi)} (${pct(data.gap.pctKomisi)} terpakai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(data.gap.pctKomisi,100)}%;background:var(--blue)"></div></div>
+        <div class="gap-row">
+          <span>Sisa menuju target</span>
+          <b class="${data.gap.komisi>0?'neg':'pos'}">${data.gap.komisi>0? fmtIDR(data.gap.komisi)+' lagi' : 'Terlampaui '+fmtIDR(-data.gap.komisi)}</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📐 Rasio Komisi <span class="badge ${komisiRateOk?'ok':'warn'}">${komisiRateOk?'Sesuai Target':'Di Atas Target'}</span></h3>
+        <div class="metric-val">${data.aktual.komisiRate.toFixed(1)}%</div>
+        <div class="metric-sub">Target maks: ${data.target.komisiRate.toFixed(1)}% dari GMV</div>
+        <div class="gap-row">
+          <span>Selisih dari target</span>
+          <b class="${data.gap.komisiRate>0?'neg':'pos'}">${data.gap.komisiRate>0? '+'+data.gap.komisiRate.toFixed(1)+'% dari target' : data.gap.komisiRate.toFixed(1)+'% (lebih efisien)'}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-top">
+      <div class="card">
+        <h3>📝 Jumlah Konten</h3>
+        <div class="metric-val">${Math.round(data.aktual.konten).toLocaleString('id-ID')}</div>
+        <div class="metric-sub">Target: ${Math.round(data.target.konten).toLocaleString('id-ID')} (${pct(data.gap.pctKonten)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(data.gap.pctKonten,100)}%;background:var(--amber,#f2a72c)"></div></div>
+      </div>
+
+      <div class="card">
+        <h3>📦 Total Order</h3>
+        <div class="metric-val">${Math.round(data.aktual.order).toLocaleString('id-ID')}</div>
+        <div class="metric-sub">Target: ${Math.round(data.target.order).toLocaleString('id-ID')} (${pct(data.gap.pctOrder)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(data.gap.pctOrder,100)}%;background:var(--green)"></div></div>
+      </div>
+
+      <div class="card">
+        <h3>📮 Sample Dikirim</h3>
+        <div class="metric-val">${Math.round(data.aktual.sample).toLocaleString('id-ID')}</div>
+        <div class="metric-sub">Target: ${Math.round(data.target.sample).toLocaleString('id-ID')} (${pct(data.gap.pctSample)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(data.gap.pctSample,100)}%;background:var(--blue)"></div></div>
+      </div>
+    </div>
+
+    <div class="card insight-card">
+      <div class="section-title">🔍 Insight Otomatis</div>
+      <div class="insight-list">
+        ${generateAffiliateInsights(data).map(function(ins){
+          return '<div class="insight-item '+ins.level+'">'
+            + '<span class="icon">'+ins.icon+'</span>'
+            + '<span class="txt">'+(ins.tag ? '<span class="tag '+ins.level+'">'+ins.tag+'</span>' : '')+ins.html+'</span>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">🧮 Crosscheck Kekurangan Target Bulanan (sisa ${data.daysRemaining} hari dari ${data.daysInMonth} hari)</div>
+      <div class="gap-cards">
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan GMV / hari agar capai target</div>
+          <div class="num">${fmtIDR(data.requiredDaily.gmv)}</div>
+        </div>
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan Order / hari agar capai target</div>
+          <div class="num">${Math.round(data.requiredDaily.order).toLocaleString('id-ID')}</div>
+        </div>
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan Konten / hari agar capai target</div>
+          <div class="num">${Math.round(data.requiredDaily.konten).toLocaleString('id-ID')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-bottom">
+      <div class="card">
+        <div class="section-title">Tren GMV &amp; Komisi Harian</div>
+        <div class="chart-box" style="height:260px;position:relative;">
+          <canvas id="affMoneyChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Tren Volume Harian (Konten, Order, Sample)</div>
+        <div class="chart-box" style="height:260px;position:relative;">
+          <canvas id="affVolumeChart"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  drawAffiliateMoneyChart(data);
+  drawAffiliateVolumeChart(data);
+}
+
+function drawAffiliateMoneyChart(data){
+  const ctx = document.getElementById('affMoneyChart');
+  if (!ctx) return;
+  if (charts.affMoney) charts.affMoney.destroy();
+  charts.affMoney = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.dailyTrend.map(function(d){return d.label;}),
+      datasets: [
+        { label:'GMV', data: data.dailyTrend.map(function(d){return d.gmv;}), borderColor:'#22a559', backgroundColor:'transparent', tension:.3, pointRadius:2 },
+        { label:'Komisi', data: data.dailyTrend.map(function(d){return d.komisi;}), borderColor:'#2f6fed', backgroundColor:'transparent', tension:.3, pointRadius:2 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      scales:{ y:{type:'linear', position:'left', title:{display:true,text:'IDR'}} },
+      plugins:{legend:{position:'bottom'}}
+    }
+  });
+}
+
+function drawAffiliateVolumeChart(data){
+  const ctx = document.getElementById('affVolumeChart');
+  if (!ctx) return;
+  if (charts.affVolume) charts.affVolume.destroy();
+  charts.affVolume = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.dailyTrend.map(function(d){return d.label;}),
+      datasets: [
+        { label:'Konten', data: data.dailyTrend.map(function(d){return d.konten;}), backgroundColor:'#f2a72c' },
+        { label:'Order', data: data.dailyTrend.map(function(d){return d.order;}), backgroundColor:'#22a559' },
+        { label:'Sample', data: data.dailyTrend.map(function(d){return d.sample;}), backgroundColor:'#2f6fed' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      scales:{ y:{beginAtZero:true, title:{display:true,text:'Jumlah'}} },
+      plugins:{legend:{position:'bottom'}}
+    }
+  });
+}
+
+/* ---- Render tab Affiliate: filter + dashboard (form input ada di tab "Input Data") ---- */
+function renderAffiliate(){
+  const el = document.getElementById('affiliateContent');
+  const connected = !!getAppsScriptUrl();
+
+  const affTargetRows = appState.affiliateTargetRows.slice().sort(function(a,b){ return b.periode.localeCompare(a.periode); }).map(function(r){
+    return '<tr><td>'+r.periode+'</td><td>'+Math.round(r.targetKonten).toLocaleString('id-ID')+'</td><td>'+Math.round(r.targetOrder).toLocaleString('id-ID')+'</td><td>'+fmtIDR(r.targetGmv)+'</td><td>'+fmtIDR(r.targetKomisi)+'</td><td>'+Math.round(r.targetSample).toLocaleString('id-ID')+'</td></tr>';
+  }).join('');
+
+  const affAktualRows = appState.affiliateAktualRows.slice().sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal); }).map(function(r){
+    return '<tr><td>'+r.tanggal+'</td><td>'+Math.round(r.konten).toLocaleString('id-ID')+'</td><td>'+Math.round(r.order).toLocaleString('id-ID')+'</td><td>'+fmtIDR(r.gmv)+'</td><td>'+fmtIDR(r.komisi)+'</td><td>'+Math.round(r.sample).toLocaleString('id-ID')+'</td></tr>';
+  }).join('');
+
+  el.innerHTML = `
+    <div class="conn-banner ${connected?'ok':'warn'}" style="margin-bottom:16px;">
+      <span class="dot"></span> ${connected
+        ? 'Data affiliate tersimpan lokal &amp; otomatis dikirim ke sheet "Target Affiliate" &amp; "Aktual Affiliate" (dua sheet terpisah) di Google Sheets kamu lewat Apps Script Web App yang sama.'
+        : 'URL Apps Script belum diisi — data affiliate hanya tersimpan di perangkat/browser ini. Isi di tab Pengaturan &amp; Panduan supaya tersinkron ke Google Sheets.'}
+    </div>
+
+    <div id="affDashboardArea"><div class="loading">Memuat data affiliate…</div></div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">📋 Data Affiliate Tersimpan</div>
+      <p class="metric-sub" style="margin:-4px 0 10px;">Untuk menambah/mengubah data (Target Bulanan &amp; Input Harian), isi lewat form di tab <b>📝 Input Data</b>. Data totalan harian, tanpa breakdown per-nama affiliate.</p>
+      <p style="font-size:12.5px;font-weight:600;margin:10px 0 4px;">Target Affiliate (Bulanan)</p>
+      <table>
+        <thead><tr><th>Periode</th><th>Target Konten</th><th>Target Order</th><th>Target GMV</th><th>Target Komisi</th><th>Target Sample</th></tr></thead>
+        <tbody>${affTargetRows || '<tr><td colspan="6" style="color:var(--sub)">Belum ada data target affiliate.</td></tr>'}</tbody>
+      </table>
+      <p style="font-size:12.5px;font-weight:600;margin:16px 0 4px;">Aktual Affiliate (Harian)</p>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Konten</th><th>Order</th><th>GMV</th><th>Komisi</th><th>Sample</th></tr></thead>
+        <tbody>${affAktualRows || '<tr><td colspan="6" style="color:var(--sub)">Belum ada data harian affiliate.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+
+  refreshAffiliateDropdowns();
+}
+
+// Form "Set Target Bulanan Affiliate" — menulis ke sheet "Target Affiliate"
+// (upsert per periode). Sheet ini TERPISAH dari "Aktual Affiliate", jadi
+// tidak mungkin menimpa data harian yang sudah diinput.
+async function submitAffiliateTargetForm(){
+  const periode = document.getElementById('fAffTargetPeriode').value.trim();
+  const targetKonten = Number(document.getElementById('fAffTargetKonten').value) || 0;
+  const targetOrder = Number(document.getElementById('fAffTargetOrder').value) || 0;
+  const targetGmv = Number(document.getElementById('fAffTargetGmv').value) || 0;
+  const targetKomisi = Number(document.getElementById('fAffTargetKomisi').value) || 0;
+  const targetSample = Number(document.getElementById('fAffTargetSample').value) || 0;
+  const statusEl = document.getElementById('affTargetFormStatus');
+
+  if (!/^\d{4}-\d{2}$/.test(periode)){
+    statusEl.innerHTML = '<span class="badge warn">Periode wajib diisi</span>';
+    return;
+  }
+
+  const idx = appState.affiliateTargetRows.findIndex(function(r){ return r.periode === periode; });
+  if (idx > -1){
+    appState.affiliateTargetRows[idx] = { periode: periode, targetKonten: targetKonten, targetOrder: targetOrder, targetGmv: targetGmv, targetKomisi: targetKomisi, targetSample: targetSample };
+  } else {
+    appState.affiliateTargetRows.push({ periode: periode, targetKonten: targetKonten, targetOrder: targetOrder, targetGmv: targetGmv, targetKomisi: targetKomisi, targetSample: targetSample });
+  }
+  saveLocalState();
+
+  const url = getAppsScriptUrl();
+  if (!url){
+    statusEl.innerHTML = '<span class="badge ok">Tersimpan ✓ di perangkat ini</span> (belum terhubung ke Google Sheets — atur di tab Pengaturan).';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Menyimpan &amp; mengirim ke spreadsheet…</span>';
+  const res = await pushToSheet({ type:'affiliateTarget', periode:periode, targetkonten:targetKonten, targetorder:targetOrder, targetgmv:targetGmv, targetkomisi:targetKomisi, targetsample:targetSample });
+  statusEl.innerHTML = res === 'ok'
+    ? '<span class="badge ok">Target tersimpan ✓ ke sheet "Target Affiliate"</span>'
+    : '<span class="badge warn">Tersimpan di perangkat ini, tapi gagal mengirim ke spreadsheet. Cek koneksi/URL Apps Script.</span>';
+}
+
+// Form "Input Harian Affiliate" — menulis ke sheet "Aktual Affiliate"
+// (upsert per tanggal). Sheet ini TERPISAH dari "Target Affiliate", jadi
+// input harian tidak pernah menyentuh/menimpa data target sama sekali.
+async function submitAffiliateAktualForm(){
+  const tanggalRaw = document.getElementById('fAffTanggal').value;
+  const konten = Number(document.getElementById('fAffKonten').value) || 0;
+  const order = Number(document.getElementById('fAffOrder').value) || 0;
+  const gmv = Number(document.getElementById('fAffGmv').value) || 0;
+  const komisi = Number(document.getElementById('fAffKomisi').value) || 0;
+  const sample = Number(document.getElementById('fAffSample').value) || 0;
+  const statusEl = document.getElementById('affFormStatus');
+
+  if (!tanggalRaw){
+    statusEl.innerHTML = '<span class="badge warn">Tanggal wajib diisi</span>';
+    return;
+  }
+  const tanggal = tanggalRaw;
+
+  const idx = appState.affiliateAktualRows.findIndex(function(r){ return r.tanggal === tanggal; });
+  if (idx > -1){
+    appState.affiliateAktualRows[idx] = { tanggal: tanggal, konten: konten, order: order, gmv: gmv, komisi: komisi, sample: sample };
+  } else {
+    appState.affiliateAktualRows.push({ tanggal: tanggal, konten: konten, order: order, gmv: gmv, komisi: komisi, sample: sample });
+  }
+  saveLocalState();
+
+  const url = getAppsScriptUrl();
+  if (!url){
+    statusEl.innerHTML = '<span class="badge ok">Tersimpan ✓ di perangkat ini</span> (belum terhubung ke Google Sheets — atur di tab Pengaturan).';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Menyimpan &amp; mengirim ke spreadsheet…</span>';
+  const res = await pushToSheet({ type:'affiliateAktual', tanggal:tanggal, konten:konten, order:order, gmv:gmv, komisi:komisi, sample:sample });
+  statusEl.innerHTML = res === 'ok'
+    ? '<span class="badge ok">Data harian tersimpan ✓ ke sheet "Aktual Affiliate"</span>'
+    : '<span class="badge warn">Tersimpan di perangkat ini, tapi gagal mengirim ke spreadsheet. Cek koneksi/URL Apps Script.</span>';
 }
 
 function refreshMarketplaceDropdowns(){
