@@ -989,15 +989,15 @@ function renderInputForm(){
         </div>
         <div class="form-row">
           <label>Target Spending (IDR)</label>
-          <input type="number" id="fTargetSpending" placeholder="cth: 150000000" oninput="autoFillTargetCpl()">
+          <input type="text" inputmode="numeric" id="fTargetSpending" placeholder="cth: 150000000" oninput="formatRibuan(this);autoFillTargetCpl()">
         </div>
         <div class="form-row">
           <label>Target Leads</label>
-          <input type="number" id="fTargetLeads" placeholder="cth: 750" oninput="autoFillTargetCpl()">
+          <input type="text" inputmode="numeric" id="fTargetLeads" placeholder="cth: 750" oninput="formatRibuan(this);autoFillTargetCpl()">
         </div>
         <div class="form-row">
           <label>Target CPL (IDR)</label>
-          <input type="number" id="fTargetCpl" placeholder="cth: 200000" oninput="this.dataset.manual='1'">
+          <input type="text" inputmode="numeric" id="fTargetCpl" placeholder="cth: 200000" oninput="formatRibuan(this);this.dataset.manual='1'">
           <div class="hint">Otomatis terisi dari Target Spending ÷ Target Leads, tapi bisa diubah manual kalau KPI CPL berbeda dari hasil bagi tersebut.</div>
         </div>
         <div class="btn-row">
@@ -1018,11 +1018,11 @@ function renderInputForm(){
         </div>
         <div class="form-row">
           <label>Spending Hari Ini (IDR)</label>
-          <input type="number" id="fAktualSpending" placeholder="cth: 3500000">
+          <input type="text" inputmode="numeric" id="fAktualSpending" placeholder="cth: 3500000" oninput="formatRibuan(this);">
         </div>
         <div class="form-row">
           <label>Leads Hari Ini</label>
-          <input type="number" id="fAktualLeads" placeholder="cth: 18">
+          <input type="text" inputmode="numeric" id="fAktualLeads" placeholder="cth: 18" oninput="formatRibuan(this);">
         </div>
         <div class="btn-row">
           <button class="btn" onclick="submitAktualForm()">💾 Simpan Data Harian</button>
@@ -1062,11 +1062,11 @@ function renderInputForm(){
           </div>
           <div class="form-row">
             <label>Target Spending Bulanan (IDR)</label>
-            <input type="number" id="fMpTargetSpending" placeholder="cth: 15000000">
+            <input type="text" inputmode="numeric" id="fMpTargetSpending" placeholder="cth: 15000000" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Target Omzet Bulanan (IDR)</label>
-            <input type="number" id="fMpTargetOmzet" placeholder="cth: 75000000">
+            <input type="text" inputmode="numeric" id="fMpTargetOmzet" placeholder="cth: 75000000" oninput="formatRibuan(this);">
           </div>
           <div class="btn-row">
             <button class="btn" onclick="submitMarketplaceTargetForm()">💾 Simpan Target</button>
@@ -1086,11 +1086,11 @@ function renderInputForm(){
           </div>
           <div class="form-row">
             <label>Spending Hari Ini (IDR)</label>
-            <input type="number" id="fMpSpending" placeholder="cth: 500000">
+            <input type="text" inputmode="numeric" id="fMpSpending" placeholder="cth: 500000" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Omzet Hari Ini (IDR)</label>
-            <input type="number" id="fMpOmzet" placeholder="cth: 2500000">
+            <input type="text" inputmode="numeric" id="fMpOmzet" placeholder="cth: 2500000" oninput="formatRibuan(this);">
           </div>
           <div class="btn-row">
             <button class="btn" onclick="submitMarketplaceAktualForm()">💾 Simpan Data Harian</button>
@@ -1123,23 +1123,23 @@ function renderInputForm(){
           </div>
           <div class="form-row">
             <label>Target Jumlah Konten</label>
-            <input type="number" id="fAffTargetKonten" placeholder="cth: 120">
+            <input type="text" inputmode="numeric" id="fAffTargetKonten" placeholder="cth: 120" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Target Order</label>
-            <input type="number" id="fAffTargetOrder" placeholder="cth: 900">
+            <input type="text" inputmode="numeric" id="fAffTargetOrder" placeholder="cth: 900" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Target GMV/Omzet (IDR)</label>
-            <input type="number" id="fAffTargetGmv" placeholder="cth: 300000000">
+            <input type="text" inputmode="numeric" id="fAffTargetGmv" placeholder="cth: 300000000" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Target Komisi (Budget, IDR)</label>
-            <input type="number" id="fAffTargetKomisi" placeholder="cth: 30000000">
+            <input type="text" inputmode="numeric" id="fAffTargetKomisi" placeholder="cth: 30000000" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Target Sample Dikirim</label>
-            <input type="number" id="fAffTargetSample" placeholder="cth: 50">
+            <input type="text" inputmode="numeric" id="fAffTargetSample" placeholder="cth: 50" oninput="formatRibuan(this);">
           </div>
           <div class="btn-row">
             <button class="btn" onclick="submitAffiliateTargetForm()">💾 Simpan Target</button>
@@ -1155,23 +1155,23 @@ function renderInputForm(){
           </div>
           <div class="form-row">
             <label>Jumlah Konten Hari Ini</label>
-            <input type="number" id="fAffKonten" placeholder="cth: 6">
+            <input type="text" inputmode="numeric" id="fAffKonten" placeholder="cth: 6" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Order Hari Ini</label>
-            <input type="number" id="fAffOrder" placeholder="cth: 35">
+            <input type="text" inputmode="numeric" id="fAffOrder" placeholder="cth: 35" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>GMV/Omzet Hari Ini (IDR)</label>
-            <input type="number" id="fAffGmv" placeholder="cth: 12000000">
+            <input type="text" inputmode="numeric" id="fAffGmv" placeholder="cth: 12000000" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Komisi Hari Ini (IDR)</label>
-            <input type="number" id="fAffKomisi" placeholder="cth: 1200000">
+            <input type="text" inputmode="numeric" id="fAffKomisi" placeholder="cth: 1200000" oninput="formatRibuan(this);">
           </div>
           <div class="form-row">
             <label>Sample Dikirim Hari Ini</label>
-            <input type="number" id="fAffSample" placeholder="cth: 2">
+            <input type="text" inputmode="numeric" id="fAffSample" placeholder="cth: 2" oninput="formatRibuan(this);">
           </div>
           <div class="btn-row">
             <button class="btn" onclick="submitAffiliateAktualForm()">💾 Simpan Data Harian</button>
@@ -1210,20 +1210,20 @@ function refreshInputDatalists(){
 }
 
 function autoFillTargetCpl(){
-  const spending = Number(document.getElementById('fTargetSpending').value);
-  const leads = Number(document.getElementById('fTargetLeads').value);
+  const spending = parseNum('fTargetSpending');
+  const leads = parseNum('fTargetLeads');
   const cplEl = document.getElementById('fTargetCpl');
   if (spending > 0 && leads > 0 && !cplEl.dataset.manual){
-    cplEl.value = Math.round(spending / leads);
+    cplEl.value = Math.round(spending / leads).toLocaleString('id-ID');
   }
 }
 
 async function submitTargetForm(){
   const periode = document.getElementById('fPeriode').value.trim();
   const advertiser = document.getElementById('fTargetAkun').value.trim();
-  const spending = Number(document.getElementById('fTargetSpending').value);
-  const leads = Number(document.getElementById('fTargetLeads').value);
-  const cpl = Number(document.getElementById('fTargetCpl').value);
+  const spending = parseNum('fTargetSpending');
+  const leads = parseNum('fTargetLeads');
+  const cpl = parseNum('fTargetCpl');
   const statusEl = document.getElementById('targetFormStatus');
 
   if (!/^\d{4}-\d{2}$/.test(periode)){
@@ -1258,8 +1258,8 @@ async function submitTargetForm(){
 async function submitAktualForm(){
   const tanggal = document.getElementById('fTanggal').value;
   const advertiser = document.getElementById('fAktualAkun').value.trim();
-  const spending = Number(document.getElementById('fAktualSpending').value);
-  const leads = Number(document.getElementById('fAktualLeads').value);
+  const spending = parseNum('fAktualSpending');
+  const leads = parseNum('fAktualLeads');
   const statusEl = document.getElementById('aktualFormStatus');
 
   if (!tanggal){
@@ -1513,6 +1513,20 @@ function loadDashboard(){
 
 function fmtIDR(n){
   return 'IDR ' + Math.round(n).toLocaleString('id-ID');
+}
+function formatRibuan(el){
+  let raw = el.value.replace(/\D/g,'');
+  const cur = el.selectionStart;
+  const lenBefore = el.value.length;
+  el.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+  const diff = el.value.length - lenBefore;
+  const pos = Math.max(0, (cur||el.value.length) + diff);
+  try{ el.setSelectionRange(pos, pos); }catch(e){}
+}
+function parseNum(el){
+  if (typeof el === 'string') el = document.getElementById(el);
+  if (!el) return 0;
+  return Number((el.value||'').replace(/\./g,'')) || 0;
 }
 function fmtNum(n){
   return Math.round(n).toLocaleString('id-ID');
@@ -2286,11 +2300,11 @@ function renderAffiliate(){
 // tidak mungkin menimpa data harian yang sudah diinput.
 async function submitAffiliateTargetForm(){
   const periode = document.getElementById('fAffTargetPeriode').value.trim();
-  const targetKonten = Number(document.getElementById('fAffTargetKonten').value) || 0;
-  const targetOrder = Number(document.getElementById('fAffTargetOrder').value) || 0;
-  const targetGmv = Number(document.getElementById('fAffTargetGmv').value) || 0;
-  const targetKomisi = Number(document.getElementById('fAffTargetKomisi').value) || 0;
-  const targetSample = Number(document.getElementById('fAffTargetSample').value) || 0;
+  const targetKonten = parseNum('fAffTargetKonten') || 0;
+  const targetOrder = parseNum('fAffTargetOrder') || 0;
+  const targetGmv = parseNum('fAffTargetGmv') || 0;
+  const targetKomisi = parseNum('fAffTargetKomisi') || 0;
+  const targetSample = parseNum('fAffTargetSample') || 0;
   const statusEl = document.getElementById('affTargetFormStatus');
 
   if (!/^\d{4}-\d{2}$/.test(periode)){
@@ -2323,11 +2337,11 @@ async function submitAffiliateTargetForm(){
 // input harian tidak pernah menyentuh/menimpa data target sama sekali.
 async function submitAffiliateAktualForm(){
   const tanggalRaw = document.getElementById('fAffTanggal').value;
-  const konten = Number(document.getElementById('fAffKonten').value) || 0;
-  const order = Number(document.getElementById('fAffOrder').value) || 0;
-  const gmv = Number(document.getElementById('fAffGmv').value) || 0;
-  const komisi = Number(document.getElementById('fAffKomisi').value) || 0;
-  const sample = Number(document.getElementById('fAffSample').value) || 0;
+  const konten = parseNum('fAffKonten') || 0;
+  const order = parseNum('fAffOrder') || 0;
+  const gmv = parseNum('fAffGmv') || 0;
+  const komisi = parseNum('fAffKomisi') || 0;
+  const sample = parseNum('fAffSample') || 0;
   const statusEl = document.getElementById('affFormStatus');
 
   if (!tanggalRaw){
@@ -2602,8 +2616,8 @@ function renderMarketplace(){
 async function submitMarketplaceTargetForm(){
   const periode = document.getElementById('fMpTargetPeriode').value.trim();
   const marketplace = document.getElementById('fMpTargetNama').value.trim();
-  const targetSpending = Number(document.getElementById('fMpTargetSpending').value) || 0;
-  const targetOmzet = Number(document.getElementById('fMpTargetOmzet').value) || 0;
+  const targetSpending = parseNum('fMpTargetSpending') || 0;
+  const targetOmzet = parseNum('fMpTargetOmzet') || 0;
   const statusEl = document.getElementById('mpTargetFormStatus');
 
   if (!/^\d{4}-\d{2}$/.test(periode) || !marketplace){
@@ -2645,8 +2659,8 @@ async function submitMarketplaceTargetForm(){
 async function submitMarketplaceAktualForm(){
   const tanggal = document.getElementById('fMpTanggal').value;
   const marketplace = document.getElementById('fMpNama').value.trim();
-  const spending = Number(document.getElementById('fMpSpending').value) || 0;
-  const omzet = Number(document.getElementById('fMpOmzet').value) || 0;
+  const spending = parseNum('fMpSpending') || 0;
+  const omzet = parseNum('fMpOmzet') || 0;
   const statusEl = document.getElementById('mpFormStatus');
 
   if (!tanggal || !marketplace){
