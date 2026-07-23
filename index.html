@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root{
+    --navy:#0f2540;
+    --navy-2:#123258;
+    --card:#ffffff;
+    --blue:#2f6fed;
+    --green:#22a559;
+    --red:#e5484d;
+    --amber:#f2a72c;
+    --ink:#16233b;
+    --sub:#6b7686;
+    --line:#e6e9f0;
+    --bg:#eef2f8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .topbar{
+    background:var(--navy);
+    color:#fff;
+    padding:14px 22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .topbar h1{
+    font-size:16px;
+    margin:0 24px 0 0;
+    font-weight:600;
+    letter-spacing:.2px;
+  }
+  .topbar .controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .topbar label{font-size:12px;opacity:.85;margin-right:6px;}
+  .topbar select{
+    background:#fff;
+    border:none;
+    border-radius:6px;
+    padding:6px 10px;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .wrap{padding:18px 22px 40px;}
+  .grid-top{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-bottom:16px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:12px;
+    padding:16px 18px;
+    box-shadow:0 1px 3px rgba(15,37,64,.08);
+    border:1px solid var(--line);
+  }
+  .card h3{
+    margin:0 0 10px;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--ink);
+  }
+  .metric-val{font-size:26px;font-weight:700;margin:4px 0;}
+  .metric-sub{font-size:12px;color:var(--sub);}
+  .progress-track{
+    height:8px;background:#eef1f6;border-radius:6px;overflow:hidden;margin:8px 0 4px;
+  }
+  .progress-fill{height:100%;border-radius:6px;}
+  .badge{
+    display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;
+  }
+  .badge.ok{background:#e6f6ea;color:var(--green);}
+  .badge.warn{background:#fdeceb;color:var(--red);}
+  .gap-row{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12.5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);
+  }
+  .gap-row b{font-size:13px;}
+  .grid-bottom{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:16px;
+  }
+  canvas{max-width:100%;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+  th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);}
+  th{background:#f4f6fb;color:var(--sub);font-weight:600;font-size:12px;}
+  .pos{color:var(--green);font-weight:600;}
+  .neg{color:var(--red);font-weight:600;}
+  .section-title{font-size:14px;font-weight:600;margin:0 0 8px;display:flex;align-items:center;gap:8px;}
+  .gap-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
+  .gap-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+  .gap-card .lbl{font-size:12px;color:var(--sub);margin-bottom:4px;}
+  .gap-card .num{font-size:18px;font-weight:700;}
+  .loading{padding:60px;text-align:center;color:var(--sub);font-size:14px;}
+  @media (max-width:900px){
+    .grid-top,.grid-bottom,.gap-cards{grid-template-columns:1fr;}
+  }
+
+  /* ===== Tabs ===== */
+  .tabs{display:flex;gap:6px;}
+  .tab-btn{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.25);
+    color:#fff;
+    padding:7px 14px;
+    border-radius:7px;
+    font-size:12.5px;
+    cursor:pointer;
+    font-weight:500;
+  }
+  .tab-btn:hover{background:rgba(255,255,255,.16);}
+  .tab-btn.active{background:#fff;color:var(--navy);font-weight:700;border-color:#fff;}
+
+  /* ===== Connection banner ===== */
+  .conn-banner{
+    display:flex;align-items:center;gap:10px;
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:var(--sub);
+  }
+  .conn-banner .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .conn-banner.ok .dot{background:var(--green);}
+  .conn-banner.warn .dot{background:var(--amber);}
+  .conn-banner a{color:var(--blue);text-decoration:none;font-weight:600;}
+
+  /* ===== Settings / guide layout ===== */
+  .settings-grid{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start;}
+  @media (max-width:900px){.settings-grid{grid-template-columns:1fr;}}
+  .form-row{margin-bottom:14px;}
+  .form-row label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--ink);}
+  .form-row input{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;
+    font-size:13px;color:var(--ink);background:#fbfcfe;
+  }
+  .form-row .hint{font-size:11.5px;color:var(--sub);margin-top:4px;}
+  .btn{
+    background:var(--blue);color:#fff;border:none;border-radius:7px;
+    padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .btn:hover{opacity:.92;}
+  .btn.secondary{background:#eef2f8;color:var(--ink);}
+  .btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px;}
+
+  .guide-step{display:flex;gap:12px;margin-bottom:20px;}
+  .guide-step .num{
+    flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--navy);
+    color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .guide-step .body h4{margin:2px 0 6px;font-size:13.5px;}
+  .guide-step .body p{margin:0 0 8px;font-size:12.5px;color:var(--sub);line-height:1.55;}
+  .guide-step .body table{margin-bottom:6px;}
+  .guide-step .body table th, .guide-step .body table td{font-size:12px;}
+
+  .code-block{
+    position:relative;background:#0f1b2d;color:#d7e3f4;border-radius:8px;
+    padding:14px 16px;font-family:Consolas,'Courier New',monospace;font-size:11.5px;
+    line-height:1.55;overflow-x:auto;white-space:pre;margin:8px 0 4px;max-height:340px;
+  }
+  .copy-btn{
+    position:absolute;top:8px;right:8px;background:rgba(255,255,255,.12);color:#fff;
+    border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 9px;
+    font-size:11px;cursor:pointer;
+  }
+  .copy-btn:hover{background:rgba(255,255,255,.22);}
+
+  /* ===== Insight Otomatis ===== */
+  .insight-card{margin-bottom:16px;}
+  .insight-list{margin-top:4px;}
+  .insight-item{
+    display:flex;gap:10px;align-items:flex-start;
+    padding:10px 2px;border-bottom:1px dashed var(--line);font-size:13px;line-height:1.55;
+  }
+  .insight-item:last-child{border-bottom:none;padding-bottom:2px;}
+  .insight-item .icon{font-size:15px;flex-shrink:0;line-height:1.55;}
+  .insight-item .txt b{color:var(--ink);}
+  .insight-item .tag{
+    display:inline-block;padding:1px 8px;border-radius:10px;font-size:10.5px;
+    font-weight:700;margin-right:7px;vertical-align:middle;white-space:nowrap;
+  }
+  .tag.success{background:#e6f6ea;color:var(--green);}
+  .tag.warn{background:#fdeceb;color:var(--red);}
+  .tag.amber{background:#fdf3e3;color:var(--amber);}
+  .tag.info{background:#eaf1fd;color:var(--blue);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📊 Dashboard Advertiser Meta — Target vs Aktual</h1>
+  <div class="controls">
+    <div class="tabs">
+      <button class="tab-btn active" id="tabDashboardBtn" onclick="switchTab('dashboard')">📊 Dashboard</button>
+      <button class="tab-btn" id="tabInputBtn" onclick="switchTab('input')">📝 Input Data</button>
+      <button class="tab-btn" id="tabMarketplaceBtn" onclick="switchTab('marketplace')">🛒 Marketplace</button>
+      <button class="tab-btn" id="tabSettingsBtn" onclick="switchTab('settings')">⚙️ Pengaturan &amp; Panduan</button>
+    </div>
+    <div id="filterControls">
+      <label id="filterLabel1">Periode:</label>
+      <select id="periodeSelect"></select>
+      <select id="mpPeriodeSelect" onchange="loadMarketplaceDashboard()" style="display:none;"></select>
+    </div>
+    <div id="filterControls2">
+      <label id="filterLabel2">Advertiser:</label>
+      <select id="akunSelect"></select>
+      <select id="mpFilterSelect" onchange="loadMarketplaceDashboard()" style="display:none;"></select>
+    </div>
+    <button class="btn secondary" id="btnRefresh" onclick="refreshFromSheetBtn()" title="Tarik data terbaru dari Google Sheets" style="padding:8px 12px;">🔄 Refresh</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="connBanner"></div>
+  <div id="content">
+    <div class="loading">Memuat data dashboard…</div>
+  </div>
+  <div id="inputContent" style="display:none;"></div>
+  <div id="marketplaceContent" style="display:none;"></div>
+  <div id="settingsContent" style="display:none;"></div>
+</div>
+
+<script>
+let charts = {};
+
+/* ======================================================================
+   STATE & PENYIMPANAN LOKAL (localStorage)
+   ----------------------------------------------------------------------
+   Dashboard ini TIDAK lagi berjalan sebagai Web App Apps Script (tidak
+   pakai google.script.run). Metode integrasinya sekarang sama seperti
+   di Dashboard Advertiser: dashboard adalah file HTML biasa yang bisa
+   dibuka langsung di browser / dihosting di mana saja, lalu terhubung
+   ke Google Sheets lewat sebuah URL Web App Apps Script terpisah
+   (deploy dari spreadsheet-nya sendiri) memakai fetch().
+
+   - Data Target & Aktual disimpan lokal di localStorage supaya dashboard
+     tetap bisa dipakai walau lagi offline / URL belum diisi.
+   - Begitu URL Web App diisi, dashboard otomatis "Tarik Data" dari
+     spreadsheet setiap kali halaman dibuka (auto-sync), dan setiap
+     submit form di tab "Input Data" otomatis "Kirim" ke spreadsheet.
+   ====================================================================== */
+const LOCAL_KEY = 'marketingDashboardState_v1';
+let appState = { appsScriptUrl: '', targetRows: [], aktualRows: [], marketplaceRows: [] };
+
+function saveLocalState(){
+  try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(appState)); }
+  catch(e){ console.warn('Gagal menyimpan ke localStorage:', e); }
+}
+function loadLocalState(){
+  try{
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    appState.appsScriptUrl = parsed.appsScriptUrl || '';
+    appState.targetRows = Array.isArray(parsed.targetRows) ? parsed.targetRows : [];
+    appState.aktualRows = Array.isArray(parsed.aktualRows) ? parsed.aktualRows : [];
+    appState.marketplaceRows = Array.isArray(parsed.marketplaceRows) ? parsed.marketplaceRows : [];
+    return true;
+  }catch(e){ console.warn('Gagal memuat localStorage:', e); return false; }
+}
+function getAppsScriptUrl(){ return (appState.appsScriptUrl || '').trim(); }
+
+/* ======================================================================
+   KODE APPS SCRIPT (Code.gs) — ditempel user di proyek Apps Script yang
+   di-bind ke spreadsheet mereka sendiri, lalu di-deploy sebagai Web App
+   terpisah dari dashboard. Dashboard hanya bicara ke URL hasil deploy
+   itu lewat fetch() — persis pola yang dipakai Dashboard Advertiser.
+   ====================================================================== */
+const APPS_SCRIPT_CODE = `// ============================================================
+// APPS SCRIPT — DASHBOARD MARKETING (Target vs Aktual)
+// Paste di Google Apps Script (Extensions -> Apps Script dari spreadsheet
+// kamu) -> Deploy -> New deployment -> Web app
+//   Execute as   : Me
+//   Who has access: Anyone
+// Salin URL hasil deploy ke kolom "URL Web App Apps Script" di dashboard.
+// ============================================================
+
+function doGet(e){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var target = sheetToObjects(ss.getSheetByName('Target'));
+  var aktual = sheetToObjects(ss.getSheetByName('Aktual'));
+  var marketplace = sheetToObjects(ss.getSheetByName('Marketplace'));
+  return jsonOutput({ target: target, aktual: aktual, marketplace: marketplace });
+}
+
+function doPost(e){
+  var data = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  // Lock supaya request yang datang hampir bersamaan (mis. submit target &
+  // aktual sekaligus) tidak saling menimpa baris satu sama lain.
+  var lock = LockService.getScriptLock();
+  try{
+    lock.waitLock(30000);
+  } catch(lockErr){
+    return jsonOutput({ status:'error', message:'Server sibuk, coba lagi.' });
+  }
+  try{
+    if (data.type === 'target') upsertTarget(ss, data);
+    else if (data.type === 'aktual') upsertAktual(ss, data);
+    else if (data.type === 'marketplace') upsertMarketplace(ss, data);
+    else if (data.type === 'marketplaceTarget') upsertMarketplaceTarget(ss, data);
+    else if (data.type === 'marketplaceAktual') upsertMarketplaceAktual(ss, data);
+  } finally {
+    lock.releaseLock();
+  }
+  return jsonOutput({ status:'ok' });
+}
+
+function jsonOutput(obj){
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Format sel tanggal (Date object atau string) jadi 'yyyy-MM-dd' memakai
+// timezone SPREADSHEET, supaya tanggal yang dibaca dashboard tidak geser.
+function formatCellDate(v){
+  if (Object.prototype.toString.call(v) === '[object Date]'){
+    return Utilities.formatDate(v, SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  }
+  return String(v).trim();
+}
+
+// Ubah sebuah sheet jadi array of object. Header "Target Spending" jadi
+// key "targetspending" (huruf kecil, tanpa spasi) supaya gampang dibaca
+// dashboard tanpa peduli urutan kolom.
+function sheetToObjects(sheet){
+  if (!sheet) return [];
+  var rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return [];
+  var headers = rows[0].map(function(h){ return String(h).trim().toLowerCase().replace(/\\s+/g,''); });
+  var out = [];
+  for (var i = 1; i < rows.length; i++){
+    var row = rows[i];
+    var isEmpty = row.every(function(c){ return c === '' || c === null; });
+    if (isEmpty) continue;
+    var obj = {};
+    headers.forEach(function(h, idx){
+      var v = row[idx];
+      obj[h] = (h === 'tanggal') ? formatCellDate(v) : v;
+    });
+    out.push(obj);
+  }
+  return out;
+}
+
+// Sheet "Target" — upsert berdasarkan (Periode + Advertiser): kalau baris
+// untuk kombinasi itu sudah ada, DITIMPA; kalau belum, ditambah baris baru.
+function upsertTarget(ss, data){
+  var sh = ss.getSheetByName('Target');
+  var rows = sh.getDataRange().getValues();
+  var periode = String(data.periode).trim();
+  var adv = String(data.advertiser).trim().toLowerCase();
+  for (var i = 1; i < rows.length; i++){
+    if (String(rows[i][0]).trim() === periode && String(rows[i][1]).trim().toLowerCase() === adv){
+      sh.getRange(i + 1, 1, 1, 5).setValues([[data.periode, data.advertiser, data.spending, data.leads, data.cpl]]);
+      return;
+    }
+  }
+  sh.appendRow([data.periode, data.advertiser, data.spending, data.leads, data.cpl]);
+}
+
+// Sheet "Aktual" — upsert berdasarkan (Tanggal + Advertiser), supaya input
+// ulang di hari yang sama menimpa baris lama, bukan menumpuk.
+function upsertAktual(ss, data){
+  var sh = ss.getSheetByName('Aktual');
+  var rows = sh.getDataRange().getValues();
+  var tanggal = String(data.tanggal).trim();
+  var adv = String(data.advertiser).trim().toLowerCase();
+  for (var i = 1; i < rows.length; i++){
+    if (formatCellDate(rows[i][0]) === tanggal && String(rows[i][1]).trim().toLowerCase() === adv){
+      sh.getRange(i + 1, 1, 1, 4).setValues([[data.tanggal, data.advertiser, data.spending, data.leads]]);
+      return;
+    }
+  }
+  sh.appendRow([data.tanggal, data.advertiser, data.spending, data.leads]);
+}
+
+// Sheet "Marketplace" — SATU sheet untuk data marketplace (Shopee, Tokopedia,
+// TikTok Shop, dll), kolom Target & Aktual dipisah lewat kolom (bukan sheet
+// terpisah). Upsert berdasarkan (Tanggal + Marketplace).
+// Kolom: Tanggal | Marketplace | Spending | Omzet | Target Spending Bulanan | Target Omzet Bulanan
+// upsertMarketplace = timpa SEMUA kolom sekaligus (dipakai untuk sinkron ulang
+// seluruh data lokal ke spreadsheet, mis. tombol "Kirim Semua Data").
+function upsertMarketplace(ss, data){
+  var sh = ss.getSheetByName('Marketplace');
+  var rows = sh.getDataRange().getValues();
+  var tanggal = String(data.tanggal).trim();
+  var mp = String(data.marketplace).trim().toLowerCase();
+  var rowValues = [data.tanggal, data.marketplace, data.spending, data.omzet, data.targetspending, data.targetomzet];
+  for (var i = 1; i < rows.length; i++){
+    if (formatCellDate(rows[i][0]) === tanggal && String(rows[i][1]).trim().toLowerCase() === mp){
+      sh.getRange(i + 1, 1, 1, 6).setValues([rowValues]);
+      return;
+    }
+  }
+  sh.appendRow(rowValues);
+}
+
+// upsertMarketplaceTarget = form "Set Target Bulanan". HANYA menimpa kolom
+// Target Spending & Target Omzet (kolom E & F); kolom Spending/Omzet aktual
+// di baris yang sama TIDAK disentuh, supaya submit target tidak menghapus
+// data harian yang sudah diinput di tanggal (baris) yang sama.
+function upsertMarketplaceTarget(ss, data){
+  var sh = ss.getSheetByName('Marketplace');
+  var rows = sh.getDataRange().getValues();
+  var tanggal = String(data.tanggal).trim();
+  var mp = String(data.marketplace).trim().toLowerCase();
+  for (var i = 1; i < rows.length; i++){
+    if (formatCellDate(rows[i][0]) === tanggal && String(rows[i][1]).trim().toLowerCase() === mp){
+      sh.getRange(i + 1, 5, 1, 2).setValues([[data.targetspending, data.targetomzet]]);
+      return;
+    }
+  }
+  sh.appendRow([data.tanggal, data.marketplace, 0, 0, data.targetspending, data.targetomzet]);
+}
+
+// upsertMarketplaceAktual = form "Input Harian". HANYA menimpa kolom Spending
+// & Omzet (kolom C & D); kolom Target Spending/Target Omzet Bulanan di baris
+// yang sama TIDAK disentuh, supaya submit harian tidak menghapus target yang
+// sudah di-set lewat form "Set Target Bulanan".
+function upsertMarketplaceAktual(ss, data){
+  var sh = ss.getSheetByName('Marketplace');
+  var rows = sh.getDataRange().getValues();
+  var tanggal = String(data.tanggal).trim();
+  var mp = String(data.marketplace).trim().toLowerCase();
+  for (var i = 1; i < rows.length; i++){
+    if (formatCellDate(rows[i][0]) === tanggal && String(rows[i][1]).trim().toLowerCase() === mp){
+      sh.getRange(i + 1, 3, 1, 2).setValues([[data.spending, data.omzet]]);
+      return;
+    }
+  }
+  sh.appendRow([data.tanggal, data.marketplace, data.spending, data.omzet, 0, 0]);
+}`;
+
+/* ======================================================================
+   SINKRONISASI: TARIK DATA (GET ?action=read) & KIRIM DATA (POST)
+   ====================================================================== */
+// Sheet kadang menyimpan angka besar sebagai TEKS dengan pemisah ribuan
+// (mis. "150.000.000" kalau locale spreadsheet bukan format Indonesia),
+// sehingga Number("150.000.000") gagal (NaN). Fungsi ini menerka format
+// pemisah ribuan/desimal dari string-nya supaya tetap terbaca sebagai angka.
+function parseLocaleNumber(v){
+  if (typeof v === 'number') return isNaN(v) ? 0 : v;
+  if (v === null || v === undefined) return 0;
+  let s = String(v).trim();
+  if (!s) return 0;
+  s = s.replace(/[^\d.,-]/g, ''); // buang simbol mata uang/spasi, sisakan digit , . -
+  if (!s) return 0;
+  const hasComma = s.indexOf(',') > -1;
+  const hasDot = s.indexOf('.') > -1;
+  if (hasComma && hasDot){
+    // pemisah yang muncul TERAKHIR dianggap sebagai desimal
+    if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(/,/g, '');
+  } else if (hasComma){
+    const parts = s.split(',');
+    // lebih dari 1 koma, atau bagian terakhir bukan 2 digit -> koma = pemisah ribuan
+    if (parts.length > 2 || parts[parts.length - 1].length !== 2) s = s.replace(/,/g, '');
+    else s = s.replace(',', '.');
+  } else if (hasDot){
+    const parts = s.split('.');
+    if (parts.length > 2 || parts[parts.length - 1].length !== 2) s = s.replace(/\./g, '');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+// Periode di sheet "Target" seharusnya "YYYY-MM", tapi kalau ada yang
+// keketik/ke-auto-format jadi tanggal penuh ("2026-07-01" atau string
+// tanggal Apps Script), tetap dinormalisasi ke "YYYY-MM" supaya nyambung
+// dengan periode yang diturunkan dari kolom Tanggal di sheet "Aktual".
+function normalizePeriode(v){
+  const s = String(v || '').trim();
+  const m = s.match(/^(\d{4})-(\d{2})/);
+  return m ? (m[1] + '-' + m[2]) : s;
+}
+
+async function pullFromSheet(){
+  const url = getAppsScriptUrl();
+  if (!url) return 'no-url';
+  try{
+    const controller = new AbortController();
+    const timer = setTimeout(function(){ controller.abort(); }, 20000);
+    const res = await fetch(url + '?action=read', { cache:'no-store', signal: controller.signal });
+    clearTimeout(timer);
+    const json = await res.json();
+
+    appState.targetRows = (json.target || []).map(function(r){
+      return {
+        periode: normalizePeriode(r.periode),
+        advertiser: String(r.advertiser || '').trim(),
+        spending: parseLocaleNumber(r.targetspending),
+        leads: parseLocaleNumber(r.targetleads),
+        cpl: parseLocaleNumber(r.targetcpl)
+      };
+    }).filter(function(r){ return r.periode && r.advertiser; });
+
+    appState.aktualRows = (json.aktual || []).map(function(r){
+      return {
+        tanggal: String(r.tanggal || '').trim(),
+        advertiser: String(r.advertiser || '').trim(),
+        spending: parseLocaleNumber(r.spending),
+        leads: parseLocaleNumber(r.leads)
+      };
+    }).filter(function(r){ return r.tanggal && r.advertiser; });
+
+    appState.marketplaceRows = (json.marketplace || []).map(function(r){
+      return {
+        tanggal: String(r.tanggal || '').trim(),
+        marketplace: String(r.marketplace || '').trim(),
+        spending: parseLocaleNumber(r.spending),
+        omzet: parseLocaleNumber(r.omzet),
+        targetSpending: parseLocaleNumber(r.targetspendingbulanan),
+        targetOmzet: parseLocaleNumber(r.targetomzetbulanan)
+      };
+    }).filter(function(r){ return r.tanggal && r.marketplace; });
+
+    saveLocalState();
+    return 'ok';
+  }catch(err){
+    console.warn('Gagal menarik data dari spreadsheet:', err);
+    return 'error';
+  }
+}
+
+async function pushToSheet(payload){
+  const url = getAppsScriptUrl();
+  if (!url) return 'no-url';
+  try{
+    const controller = new AbortController();
+    const timer = setTimeout(function(){ controller.abort(); }, 15000);
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' }, // hindari CORS preflight ke Apps Script
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    // Apps Script Web App hampir selalu balikin HTTP 200 walau ada error logis,
+    // jadi status sukses/gagal dicek dari BODY JSON-nya, bukan cuma dari fetch.
+    const body = await res.json().catch(function(){ return null; });
+    if (body && body.status === 'error') return 'error';
+    return 'ok';
+  }catch(err){
+    console.warn('Gagal mengirim data ke spreadsheet:', err);
+    return 'error';
+  }
+}
+
+async function pushAllToSheet(){
+  const url = getAppsScriptUrl();
+  if (!url) return 'no-url';
+  let allOk = true;
+  for (const r of appState.targetRows){
+    const res = await pushToSheet({ type:'target', periode:r.periode, advertiser:r.advertiser, spending:r.spending, leads:r.leads, cpl:r.cpl });
+    if (res !== 'ok') allOk = false;
+  }
+  for (const r of appState.aktualRows){
+    const res = await pushToSheet({ type:'aktual', tanggal:r.tanggal, advertiser:r.advertiser, spending:r.spending, leads:r.leads });
+    if (res !== 'ok') allOk = false;
+  }
+  for (const r of appState.marketplaceRows){
+    const res = await pushToSheet({ type:'marketplace', tanggal:r.tanggal, marketplace:r.marketplace, spending:r.spending, omzet:r.omzet, targetspending:r.targetSpending, targetomzet:r.targetOmzet });
+    if (res !== 'ok') allOk = false;
+  }
+  return allOk ? 'ok' : 'error';
+}
+
+/* ======================================================================
+   PERHITUNGAN DASHBOARD — dijalankan di browser (JS), membaca appState
+   lokal yang sudah disinkronkan dari spreadsheet. Ini menggantikan fungsi
+   getPeriods() / getAkunList() / getDashboardData() yang dulu jalan di
+   sisi server Apps Script lewat google.script.run.
+   ====================================================================== */
+function getPeriodsLocal(){
+  const bulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const set = new Set();
+  appState.targetRows.forEach(function(r){ if (r.periode) set.add(r.periode); });
+  appState.aktualRows.forEach(function(r){
+    if (r.tanggal && /^\d{4}-\d{2}/.test(r.tanggal)) set.add(r.tanggal.slice(0,7));
+  });
+  return Array.from(set).sort().reverse().map(function(p){
+    const parts = p.split('-');
+    return { value: p, label: (bulan[parseInt(parts[1],10)] || parts[1]) + ' ' + parts[0] };
+  });
+}
+
+function getAkunListLocal(){
+  const set = new Set();
+  appState.targetRows.forEach(function(r){ if (r.advertiser) set.add(r.advertiser); });
+  appState.aktualRows.forEach(function(r){ if (r.advertiser) set.add(r.advertiser); });
+  return Array.from(set);
+}
+
+function getDashboardDataLocal(periode, akun){
+  let targetSpending = 0, targetLeads = 0, targetCplWeighted = 0;
+  appState.targetRows.forEach(function(r){
+    if (r.periode !== periode) return;
+    if (akun !== 'Semua Advertiser' && r.advertiser !== akun) return;
+    const rowCpl = r.cpl ? r.cpl : (r.leads > 0 ? r.spending / r.leads : 0);
+    targetSpending += r.spending;
+    targetLeads += r.leads;
+    targetCplWeighted += rowCpl * r.leads;
+  });
+
+  const py = periode.split('-').map(Number);
+  // Dipakai tetap 28 hari per bulan (bukan jumlah hari asli 28-31) supaya
+  // perhitungan kebutuhan spending/hari & progres konsisten tiap bulan.
+  const daysInMonth = 28;
+
+  let aktualSpending = 0, aktualLeads = 0;
+  const dailyMap = {}, akunMap = {};
+  appState.aktualRows.forEach(function(r){
+    if (!r.tanggal || r.tanggal.slice(0,7) !== periode) return;
+    if (akun !== 'Semua Advertiser' && r.advertiser !== akun) return;
+    aktualSpending += r.spending;
+    aktualLeads += r.leads;
+    const dayKey = Number(r.tanggal.slice(8,10));
+    if (!dailyMap[dayKey]) dailyMap[dayKey] = { spending:0, leads:0 };
+    dailyMap[dayKey].spending += r.spending;
+    dailyMap[dayKey].leads += r.leads;
+    if (!akunMap[r.advertiser]) akunMap[r.advertiser] = { spending:0, leads:0 };
+    akunMap[r.advertiser].spending += r.spending;
+    akunMap[r.advertiser].leads += r.leads;
+  });
+
+  const dayKeys = Object.keys(dailyMap).map(Number);
+  const daysElapsed = dayKeys.length ? Math.max.apply(null, dayKeys) : 0;
+  const daysRemaining = daysInMonth - daysElapsed;
+
+  const dailyTrend = [];
+  for (let d = 1; d <= daysElapsed; d++){
+    const v = dailyMap[d] || { spending:0, leads:0 };
+    dailyTrend.push({ label: d + ' ' + String(py[1]).padStart(2,'0'), spending: Math.round(v.spending), leads: Math.round(v.leads) });
+  }
+
+  const perAccount = Object.keys(akunMap).map(function(nama){
+    const v = akunMap[nama];
+    return { akun: nama, spending: v.spending, leads: v.leads, cpl: v.leads > 0 ? v.spending / v.leads : 0 };
+  });
+
+  const targetCpl = targetLeads > 0 ? targetCplWeighted / targetLeads : 0;
+  const aktualCpl = aktualLeads > 0 ? aktualSpending / aktualLeads : 0;
+  const gapSpending = targetSpending - aktualSpending;
+  const gapLeads = targetLeads - aktualLeads;
+  const gapCpl = aktualCpl - targetCpl;
+  const pctSpending = targetSpending > 0 ? (aktualSpending / targetSpending) * 100 : 0;
+  const pctLeads = targetLeads > 0 ? (aktualLeads / targetLeads) * 100 : 0;
+  const requiredDailySpending = daysRemaining > 0 ? Math.max(0, gapSpending) / daysRemaining : 0;
+  const requiredDailyLeads = daysRemaining > 0 ? Math.max(0, gapLeads) / daysRemaining : 0;
+
+  return {
+    target: { spending: targetSpending, leads: targetLeads, cpl: targetCpl },
+    aktual: { spending: aktualSpending, leads: aktualLeads, cpl: aktualCpl },
+    gap: { spending: gapSpending, leads: gapLeads, cpl: gapCpl, pctSpending: pctSpending, pctLeads: pctLeads },
+    daysInMonth: daysInMonth, daysElapsed: daysElapsed, daysRemaining: daysRemaining,
+    requiredDaily: { spending: requiredDailySpending, leads: requiredDailyLeads },
+    dailyTrend: dailyTrend, perAccount: perAccount
+  };
+}
+
+/* ======================================================================
+   INIT DROPDOWN & LOAD DASHBOARD (sepenuhnya lokal, sinkron di background)
+   ====================================================================== */
+function refreshDropdownsFromLocalState(){
+  const periods = getPeriodsLocal();
+  const periodeSel = document.getElementById('periodeSelect');
+  const prevPeriode = periodeSel.value;
+  periodeSel.innerHTML = '';
+  periods.forEach(function(p){
+    const o = document.createElement('option');
+    o.value = p.value; o.textContent = p.label;
+    periodeSel.appendChild(o);
+  });
+  if (periods.some(function(p){ return p.value === prevPeriode; })) periodeSel.value = prevPeriode;
+
+  const akunSel = document.getElementById('akunSelect');
+  const prevAkun = akunSel.value;
+  akunSel.innerHTML = '<option value="Semua Advertiser">Semua Advertiser</option>';
+  getAkunListLocal().forEach(function(a){
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    akunSel.appendChild(o);
+  });
+  if (Array.from(akunSel.options).some(function(o){ return o.value === prevAkun; })) akunSel.value = prevAkun;
+
+  if (periods.length){
+    loadDashboard();
+  } else {
+    document.getElementById('content').innerHTML = '<div class="loading">Belum ada data. Hubungkan ke Google Sheets & tarik data, atau isi lewat tab "Input Data" di tab Pengaturan &amp; Panduan.</div>';
+  }
+
+  // Kalau tab Marketplace sedang aktif/sudah dirender, ikut disegarkan.
+  if (document.getElementById('mpPeriodeSelect')) refreshMarketplaceDropdowns();
+}
+
+function initDropdowns(){
+  refreshDropdownsFromLocalState();
+}
+
+async function refreshFromSheetBtn(){
+  const btn = document.getElementById('btnRefresh');
+  if (!getAppsScriptUrl()){
+    switchTab('settings');
+    return;
+  }
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '🔄 Menarik data…';
+  const status = await pullFromSheet();
+  updateConnBanner(status);
+  refreshDropdownsFromLocalState();
+  btn.textContent = status === 'ok' ? '✅ Terbaru' : '⚠️ Gagal';
+  setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
+}
+
+async function autoPullOnLoad(){
+  const url = getAppsScriptUrl();
+  if (!url) return;
+  const status = await pullFromSheet();
+  updateConnBanner(status);
+  refreshDropdownsFromLocalState();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  loadLocalState();
+  initDropdowns();
+  document.getElementById('periodeSelect').addEventListener('change', loadDashboard);
+  document.getElementById('akunSelect').addEventListener('change', loadDashboard);
+  updateConnBanner();
+  // Auto-sync dari spreadsheet setiap kali halaman dibuka (berlaku juga di
+  // device/browser baru), asal URL Apps Script sudah pernah diisi & disimpan.
+  autoPullOnLoad();
+});
+
+/* ======================================================================
+   TAB NAVIGASI: Dashboard <-> Input Data <-> Pengaturan & Panduan
+   ====================================================================== */
+function switchTab(tab){
+  const dashBtn = document.getElementById('tabDashboardBtn');
+  const inputBtn = document.getElementById('tabInputBtn');
+  const mpBtn = document.getElementById('tabMarketplaceBtn');
+  const setBtn = document.getElementById('tabSettingsBtn');
+  const dashEl = document.getElementById('content');
+  const inputEl = document.getElementById('inputContent');
+  const mpEl = document.getElementById('marketplaceContent');
+  const setEl = document.getElementById('settingsContent');
+  // 2 slot filter tetap (posisi tidak pernah berubah). Slot ini selalu
+  // "reserve" tempatnya di topbar (pakai visibility, bukan display) supaya
+  // tombol Refresh & tab lain tidak ikut geser saat pindah tab. Yang
+  // berubah cuma ISI di dalam slot (select mana yang ditampilkan).
+  const filters = document.getElementById('filterControls');
+  const filters2 = document.getElementById('filterControls2');
+  const label1 = document.getElementById('filterLabel1');
+  const label2 = document.getElementById('filterLabel2');
+  const periodeSelect = document.getElementById('periodeSelect');
+  const akunSelect = document.getElementById('akunSelect');
+  const mpPeriodeSelect = document.getElementById('mpPeriodeSelect');
+  const mpFilterSelect = document.getElementById('mpFilterSelect');
+
+  dashBtn.classList.remove('active');
+  inputBtn.classList.remove('active');
+  mpBtn.classList.remove('active');
+  setBtn.classList.remove('active');
+  dashEl.style.display = 'none';
+  inputEl.style.display = 'none';
+  mpEl.style.display = 'none';
+  setEl.style.display = 'none';
+
+  if (tab === 'settings'){
+    setBtn.classList.add('active');
+    setEl.style.display = 'block';
+    filters.style.visibility = 'hidden';
+    filters2.style.visibility = 'hidden';
+    renderSettings();
+  } else if (tab === 'input'){
+    inputBtn.classList.add('active');
+    inputEl.style.display = 'block';
+    filters.style.visibility = 'hidden';
+    filters2.style.visibility = 'hidden';
+    renderInputForm();
+  } else if (tab === 'marketplace'){
+    mpBtn.classList.add('active');
+    mpEl.style.display = 'block';
+    filters.style.visibility = 'visible';
+    filters2.style.visibility = 'visible';
+    label2.textContent = 'Marketplace:';
+    periodeSelect.style.display = 'none';
+    mpPeriodeSelect.style.display = '';
+    akunSelect.style.display = 'none';
+    mpFilterSelect.style.display = '';
+    renderMarketplace();
+  } else {
+    dashBtn.classList.add('active');
+    dashEl.style.display = 'block';
+    filters.style.visibility = 'visible';
+    filters2.style.visibility = 'visible';
+    label2.textContent = 'Advertiser:';
+    periodeSelect.style.display = '';
+    mpPeriodeSelect.style.display = 'none';
+    akunSelect.style.display = '';
+    mpFilterSelect.style.display = 'none';
+  }
+}
+
+/* ======================================================================
+   BANNER STATUS KONEKSI (tampil di atas dashboard)
+   ====================================================================== */
+function updateConnBanner(pullStatus){
+  const el = document.getElementById('connBanner');
+  const url = getAppsScriptUrl();
+  if (!url){
+    el.className = 'conn-banner warn';
+    el.innerHTML = '<span class="dot"></span> Belum terhubung ke Google Sheets — dashboard sedang memakai <b>data yang tersimpan di perangkat ini saja</b>.'
+      + ' &nbsp;<a href="#" onclick="switchTab(\'settings\');return false;">Atur integrasi sekarang →</a>';
+    return;
+  }
+  if (pullStatus === 'error'){
+    el.className = 'conn-banner warn';
+    el.innerHTML = '<span class="dot"></span> URL Apps Script sudah diisi, tapi <b>gagal menarik data</b> dari spreadsheet (cek URL / deployment).'
+      + ' &nbsp;<a href="#" onclick="switchTab(\'settings\');return false;">Buka Pengaturan &amp; coba lagi →</a>';
+    return;
+  }
+  el.className = 'conn-banner ok';
+  el.innerHTML = '<span class="dot"></span> Terhubung ke Google Sheets lewat Apps Script Web App.'
+    + ' &nbsp;·&nbsp; Auto-sync aktif setiap dashboard dibuka.'
+    + ' &nbsp;·&nbsp; <a href="#" onclick="switchTab(\'settings\');return false;">Ubah Pengaturan</a>';
+}
+
+/* ======================================================================
+   TAB INPUT DATA (form -> simpan lokal + kirim ke sheet Target / Aktual)
+   ====================================================================== */
+function renderInputForm(){
+  const el = document.getElementById('inputContent');
+
+  const targetRows = appState.targetRows.slice().reverse().map(function(r){
+    return '<tr><td>'+r.periode+'</td><td>'+r.advertiser+'</td><td>'+fmtIDR(r.spending)+'</td><td>'+fmtNum(r.leads)+'</td><td>'+fmtIDR(r.cpl)+'</td></tr>';
+  }).join('');
+
+  const aktualRows = appState.aktualRows.slice().reverse().map(function(r){
+    return '<tr><td>'+r.tanggal+'</td><td>'+r.advertiser+'</td><td>'+fmtIDR(r.spending)+'</td><td>'+fmtNum(r.leads)+'</td></tr>';
+  }).join('');
+
+  const mpRowsSorted = appState.marketplaceRows.slice().sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal); });
+  const mpTableRows = mpRowsSorted.map(function(r){
+    return '<tr><td>'+r.tanggal+'</td><td>'+r.marketplace+'</td><td>'+fmtIDR(r.spending)+'</td><td>'+fmtIDR(r.omzet)+'</td>'
+      + '<td>'+(r.targetSpending? fmtIDR(r.targetSpending):'—')+'</td><td>'+(r.targetOmzet? fmtIDR(r.targetOmzet):'—')+'</td></tr>';
+  }).join('');
+
+  const connected = !!getAppsScriptUrl();
+
+  const advertiserOptions = getAkunListLocal().slice().sort(function(a,b){ return a.localeCompare(b); })
+    .map(function(a){ return '<option value="'+a.replace(/"/g,'&quot;')+'">'; }).join('');
+  const marketplaceOptions = getMarketplaceListLocal().slice().sort(function(a,b){ return a.localeCompare(b); })
+    .map(function(m){ return '<option value="'+m.replace(/"/g,'&quot;')+'">'; }).join('');
+
+  el.innerHTML = `
+    <datalist id="advertiserDatalist">${advertiserOptions}</datalist>
+    <datalist id="marketplaceDatalist">${marketplaceOptions}</datalist>
+    <div class="conn-banner ${connected?'ok':'warn'}" style="margin-bottom:16px;">
+      <span class="dot"></span> ${connected
+        ? 'Form di bawah menyimpan data lokal di perangkat ini, dan otomatis dikirim ke Google Sheets kamu (sheet "Target" &amp; "Aktual") lewat Apps Script Web App.'
+        : 'URL Apps Script belum diisi — data yang kamu input hanya tersimpan di perangkat/browser ini. Isi URL di tab Pengaturan &amp; Panduan supaya otomatis tersinkron ke Google Sheets.'}
+    </div>
+    <div class="settings-grid">
+      <div class="card">
+        <div class="section-title">🎯 Input / Update Target Bulanan</div>
+        <div class="form-row">
+          <label>Periode (YYYY-MM)</label>
+          <input type="month" id="fPeriode">
+        </div>
+        <div class="form-row">
+          <label>Advertiser</label>
+          <input type="text" id="fTargetAkun" list="advertiserDatalist" placeholder="cth: Advertiser A - E-com" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label>Target Spending (IDR)</label>
+          <input type="number" id="fTargetSpending" placeholder="cth: 150000000" oninput="autoFillTargetCpl()">
+        </div>
+        <div class="form-row">
+          <label>Target Leads</label>
+          <input type="number" id="fTargetLeads" placeholder="cth: 750" oninput="autoFillTargetCpl()">
+        </div>
+        <div class="form-row">
+          <label>Target CPL (IDR)</label>
+          <input type="number" id="fTargetCpl" placeholder="cth: 200000" oninput="this.dataset.manual='1'">
+          <div class="hint">Otomatis terisi dari Target Spending ÷ Target Leads, tapi bisa diubah manual kalau KPI CPL berbeda dari hasil bagi tersebut.</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="submitTargetForm()">💾 Simpan Target</button>
+        </div>
+        <div id="targetFormStatus" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">📅 Input Data Harian (Aktual)</div>
+        <div class="form-row">
+          <label>Tanggal</label>
+          <input type="date" id="fTanggal">
+        </div>
+        <div class="form-row">
+          <label>Advertiser</label>
+          <input type="text" id="fAktualAkun" list="advertiserDatalist" placeholder="cth: Advertiser A - E-com" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label>Spending Hari Ini (IDR)</label>
+          <input type="number" id="fAktualSpending" placeholder="cth: 3500000">
+        </div>
+        <div class="form-row">
+          <label>Leads Hari Ini</label>
+          <input type="number" id="fAktualLeads" placeholder="cth: 18">
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="submitAktualForm()">💾 Simpan Data Harian</button>
+        </div>
+        <div id="aktualFormStatus" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">📋 Data Tersimpan di Perangkat Ini</div>
+      <p class="metric-sub" style="margin:-4px 0 10px;">Daftar ini adalah data yang sudah dimuat/diinput di dashboard — kalau sudah terhubung ke Google Sheets, ini juga mencerminkan isi spreadsheet setelah "Tarik Data" terakhir.</p>
+      <p style="font-size:12.5px;font-weight:600;margin:10px 0 4px;">Target</p>
+      <table>
+        <thead><tr><th>Periode</th><th>Advertiser</th><th>Target Spending</th><th>Target Leads</th><th>Target CPL</th></tr></thead>
+        <tbody>${targetRows || '<tr><td colspan="5" style="color:var(--sub)">Belum ada data target.</td></tr>'}</tbody>
+      </table>
+      <p style="font-size:12.5px;font-weight:600;margin:16px 0 4px;">Aktual Harian</p>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Advertiser</th><th>Spending</th><th>Leads</th></tr></thead>
+        <tbody>${aktualRows || '<tr><td colspan="4" style="color:var(--sub)">Belum ada data harian.</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">🛒 Input Data Marketplace</div>
+      <p class="metric-sub" style="margin:-4px 0 12px;">Sheet-nya tetap satu ("Marketplace"), tapi form-nya sengaja dipisah dua: <b>Set Target Bulanan</b> (diisi sekali di awal bulan) dan <b>Input Harian</b> (diisi tiap hari). Keduanya menulis ke kolom yang berbeda di baris yang sama — submit yang satu tidak akan menimpa/menghapus data dari form yang lain.</p>
+      <div class="settings-grid">
+        <div class="card" style="border-style:dashed;">
+          <div class="section-title" style="font-size:13.5px;">🎯 Set Target Bulanan</div>
+          <div class="form-row">
+            <label>Periode (Bulan)</label>
+            <input type="month" id="fMpTargetPeriode">
+          </div>
+          <div class="form-row">
+            <label>Marketplace</label>
+            <input type="text" id="fMpTargetNama" list="marketplaceDatalist" placeholder="cth: Shopee, Tokopedia, TikTok Shop" autocomplete="off">
+          </div>
+          <div class="form-row">
+            <label>Target Spending Bulanan (IDR)</label>
+            <input type="number" id="fMpTargetSpending" placeholder="cth: 15000000">
+          </div>
+          <div class="form-row">
+            <label>Target Omzet Bulanan (IDR)</label>
+            <input type="number" id="fMpTargetOmzet" placeholder="cth: 75000000">
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="submitMarketplaceTargetForm()">💾 Simpan Target</button>
+          </div>
+          <div id="mpTargetFormStatus" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card" style="border-style:dashed;">
+          <div class="section-title" style="font-size:13.5px;">📅 Input Harian (Aktual)</div>
+          <div class="form-row">
+            <label>Tanggal</label>
+            <input type="date" id="fMpTanggal">
+          </div>
+          <div class="form-row">
+            <label>Marketplace</label>
+            <input type="text" id="fMpNama" list="marketplaceDatalist" placeholder="cth: Shopee, Tokopedia, TikTok Shop" autocomplete="off">
+          </div>
+          <div class="form-row">
+            <label>Spending Hari Ini (IDR)</label>
+            <input type="number" id="fMpSpending" placeholder="cth: 500000">
+          </div>
+          <div class="form-row">
+            <label>Omzet Hari Ini (IDR)</label>
+            <input type="number" id="fMpOmzet" placeholder="cth: 2500000">
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="submitMarketplaceAktualForm()">💾 Simpan Data Harian</button>
+          </div>
+          <div id="mpFormStatus" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <p style="font-size:12.5px;font-weight:600;margin:16px 0 4px;">Data Marketplace Tersimpan</p>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Marketplace</th><th>Spending</th><th>Omzet</th><th>Target Spending</th><th>Target Omzet</th></tr></thead>
+        <tbody>${mpTableRows || '<tr><td colspan="6" style="color:var(--sub)">Belum ada data marketplace.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// Menyegarkan opsi datalist Advertiser & Marketplace tanpa membangun ulang
+// seluruh form (supaya nilai yang baru saja diisi user tidak ikut hilang).
+function refreshInputDatalists(){
+  const advList = document.getElementById('advertiserDatalist');
+  if (advList){
+    advList.innerHTML = getAkunListLocal().slice().sort(function(a,b){ return a.localeCompare(b); })
+      .map(function(a){ return '<option value="'+a.replace(/"/g,'&quot;')+'">'; }).join('');
+  }
+  const mpList = document.getElementById('marketplaceDatalist');
+  if (mpList){
+    mpList.innerHTML = getMarketplaceListLocal().slice().sort(function(a,b){ return a.localeCompare(b); })
+      .map(function(m){ return '<option value="'+m.replace(/"/g,'&quot;')+'">'; }).join('');
+  }
+}
+
+function autoFillTargetCpl(){
+  const spending = Number(document.getElementById('fTargetSpending').value);
+  const leads = Number(document.getElementById('fTargetLeads').value);
+  const cplEl = document.getElementById('fTargetCpl');
+  if (spending > 0 && leads > 0 && !cplEl.dataset.manual){
+    cplEl.value = Math.round(spending / leads);
+  }
+}
+
+async function submitTargetForm(){
+  const periode = document.getElementById('fPeriode').value.trim();
+  const advertiser = document.getElementById('fTargetAkun').value.trim();
+  const spending = Number(document.getElementById('fTargetSpending').value);
+  const leads = Number(document.getElementById('fTargetLeads').value);
+  const cpl = Number(document.getElementById('fTargetCpl').value);
+  const statusEl = document.getElementById('targetFormStatus');
+
+  if (!/^\d{4}-\d{2}$/.test(periode)){
+    statusEl.innerHTML = '<span class="badge warn">Format periode harus YYYY-MM, cth 2026-07</span>';
+    return;
+  }
+  if (!advertiser || !spending || !leads || !cpl){
+    statusEl.innerHTML = '<span class="badge warn">Semua kolom wajib diisi</span>';
+    return;
+  }
+
+  // Upsert ke state lokal dulu supaya dashboard langsung update.
+  const idx = appState.targetRows.findIndex(function(r){ return r.periode === periode && r.advertiser === advertiser; });
+  const row = { periode: periode, advertiser: advertiser, spending: spending, leads: leads, cpl: cpl };
+  if (idx > -1) appState.targetRows[idx] = row; else appState.targetRows.push(row);
+  saveLocalState();
+  refreshDropdownsFromLocalState();
+  refreshInputDatalists();
+
+  const url = getAppsScriptUrl();
+  if (!url){
+    statusEl.innerHTML = '<span class="badge ok">Tersimpan ✓ di perangkat ini</span> (belum terhubung ke Google Sheets — atur di tab Pengaturan).';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Menyimpan &amp; mengirim ke spreadsheet…</span>';
+  const res = await pushToSheet({ type:'target', periode:periode, advertiser:advertiser, spending:spending, leads:leads, cpl:cpl });
+  statusEl.innerHTML = res === 'ok'
+    ? '<span class="badge ok">Tersimpan ✓ ke sheet Target</span>'
+    : '<span class="badge warn">Tersimpan di perangkat ini, tapi gagal mengirim ke spreadsheet. Cek koneksi/URL Apps Script.</span>';
+}
+
+async function submitAktualForm(){
+  const tanggal = document.getElementById('fTanggal').value;
+  const advertiser = document.getElementById('fAktualAkun').value.trim();
+  const spending = Number(document.getElementById('fAktualSpending').value);
+  const leads = Number(document.getElementById('fAktualLeads').value);
+  const statusEl = document.getElementById('aktualFormStatus');
+
+  if (!tanggal){
+    statusEl.innerHTML = '<span class="badge warn">Pilih tanggal dulu</span>';
+    return;
+  }
+  if (!advertiser || !spending || !leads){
+    statusEl.innerHTML = '<span class="badge warn">Semua kolom wajib diisi</span>';
+    return;
+  }
+
+  const idx = appState.aktualRows.findIndex(function(r){ return r.tanggal === tanggal && r.advertiser === advertiser; });
+  const row = { tanggal: tanggal, advertiser: advertiser, spending: spending, leads: leads };
+  if (idx > -1) appState.aktualRows[idx] = row; else appState.aktualRows.push(row);
+  saveLocalState();
+  refreshDropdownsFromLocalState();
+  refreshInputDatalists();
+
+  const url = getAppsScriptUrl();
+  if (!url){
+    statusEl.innerHTML = '<span class="badge ok">Tersimpan ✓ di perangkat ini</span> (belum terhubung ke Google Sheets — atur di tab Pengaturan).';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Menyimpan &amp; mengirim ke spreadsheet…</span>';
+  const res = await pushToSheet({ type:'aktual', tanggal:tanggal, advertiser:advertiser, spending:spending, leads:leads });
+  statusEl.innerHTML = res === 'ok'
+    ? '<span class="badge ok">Tersimpan ✓ ke sheet Aktual</span>'
+    : '<span class="badge warn">Tersimpan di perangkat ini, tapi gagal mengirim ke spreadsheet. Cek koneksi/URL Apps Script.</span>';
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(APPS_SCRIPT_CODE).then(function(){
+    const btn = document.querySelector('#codeGsBlock .copy-btn');
+    const original = btn.textContent;
+    btn.textContent = '✅ Tersalin';
+    setTimeout(function(){ btn.textContent = original; }, 1500);
+  });
+}
+
+/* ======================================================================
+   TAB PENGATURAN & PANDUAN INTEGRASI (Apps Script Web App URL)
+   ====================================================================== */
+function renderSettings(){
+  const el = document.getElementById('settingsContent');
+  const url = getAppsScriptUrl();
+  el.innerHTML = `
+    <div class="settings-grid">
+
+      <div class="card">
+        <div class="section-title">⚙️ Pengaturan Koneksi Google Sheets</div>
+        <div class="form-row">
+          <label>URL Web App Apps Script</label>
+          <input type="url" id="inputAppsScriptUrl" placeholder="https://script.google.com/macros/s/XXXXX/exec" value="${url}">
+          <div class="hint">Didapat dari <b>Deploy → New deployment → Web app</b> di proyek Apps Script yang di-bind ke spreadsheet kamu (lihat panduan di kanan).</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="saveSettings()">💾 Simpan &amp; Tarik Data</button>
+          <button class="btn secondary" onclick="manualPull()">🔽 Tarik Data dari Spreadsheet</button>
+        </div>
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn secondary" onclick="manualPush()">🔼 Kirim Semua Data ke Spreadsheet</button>
+          <button class="btn secondary" id="btnShowScript" onclick="toggleScriptBox()">📜 Lihat Kode Apps Script</button>
+        </div>
+        <div id="saveStatus" style="margin-top:10px;"></div>
+        <div id="scriptBox" style="display:none;margin-top:12px;">
+          <div class="code-block" id="codeGsBlock"><button class="copy-btn" onclick="copyCode()">📋 Salin</button>${APPS_SCRIPT_CODE.replace(/</g,'&lt;')}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">📘 Panduan Integrasi Google Sheets (Langkah demi Langkah)</div>
+
+        <div class="guide-step">
+          <div class="num">1</div>
+          <div class="body">
+            <h4>Siapkan Google Spreadsheet dengan 3 sheet</h4>
+            <p>Buat spreadsheet baru, lalu buat 3 tab dengan nama persis seperti di bawah (tanpa spasi/typo).</p>
+            <p><b>Sheet "Target"</b> — target bulanan per advertiser:</p>
+            <table>
+              <thead><tr><th>Periode</th><th>Advertiser</th><th>Target Spending</th><th>Target Leads</th><th>Target CPL</th></tr></thead>
+              <tbody><tr><td>2026-07</td><td>Advertiser A - E-com</td><td>150000000</td><td>750</td><td>200000</td></tr></tbody>
+            </table>
+            <p><b>Sheet "Aktual"</b> — realisasi harian per advertiser:</p>
+            <table>
+              <thead><tr><th>Tanggal</th><th>Advertiser</th><th>Spending</th><th>Leads</th></tr></thead>
+              <tbody><tr><td>2026-07-01</td><td>Advertiser A - E-com</td><td>3500000</td><td>18</td></tr></tbody>
+            </table>
+            <p>Nama kolom di baris pertama (header) harus sama persis: <i>Periode, Advertiser, Target Spending, Target Leads, Target CPL</i> dan <i>Tanggal, Advertiser, Spending, Leads</i>.</p>
+            <p><b>Sheet "Marketplace"</b> — dipakai oleh menu 🛒 Marketplace. Target bulanan &amp; aktual harian sengaja digabung dalam SATU sheet ini, hanya dipisah lewat kolom (bukan sheet terpisah seperti Target/Aktual di atas), karena input-nya juga cukup lewat satu form saja:</p>
+            <table>
+              <thead><tr><th>Tanggal</th><th>Marketplace</th><th>Spending</th><th>Omzet</th><th>Target Spending Bulanan</th><th>Target Omzet Bulanan</th></tr></thead>
+              <tbody><tr><td>2026-07-01</td><td>Shopee</td><td>500000</td><td>2500000</td><td>15000000</td><td>75000000</td></tr></tbody>
+            </table>
+            <p>Kolom header harus persis: <i>Tanggal, Marketplace, Spending, Omzet, Target Spending Bulanan, Target Omzet Bulanan</i>. Kolom target cukup diisi sekali per bulan per marketplace (baris-baris lain di bulan yang sama boleh dikosongkan di kolom target) — dashboard otomatis memakai nilai target terakhir yang ada.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="num">2</div>
+          <div class="body">
+            <h4>Buka Apps Script dari spreadsheet</h4>
+            <p>Di spreadsheet tadi: menu <b>Extensions → Apps Script</b>. Ini membuka proyek Apps Script baru yang otomatis terikat (bound) ke spreadsheet tersebut — jadi tidak perlu mengisi Spreadsheet ID manual lagi.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="num">3</div>
+          <div class="body">
+            <h4>Tempel kode backend (Code.gs)</h4>
+            <p>Hapus isi <code>Code.gs</code> bawaan, lalu tempel script berikut. Script ini membaca &amp; menulis data ke sheet "Target" &amp; "Aktual" lewat sebuah URL Web App, terpisah dari file dashboard ini.</p>
+            <div class="code-block" id="codeGsBlockGuide"><button class="copy-btn" onclick="copyCode()">📋 Salin</button>${APPS_SCRIPT_CODE.replace(/</g,'&lt;')}</div>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="num">4</div>
+          <div class="body">
+            <h4>Deploy sebagai Web App</h4>
+            <p>Klik <b>Deploy → New deployment</b> → pilih tipe <b>Web app</b>. Isi "Execute as: Me" dan "Who has access: Anyone" (supaya dashboard bisa fetch tanpa login Google), lalu klik <b>Deploy</b> dan salin URL Web App yang muncul (diakhiri <code>/exec</code>).</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="num">5</div>
+          <div class="body">
+            <h4>Tempel URL Web App di dashboard ini</h4>
+            <p>Kembali ke tab ini (Pengaturan &amp; Panduan), tempel URL Web App tadi ke kolom <b>URL Web App Apps Script</b> di sebelah kiri, lalu klik <b>Simpan &amp; Tarik Data</b>.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="num">6</div>
+          <div class="body">
+            <h4>Selesai — dashboard bisa dibuka dari mana saja</h4>
+            <p>File dashboard ini (HTML) bisa dibuka langsung dari browser atau dihosting di mana pun (tidak perlu di-deploy ke dalam proyek Apps Script). Setiap kali dibuka, dashboard otomatis menarik data terbaru dari spreadsheet lewat URL Web App yang sudah disimpan.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="num">7</div>
+          <div class="body">
+            <h4>Isi data lewat tab "📝 Input Data"</h4>
+            <p>Kamu tidak wajib buka Google Sheets tiap hari. Tab <b>📝 Input Data</b> di dashboard ini punya form untuk isi Target bulanan dan Aktual harian (Advertiser), <i>plus</i> form Set Target Bulanan &amp; Input Harian untuk Marketplace — submit dari form langsung tersimpan lokal dan otomatis dikirim ke sheet "Target"/"Aktual"/"Marketplace" lewat fetch() ke URL Web App di atas.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;border-color:rgba(229,72,77,.35);">
+      <div class="section-title">🗑️ Reset Data Lokal</div>
+      <p class="metric-sub" style="margin:-4px 0 10px;">Menghapus data Target &amp; Aktual serta URL Apps Script yang tersimpan di browser ini saja. Data di Google Sheet (kalau sudah terhubung) <b>tidak ikut terhapus</b>.</p>
+      <button class="btn secondary" onclick="resetLocalData()">🗑️ Hapus Data di Perangkat Ini</button>
+      <div id="resetDataMsg" style="margin-top:8px;"></div>
+    </div>
+  `;
+}
+
+function toggleScriptBox(){
+  const box = document.getElementById('scriptBox');
+  box.style.display = (box.style.display !== 'none') ? 'none' : 'block';
+}
+
+async function saveSettings(){
+  const raw = document.getElementById('inputAppsScriptUrl').value.trim();
+  const statusEl = document.getElementById('saveStatus');
+  if (raw && !/^https:\/\/script\.google\.com\/macros\//.test(raw)){
+    statusEl.innerHTML = '<span class="badge warn">URL sepertinya bukan URL Web App Apps Script yang valid (harus diawali https://script.google.com/macros/...)</span>';
+    return;
+  }
+  appState.appsScriptUrl = raw;
+  saveLocalState();
+  updateConnBanner();
+  if (!raw){
+    statusEl.innerHTML = '<span class="badge ok">Tersimpan ✓</span> (URL dikosongkan, dashboard memakai data lokal saja)';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Tersimpan ✓, menarik data dari spreadsheet…</span>';
+  const status = await pullFromSheet();
+  updateConnBanner(status);
+  refreshDropdownsFromLocalState();
+  statusEl.innerHTML = status === 'ok'
+    ? '<span class="badge ok">Tersimpan ✓ &amp; berhasil menarik data dari spreadsheet</span>'
+    : '<span class="badge warn">Tersimpan ✓, tapi gagal menarik data — cek URL &amp; pastikan Web App sudah di-deploy dengan akses "Anyone".</span>';
+}
+
+async function manualPull(){
+  const statusEl = document.getElementById('saveStatus');
+  if (!getAppsScriptUrl()){
+    statusEl.innerHTML = '<span class="badge warn">Isi &amp; simpan URL Web App Apps Script dulu</span>';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Menarik data dari spreadsheet…</span>';
+  const status = await pullFromSheet();
+  updateConnBanner(status);
+  refreshDropdownsFromLocalState();
+  statusEl.innerHTML = status === 'ok'
+    ? '<span class="badge ok">Berhasil menarik ' + appState.targetRows.length + ' baris Target &amp; ' + appState.aktualRows.length + ' baris Aktual dari spreadsheet</span>'
+    : '<span class="badge warn">Gagal menarik data. Cek URL &amp; deployment Apps Script.</span>';
+}
+
+async function manualPush(){
+  const statusEl = document.getElementById('saveStatus');
+  if (!getAppsScriptUrl()){
+    statusEl.innerHTML = '<span class="badge warn">Isi &amp; simpan URL Web App Apps Script dulu</span>';
+    return;
+  }
+  statusEl.innerHTML = '<span style="color:var(--sub)">Mengirim semua data lokal ke spreadsheet…</span>';
+  const status = await pushAllToSheet();
+  statusEl.innerHTML = status === 'ok'
+    ? '<span class="badge ok">Semua data lokal berhasil dikirim ke spreadsheet</span>'
+    : '<span class="badge warn">Sebagian/semua data gagal dikirim. Cek URL &amp; deployment Apps Script, lalu coba lagi.</span>';
+}
+
+function resetLocalData(){
+  appState = { appsScriptUrl:'', targetRows:[], aktualRows:[], marketplaceRows:[] };
+  try{ localStorage.removeItem(LOCAL_KEY); }catch(e){}
+  updateConnBanner();
+  refreshDropdownsFromLocalState();
+  renderSettings();
+  document.getElementById('resetDataMsg').innerHTML = '<span class="badge ok">Data lokal & URL Apps Script sudah dihapus ✓</span>';
+}
+
+function loadDashboard(){
+  const periode = document.getElementById('periodeSelect').value;
+  const akun = document.getElementById('akunSelect').value;
+  if (!periode) return;
+  try{
+    const data = getDashboardDataLocal(periode, akun);
+    render(data);
+  }catch(err){
+    document.getElementById('content').innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
+  }
+}
+
+function fmtIDR(n){
+  return 'IDR ' + Math.round(n).toLocaleString('id-ID');
+}
+function fmtNum(n){
+  return Math.round(n).toLocaleString('id-ID');
+}
+function pct(n){ return n.toFixed(1) + '%'; }
+function fmtRoas(n){ return (isFinite(n) ? n : 0).toFixed(2) + 'x'; }
+
+/* ======================================================================
+   INSIGHT OTOMATIS — bangun kalimat insight yang menyesuaikan kondisi
+   angka aktual saat ini (pace waktu vs pencapaian, efisiensi CPL,
+   proyeksi akhir bulan, kelayakan target harian, & perbandingan antar
+   advertiser). Tidak hardcode teks — semua threshold dihitung dari data.
+   ====================================================================== */
+function generateInsights(data){
+  const insights = [];
+  const target = data.target, aktual = data.aktual, gap = data.gap;
+  const daysInMonth = data.daysInMonth, daysElapsed = data.daysElapsed, daysRemaining = data.daysRemaining;
+  const requiredDaily = data.requiredDaily, perAccount = data.perAccount;
+  const expectedPct = daysInMonth > 0 ? (daysElapsed / daysInMonth) * 100 : 0;
+
+  if (daysElapsed === 0){
+    insights.push({level:'info', icon:'ℹ️', html:'Belum ada data aktual harian untuk periode ini — insight otomatis akan muncul begitu data mulai masuk.'});
+    return insights;
+  }
+
+  // --- Pace leads vs waktu berjalan ---
+  if (target.leads > 0){
+    const diff = gap.pctLeads - expectedPct;
+    if (diff >= 5){
+      insights.push({level:'success', icon:'🚀', tag:'On Pace', html:'Leads sudah <b>'+pct(gap.pctLeads)+'</b> tercapai, lebih cepat dari pace waktu yang baru <b>'+pct(expectedPct)+'</b> berjalan.'});
+    } else if (diff <= -5){
+      insights.push({level:'warn', icon:'⚠️', tag:'Tertinggal', html:'Leads baru <b>'+pct(gap.pctLeads)+'</b> tercapai, padahal waktu berjalan sudah <b>'+pct(expectedPct)+'</b> — perlu percepatan agar target bulanan tetap realistis.'});
+    } else {
+      insights.push({level:'info', icon:'⏱️', tag:'Sesuai Pace', html:'Perolehan leads berjalan sesuai pace waktu (<b>'+pct(gap.pctLeads)+'</b> tercapai vs <b>'+pct(expectedPct)+'</b> waktu berjalan).'});
+    }
+  }
+
+  // --- Pace spending vs waktu berjalan ---
+  if (target.spending > 0){
+    const diff = gap.pctSpending - expectedPct;
+    if (diff >= 10){
+      insights.push({level:'amber', icon:'💸', tag:'Perhatian Budget', html:'Spending terpakai <b>'+pct(gap.pctSpending)+'</b>, lebih cepat dari pace waktu (<b>'+pct(expectedPct)+'</b>) — pantau agar budget tidak habis sebelum akhir bulan.'});
+    } else if (diff <= -10){
+      insights.push({level:'info', icon:'💰', tag:'Budget Longgar', html:'Spending baru <b>'+pct(gap.pctSpending)+'</b> terpakai vs <b>'+pct(expectedPct)+'</b> waktu berjalan — masih ada ruang menambah budget bila leads perlu dikejar.'});
+    }
+  }
+
+  // --- Efisiensi CPL ---
+  if (target.cpl > 0 && aktual.cpl > 0){
+    const cplDiffPct = ((aktual.cpl - target.cpl) / target.cpl) * 100;
+    if (aktual.cpl <= target.cpl){
+      insights.push({level:'success', icon:'✅', tag:'CPL Efisien', html:'CPL aktual <b>'+fmtIDR(aktual.cpl)+'</b> lebih hemat <b>'+pct(Math.abs(cplDiffPct))+'</b> dari target <b>'+fmtIDR(target.cpl)+'</b>.'});
+    } else if (cplDiffPct > 20){
+      insights.push({level:'warn', icon:'🔴', tag:'CPL Boros', html:'CPL aktual <b>'+fmtIDR(aktual.cpl)+'</b> melampaui target sebesar <b>'+pct(cplDiffPct)+'</b> — efisiensi iklan perlu dievaluasi.'});
+    } else {
+      insights.push({level:'amber', icon:'🟠', tag:'CPL Sedikit Tinggi', html:'CPL aktual <b>'+fmtIDR(aktual.cpl)+'</b> sekitar <b>'+pct(cplDiffPct)+'</b> di atas target.'});
+    }
+  }
+
+  // --- Proyeksi akhir bulan berdasarkan rata-rata harian saat ini ---
+  if (daysElapsed > 0 && target.leads > 0){
+    const projectedLeads = (aktual.leads / daysElapsed) * daysInMonth;
+    const projectedPct = (projectedLeads / target.leads) * 100;
+    if (projectedPct >= 100){
+      insights.push({level:'success', icon:'📈', tag:'Proyeksi Tercapai', html:'Jika pace saat ini bertahan, proyeksi akhir bulan sekitar <b>'+fmtNum(projectedLeads)+' leads</b> (<b>'+pct(projectedPct)+'</b> dari target).'});
+    } else if (projectedPct >= 85){
+      insights.push({level:'amber', icon:'📊', tag:'Mendekati Target', html:'Proyeksi akhir bulan sekitar <b>'+fmtNum(projectedLeads)+' leads</b> (<b>'+pct(projectedPct)+'</b> dari target) — masih perlu sedikit dorongan.'});
+    } else {
+      insights.push({level:'warn', icon:'📉', tag:'Berisiko Meleset', html:'Dengan pace saat ini, proyeksi akhir bulan hanya <b>'+fmtNum(projectedLeads)+' leads</b> (<b>'+pct(projectedPct)+'</b> dari target) — berisiko tidak tercapai tanpa perubahan strategi.'});
+    }
+  }
+
+  // --- Kelayakan target harian sisa waktu ---
+  if (gap.leads > 0 && daysRemaining > 0){
+    const avgDailyLeadsSoFar = daysElapsed > 0 ? aktual.leads / daysElapsed : 0;
+    if (avgDailyLeadsSoFar > 0 && requiredDaily.leads > avgDailyLeadsSoFar * 1.5){
+      insights.push({level:'warn', icon:'🎯', tag:'Butuh Percepatan', html:'Kebutuhan <b>'+fmtNum(requiredDaily.leads)+' leads/hari</b> untuk sisa '+daysRemaining+' hari jauh di atas rata-rata harian saat ini (<b>'+fmtNum(avgDailyLeadsSoFar)+' leads/hari</b>).'});
+    }
+  } else if (target.leads > 0 && gap.leads <= 0){
+    insights.push({level:'success', icon:'🏆', tag:'Target Terlampaui', html:'Target leads bulanan sudah terlampaui sebanyak <b>'+fmtNum(-gap.leads)+' leads</b>.'});
+  }
+
+  // --- Perbandingan antar advertiser (kalau lihat "Semua Advertiser") ---
+  if (perAccount.length > 1){
+    const withLeads = perAccount.filter(function(a){ return a.leads > 0; });
+    if (withLeads.length > 1){
+      const sorted = withLeads.slice().sort(function(a,b){ return a.cpl - b.cpl; });
+      const best = sorted[0], worst = sorted[sorted.length-1];
+      if (best.akun !== worst.akun){
+        insights.push({level:'info', icon:'🏅', tag:'Perbandingan Akun', html:'<b>'+best.akun+'</b> paling efisien (CPL '+fmtIDR(best.cpl)+'), sementara <b>'+worst.akun+'</b> paling boros (CPL '+fmtIDR(worst.cpl)+').'});
+      }
+    }
+  }
+
+  return insights;
+}
+
+function render(data){
+  const c = document.getElementById('content');
+
+  const pctSpending = data.gap.pctSpending;
+  const pctLeads = data.gap.pctLeads;
+  const cplOk = data.aktual.cpl <= data.target.cpl;
+
+  c.innerHTML = `
+    <div class="grid-top">
+      <div class="card">
+        <h3>💰 Total Spending</h3>
+        <div class="metric-val">${fmtIDR(data.aktual.spending)}</div>
+        <div class="metric-sub">Target: ${fmtIDR(data.target.spending)} (${pct(pctSpending)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(pctSpending,100)}%;background:var(--blue)"></div></div>
+        <div class="gap-row">
+          <span>Sisa menuju target</span>
+          <b class="${data.gap.spending>0?'neg':'pos'}">${data.gap.spending>0? fmtIDR(data.gap.spending)+' lagi' : 'Terlampaui '+fmtIDR(-data.gap.spending)}</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🎯 Total Lead Real</h3>
+        <div class="metric-val">${fmtNum(data.aktual.leads)} Leads</div>
+        <div class="metric-sub">Target: ${fmtNum(data.target.leads)} Leads (${pct(pctLeads)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(pctLeads,100)}%;background:var(--green)"></div></div>
+        <div class="gap-row">
+          <span>Sisa menuju target</span>
+          <b class="${data.gap.leads>0?'neg':'pos'}">${data.gap.leads>0? fmtNum(data.gap.leads)+' leads lagi' : 'Terlampaui '+fmtNum(-data.gap.leads)+' leads'}</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📈 Rata-rata CPL <span class="badge ${cplOk?'ok':'warn'}">${cplOk?'Sesuai Target':'Di Atas Target'}</span></h3>
+        <div class="metric-val">${fmtIDR(data.aktual.cpl)}</div>
+        <div class="metric-sub">Target CPL: ${fmtIDR(data.target.cpl)}</div>
+        <div class="gap-row">
+          <span>Selisih dari target</span>
+          <b class="${data.gap.cpl>0?'neg':'pos'}">${data.gap.cpl>0? '+'+fmtIDR(data.gap.cpl)+' dari target' : fmtIDR(data.gap.cpl)+' (lebih hemat)'}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="card insight-card">
+      <div class="section-title">🔍 Insight Otomatis</div>
+      <div class="insight-list">
+        ${generateInsights(data).map(function(ins){
+          return '<div class="insight-item '+ins.level+'">'
+            + '<span class="icon">'+ins.icon+'</span>'
+            + '<span class="txt">'+(ins.tag ? '<span class="tag '+ins.level+'">'+ins.tag+'</span>' : '')+ins.html+'</span>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">🧮 Crosscheck Kekurangan Target Bulanan (sisa ${data.daysRemaining} hari dari ${data.daysInMonth} hari)</div>
+      <div class="gap-cards">
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan Spending / hari agar capai target</div>
+          <div class="num">${fmtIDR(data.requiredDaily.spending)}</div>
+        </div>
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan Leads / hari agar capai target</div>
+          <div class="num">${fmtNum(data.requiredDaily.leads)}</div>
+        </div>
+        <div class="gap-card">
+          <div class="lbl">Hari berjalan</div>
+          <div class="num">${data.daysElapsed} / ${data.daysInMonth} hari</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-bottom">
+      <div class="card">
+        <div class="section-title">Tren Performa Harian</div>
+        <div class="chart-box" style="height:260px;position:relative;">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Analisis Performa Advertiser</div>
+        <table>
+          <thead><tr><th>Advertiser</th><th>Spending</th><th>Leads</th><th>CPL</th></tr></thead>
+          <tbody>
+            ${data.perAccount.map(function(a){
+              return '<tr><td>'+a.akun+'</td><td>'+fmtIDR(a.spending)+'</td><td>'+fmtNum(a.leads)+'</td><td>'+fmtIDR(a.cpl)+'</td></tr>';
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="chart-box" style="height:200px;position:relative;margin-top:14px;">
+          <canvas id="akunChart"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  drawTrendChart(data);
+  drawAkunChart(data);
+}
+
+function drawTrendChart(data){
+  const ctx = document.getElementById('trendChart');
+  if (charts.trend) charts.trend.destroy();
+  charts.trend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.dailyTrend.map(function(d){return d.label;}),
+      datasets: [
+        {
+          label: 'Spending Aktual',
+          data: data.dailyTrend.map(function(d){return d.spending;}),
+          borderColor: '#2f6fed', backgroundColor:'transparent', yAxisID:'y', tension:.3, pointRadius:2
+        },
+        {
+          label: 'Leads Aktual',
+          data: data.dailyTrend.map(function(d){return d.leads;}),
+          borderColor: '#22a559', backgroundColor:'transparent', yAxisID:'y1', tension:.3, pointRadius:2
+        }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      scales: {
+        y: {type:'linear', position:'left', title:{display:true,text:'IDR'}},
+        y1:{type:'linear', position:'right', title:{display:true,text:'Leads'}, grid:{drawOnChartArea:false}}
+      },
+      plugins:{legend:{position:'bottom'}}
+    }
+  });
+}
+
+function drawAkunChart(data){
+  const ctx = document.getElementById('akunChart');
+  if (charts.akun) charts.akun.destroy();
+  charts.akun = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.perAccount.map(function(a){return a.akun;}),
+      datasets: [{
+        label:'Leads Real',
+        data: data.perAccount.map(function(a){return a.leads;}),
+        backgroundColor:'#2f6fed'
+      }]
+    },
+    options: {
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}}
+    }
+  });
+}
+
+/* ======================================================================
+   ==========================  TAB MARKETPLACE  ==========================
+   Menu baru: Spending, Omzet, ROAS untuk marketplace (Shopee, Tokopedia,
+   TikTok Shop, dll). Data disimpan di SATU sheet "Marketplace" — Target
+   (bulanan) & Aktual (harian) dipisah lewat KOLOM, bukan sheet terpisah,
+   dan diisi lewat SATU form input yang sama.
+   ====================================================================== */
+function getMarketplacePeriodsLocal(){
+  const bulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const set = new Set();
+  appState.marketplaceRows.forEach(function(r){
+    if (r.tanggal && /^\d{4}-\d{2}/.test(r.tanggal)) set.add(r.tanggal.slice(0,7));
+  });
+  return Array.from(set).sort().reverse().map(function(p){
+    const parts = p.split('-');
+    return { value: p, label: (bulan[parseInt(parts[1],10)] || parts[1]) + ' ' + parts[0] };
+  });
+}
+
+function getMarketplaceListLocal(){
+  const set = new Set();
+  appState.marketplaceRows.forEach(function(r){ if (r.marketplace) set.add(r.marketplace); });
+  return Array.from(set);
+}
+
+// Ambil nilai target bulanan (spending/omzet) terbaru untuk kombinasi
+// periode + marketplace tertentu, dipakai untuk auto-fill form & dashboard
+// (karena target didenormalisasi/diulang di tiap baris harian pada sheet
+// yang sama, bukan disimpan di tabel/sheet terpisah).
+function getLatestMarketplaceTarget(periode, marketplace){
+  const rows = appState.marketplaceRows.filter(function(r){
+    return r.tanggal.slice(0,7) === periode &&
+      (marketplace === 'Semua Marketplace' || r.marketplace === marketplace) &&
+      (r.targetSpending > 0 || r.targetOmzet > 0);
+  });
+  if (!rows.length) return { spending:0, omzet:0 };
+  if (marketplace !== 'Semua Marketplace'){
+    const last = rows.slice().sort(function(a,b){ return a.tanggal.localeCompare(b.tanggal); }).pop();
+    return { spending:last.targetSpending, omzet:last.targetOmzet };
+  }
+  // "Semua Marketplace": jumlahkan target terbaru PER marketplace supaya
+  // tidak dobel-hitung baris harian yang berulang.
+  const perMp = {};
+  rows.forEach(function(r){
+    if (!perMp[r.marketplace] || r.tanggal > perMp[r.marketplace].tanggal){
+      perMp[r.marketplace] = r;
+    }
+  });
+  let spending = 0, omzet = 0;
+  Object.keys(perMp).forEach(function(k){ spending += perMp[k].targetSpending; omzet += perMp[k].targetOmzet; });
+  return { spending: spending, omzet: omzet };
+}
+
+function getMarketplaceDashboardDataLocal(periode, marketplace){
+  const target = getLatestMarketplaceTarget(periode, marketplace);
+  const daysInMonth = 28;
+
+  let aktualSpending = 0, aktualOmzet = 0;
+  const dailyMap = {}, mpMap = {};
+  appState.marketplaceRows.forEach(function(r){
+    if (r.tanggal.slice(0,7) !== periode) return;
+    if (marketplace !== 'Semua Marketplace' && r.marketplace !== marketplace) return;
+    aktualSpending += r.spending;
+    aktualOmzet += r.omzet;
+    const dayKey = Number(r.tanggal.slice(8,10));
+    if (!dailyMap[dayKey]) dailyMap[dayKey] = { spending:0, omzet:0 };
+    dailyMap[dayKey].spending += r.spending;
+    dailyMap[dayKey].omzet += r.omzet;
+    if (!mpMap[r.marketplace]) mpMap[r.marketplace] = { spending:0, omzet:0 };
+    mpMap[r.marketplace].spending += r.spending;
+    mpMap[r.marketplace].omzet += r.omzet;
+  });
+
+  const dayKeys = Object.keys(dailyMap).map(Number);
+  const daysElapsed = dayKeys.length ? Math.max.apply(null, dayKeys) : 0;
+  const daysRemaining = daysInMonth - daysElapsed;
+  const py = periode.split('-').map(Number);
+
+  const dailyTrend = [];
+  for (let d = 1; d <= daysElapsed; d++){
+    const v = dailyMap[d] || { spending:0, omzet:0 };
+    dailyTrend.push({ label: d + ' ' + String(py[1]).padStart(2,'0'), spending: Math.round(v.spending), omzet: Math.round(v.omzet) });
+  }
+
+  const perMarketplace = Object.keys(mpMap).map(function(nama){
+    const v = mpMap[nama];
+    return { marketplace: nama, spending: v.spending, omzet: v.omzet, roas: v.spending > 0 ? v.omzet / v.spending : 0 };
+  });
+
+  const aktualRoas = aktualSpending > 0 ? aktualOmzet / aktualSpending : 0;
+  const targetRoas = target.spending > 0 ? target.omzet / target.spending : 0;
+  const gapSpending = target.spending - aktualSpending;
+  const gapOmzet = target.omzet - aktualOmzet;
+  const gapRoas = aktualRoas - targetRoas;
+  const pctSpending = target.spending > 0 ? (aktualSpending / target.spending) * 100 : 0;
+  const pctOmzet = target.omzet > 0 ? (aktualOmzet / target.omzet) * 100 : 0;
+  const requiredDailySpending = daysRemaining > 0 ? Math.max(0, gapSpending) / daysRemaining : 0;
+  const requiredDailyOmzet = daysRemaining > 0 ? Math.max(0, gapOmzet) / daysRemaining : 0;
+
+  return {
+    target: { spending: target.spending, omzet: target.omzet, roas: targetRoas },
+    aktual: { spending: aktualSpending, omzet: aktualOmzet, roas: aktualRoas },
+    gap: { spending: gapSpending, omzet: gapOmzet, roas: gapRoas, pctSpending: pctSpending, pctOmzet: pctOmzet },
+    daysInMonth: daysInMonth, daysElapsed: daysElapsed, daysRemaining: daysRemaining,
+    requiredDaily: { spending: requiredDailySpending, omzet: requiredDailyOmzet },
+    dailyTrend: dailyTrend, perMarketplace: perMarketplace
+  };
+}
+
+function generateMarketplaceInsights(data){
+  const insights = [];
+  const target = data.target, aktual = data.aktual, gap = data.gap;
+  const daysInMonth = data.daysInMonth, daysElapsed = data.daysElapsed;
+  const perMarketplace = data.perMarketplace;
+  const expectedPct = daysInMonth > 0 ? (daysElapsed / daysInMonth) * 100 : 0;
+
+  if (daysElapsed === 0){
+    insights.push({level:'info', icon:'ℹ️', html:'Belum ada data aktual harian untuk periode ini — insight otomatis akan muncul begitu data mulai masuk.'});
+    return insights;
+  }
+
+  if (target.omzet > 0){
+    const diff = gap.pctOmzet - expectedPct;
+    if (diff >= 5){
+      insights.push({level:'success', icon:'🚀', tag:'On Pace', html:'Omzet sudah <b>'+pct(gap.pctOmzet)+'</b> tercapai, lebih cepat dari pace waktu yang baru <b>'+pct(expectedPct)+'</b> berjalan.'});
+    } else if (diff <= -5){
+      insights.push({level:'warn', icon:'⚠️', tag:'Tertinggal', html:'Omzet baru <b>'+pct(gap.pctOmzet)+'</b> tercapai, padahal waktu berjalan sudah <b>'+pct(expectedPct)+'</b> — perlu percepatan agar target bulanan tetap realistis.'});
+    } else {
+      insights.push({level:'info', icon:'⏱️', tag:'Sesuai Pace', html:'Perolehan omzet berjalan sesuai pace waktu (<b>'+pct(gap.pctOmzet)+'</b> tercapai vs <b>'+pct(expectedPct)+'</b> waktu berjalan).'});
+    }
+  }
+
+  if (target.spending > 0){
+    const diff = gap.pctSpending - expectedPct;
+    if (diff >= 10){
+      insights.push({level:'amber', icon:'💸', tag:'Perhatian Budget', html:'Spending terpakai <b>'+pct(gap.pctSpending)+'</b>, lebih cepat dari pace waktu (<b>'+pct(expectedPct)+'</b>) — pantau agar budget tidak habis sebelum akhir bulan.'});
+    } else if (diff <= -10){
+      insights.push({level:'info', icon:'💰', tag:'Budget Longgar', html:'Spending baru <b>'+pct(gap.pctSpending)+'</b> terpakai vs <b>'+pct(expectedPct)+'</b> waktu berjalan — masih ada ruang menambah budget bila omzet perlu dikejar.'});
+    }
+  }
+
+  if (target.roas > 0 && aktual.roas > 0){
+    if (aktual.roas >= target.roas){
+      insights.push({level:'success', icon:'✅', tag:'ROAS Sehat', html:'ROAS aktual <b>'+fmtRoas(aktual.roas)+'</b> sudah memenuhi/di atas target <b>'+fmtRoas(target.roas)+'</b>.'});
+    } else {
+      insights.push({level:'warn', icon:'🔴', tag:'ROAS Di Bawah Target', html:'ROAS aktual <b>'+fmtRoas(aktual.roas)+'</b> masih di bawah target <b>'+fmtRoas(target.roas)+'</b> — efisiensi iklan/promosi marketplace perlu dievaluasi.'});
+    }
+  }
+
+  if (perMarketplace.length > 1){
+    const withSpending = perMarketplace.filter(function(m){ return m.spending > 0; });
+    if (withSpending.length > 1){
+      const sorted = withSpending.slice().sort(function(a,b){ return b.roas - a.roas; });
+      const best = sorted[0], worst = sorted[sorted.length-1];
+      if (best.marketplace !== worst.marketplace){
+        insights.push({level:'info', icon:'🏅', tag:'Perbandingan Marketplace', html:'<b>'+best.marketplace+'</b> paling efisien (ROAS '+fmtRoas(best.roas)+'), sementara <b>'+worst.marketplace+'</b> paling rendah (ROAS '+fmtRoas(worst.roas)+').'});
+      }
+    }
+  }
+
+  return insights;
+}
+
+function refreshMarketplaceDropdowns(){
+  const periods = getMarketplacePeriodsLocal();
+  const periodeSel = document.getElementById('mpPeriodeSelect');
+  const mpSel = document.getElementById('mpFilterSelect');
+  if (!periodeSel || !mpSel) return;
+  const prevPeriode = periodeSel.value;
+  periodeSel.innerHTML = '';
+  periods.forEach(function(p){
+    const o = document.createElement('option');
+    o.value = p.value; o.textContent = p.label;
+    periodeSel.appendChild(o);
+  });
+  if (periods.some(function(p){ return p.value === prevPeriode; })) periodeSel.value = prevPeriode;
+
+  const prevMp = mpSel.value;
+  mpSel.innerHTML = '<option value="Semua Marketplace">Semua Marketplace</option>';
+  getMarketplaceListLocal().forEach(function(m){
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    mpSel.appendChild(o);
+  });
+  if (Array.from(mpSel.options).some(function(o){ return o.value === prevMp; })) mpSel.value = prevMp;
+
+  if (periods.length){
+    loadMarketplaceDashboard();
+  } else {
+    document.getElementById('mpDashboardArea').innerHTML = '<div class="loading">Belum ada data marketplace. Isi lewat form input di bawah, atau hubungkan Google Sheets di tab Pengaturan &amp; Panduan.</div>';
+  }
+}
+
+function loadMarketplaceDashboard(){
+  const periodeSel = document.getElementById('mpPeriodeSelect');
+  const mpSel = document.getElementById('mpFilterSelect');
+  if (!periodeSel || !periodeSel.value) return;
+  const periode = periodeSel.value;
+  const marketplace = mpSel.value;
+  try{
+    const data = getMarketplaceDashboardDataLocal(periode, marketplace);
+    renderMarketplaceDashboardArea(data);
+  }catch(err){
+    document.getElementById('mpDashboardArea').innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
+  }
+}
+
+function renderMarketplaceDashboardArea(data){
+  const area = document.getElementById('mpDashboardArea');
+  const pctSpending = data.gap.pctSpending;
+  const pctOmzet = data.gap.pctOmzet;
+  const roasOk = data.target.roas > 0 ? data.aktual.roas >= data.target.roas : true;
+
+  area.innerHTML = `
+    <div class="grid-top">
+      <div class="card">
+        <h3>💰 Spending</h3>
+        <div class="metric-val">${fmtIDR(data.aktual.spending)}</div>
+        <div class="metric-sub">Target: ${fmtIDR(data.target.spending)} (${pct(pctSpending)} terpakai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(pctSpending,100)}%;background:var(--blue)"></div></div>
+        <div class="gap-row">
+          <span>Sisa menuju target</span>
+          <b class="${data.gap.spending>0?'neg':'pos'}">${data.gap.spending>0? fmtIDR(data.gap.spending)+' lagi' : 'Terlampaui '+fmtIDR(-data.gap.spending)}</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🧾 Omzet</h3>
+        <div class="metric-val">${fmtIDR(data.aktual.omzet)}</div>
+        <div class="metric-sub">Target: ${fmtIDR(data.target.omzet)} (${pct(pctOmzet)} tercapai)</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${Math.min(pctOmzet,100)}%;background:var(--green)"></div></div>
+        <div class="gap-row">
+          <span>Sisa menuju target</span>
+          <b class="${data.gap.omzet>0?'neg':'pos'}">${data.gap.omzet>0? fmtIDR(data.gap.omzet)+' lagi' : 'Terlampaui '+fmtIDR(-data.gap.omzet)}</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📈 ROAS <span class="badge ${roasOk?'ok':'warn'}">${roasOk?'Sesuai Target':'Di Bawah Target'}</span></h3>
+        <div class="metric-val">${fmtRoas(data.aktual.roas)}</div>
+        <div class="metric-sub">Target ROAS: ${fmtRoas(data.target.roas)}</div>
+        <div class="gap-row">
+          <span>Selisih dari target</span>
+          <b class="${data.gap.roas<0?'neg':'pos'}">${data.gap.roas<0? fmtRoas(data.gap.roas)+' dari target' : '+'+fmtRoas(data.gap.roas)+' (lebih baik)'}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="card insight-card">
+      <div class="section-title">🔍 Insight Otomatis</div>
+      <div class="insight-list">
+        ${generateMarketplaceInsights(data).map(function(ins){
+          return '<div class="insight-item '+ins.level+'">'
+            + '<span class="icon">'+ins.icon+'</span>'
+            + '<span class="txt">'+(ins.tag ? '<span class="tag '+ins.level+'">'+ins.tag+'</span>' : '')+ins.html+'</span>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">🧮 Crosscheck Kekurangan Target Bulanan (sisa ${data.daysRemaining} hari dari ${data.daysInMonth} hari)</div>
+      <div class="gap-cards">
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan Spending / hari agar capai target</div>
+          <div class="num">${fmtIDR(data.requiredDaily.spending)}</div>
+        </div>
+        <div class="gap-card">
+          <div class="lbl">Kebutuhan Omzet / hari agar capai target</div>
+          <div class="num">${fmtIDR(data.requiredDaily.omzet)}</div>
+        </div>
+        <div class="gap-card">
+          <div class="lbl">Hari berjalan</div>
+          <div class="num">${data.daysElapsed} / ${data.daysInMonth} hari</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-bottom">
+      <div class="card">
+        <div class="section-title">Tren Performa Harian</div>
+        <div class="chart-box" style="height:260px;position:relative;">
+          <canvas id="mpTrendChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Analisis Performa per Marketplace</div>
+        <table>
+          <thead><tr><th>Marketplace</th><th>Spending</th><th>Omzet</th><th>ROAS</th></tr></thead>
+          <tbody>
+            ${data.perMarketplace.map(function(m){
+              return '<tr><td>'+m.marketplace+'</td><td>'+fmtIDR(m.spending)+'</td><td>'+fmtIDR(m.omzet)+'</td><td>'+fmtRoas(m.roas)+'</td></tr>';
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="chart-box" style="height:200px;position:relative;margin-top:14px;">
+          <canvas id="mpCompareChart"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  drawMarketplaceTrendChart(data);
+  drawMarketplaceCompareChart(data);
+}
+
+function drawMarketplaceTrendChart(data){
+  const ctx = document.getElementById('mpTrendChart');
+  if (!ctx) return;
+  if (charts.mpTrend) charts.mpTrend.destroy();
+  charts.mpTrend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.dailyTrend.map(function(d){return d.label;}),
+      datasets: [
+        {
+          label: 'Spending',
+          data: data.dailyTrend.map(function(d){return d.spending;}),
+          borderColor: '#2f6fed', backgroundColor:'transparent', yAxisID:'y', tension:.3, pointRadius:2
+        },
+        {
+          label: 'Omzet',
+          data: data.dailyTrend.map(function(d){return d.omzet;}),
+          borderColor: '#22a559', backgroundColor:'transparent', yAxisID:'y', tension:.3, pointRadius:2
+        }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      scales: {
+        y: {type:'linear', position:'left', title:{display:true,text:'IDR'}}
+      },
+      plugins:{legend:{position:'bottom'}}
+    }
+  });
+}
+
+function drawMarketplaceCompareChart(data){
+  const ctx = document.getElementById('mpCompareChart');
+  if (!ctx) return;
+  if (charts.mpCompare) charts.mpCompare.destroy();
+  charts.mpCompare = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.perMarketplace.map(function(m){return m.marketplace;}),
+      datasets: [{
+        label:'ROAS',
+        data: data.perMarketplace.map(function(m){return Number(m.roas.toFixed(2));}),
+        backgroundColor:'#f2a72c'
+      }]
+    },
+    options: {
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}}
+    }
+  });
+}
+
+/* ---- Render tab Marketplace: filter + dashboard (form input ada di tab "Input Data") ---- */
+function renderMarketplace(){
+  const el = document.getElementById('marketplaceContent');
+  const connected = !!getAppsScriptUrl();
+
+  const mpRowsSorted = appState.marketplaceRows.slice().sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal); });
+  const mpTableRows = mpRowsSorted.map(function(r){
+    return '<tr><td>'+r.tanggal+'</td><td>'+r.marketplace+'</td><td>'+fmtIDR(r.spending)+'</td><td>'+fmtIDR(r.omzet)+'</td>'
+      + '<td>'+(r.targetSpending? fmtIDR(r.targetSpending):'—')+'</td><td>'+(r.targetOmzet? fmtIDR(r.targetOmzet):'—')+'</td></tr>';
+  }).join('');
+
+  el.innerHTML = `
+    <div class="conn-banner ${connected?'ok':'warn'}" style="margin-bottom:16px;">
+      <span class="dot"></span> ${connected
+        ? 'Data marketplace tersimpan lokal &amp; otomatis dikirim ke sheet "Marketplace" di Google Sheets kamu lewat Apps Script Web App yang sama.'
+        : 'URL Apps Script belum diisi — data marketplace hanya tersimpan di perangkat/browser ini. Isi di tab Pengaturan &amp; Panduan supaya tersinkron ke Google Sheets.'}
+    </div>
+
+    <div id="mpDashboardArea"><div class="loading">Memuat data marketplace…</div></div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">📋 Data Marketplace Tersimpan</div>
+      <p class="metric-sub" style="margin:-4px 0 10px;">Untuk menambah/mengubah data (Target Bulanan &amp; Input Harian), isi lewat form di tab <b>📝 Input Data</b>.</p>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Marketplace</th><th>Spending</th><th>Omzet</th><th>Target Spending</th><th>Target Omzet</th></tr></thead>
+        <tbody>${mpTableRows || '<tr><td colspan="6" style="color:var(--sub)">Belum ada data marketplace.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+
+  refreshMarketplaceDropdowns();
+}
+
+// Form "Set Target Bulanan" — disimpan sebagai satu baris "penanda target"
+// per (periode, marketplace) di tanggal hari-1 bulan tsb (mis. 2026-07-01).
+// Kolom Spending/Omzet aktual di baris itu TIDAK ikut diubah kalau baris
+// sudah ada (merge), supaya tidak menimpa data harian yang kebetulan ada
+// di tanggal yang sama.
+async function submitMarketplaceTargetForm(){
+  const periode = document.getElementById('fMpTargetPeriode').value.trim();
+  const marketplace = document.getElementById('fMpTargetNama').value.trim();
+  const targetSpending = Number(document.getElementById('fMpTargetSpending').value) || 0;
+  const targetOmzet = Number(document.getElementById('fMpTargetOmzet').value) || 0;
+  const statusEl = document.getElementById('mpTargetFormStatus');
+
+  if (!/^\d{4}-\d{2}$/.test(periode) || !marketplace){
+    statusEl.innerHTML = '<span class="badge warn">Periode &amp; nama marketplace wajib diisi</span>';
+    return;
+  }
+  if (!targetSpending || !targetOmzet){
+    statusEl.innerHTML = '<span class="badge warn">Target Spending &amp; Target Omzet wajib diisi</span>';
+    return;
+  }
+
+  const tanggal = periode + '-01';
+  const idx = appState.marketplaceRows.findIndex(function(r){
+    return r.tanggal === tanggal && r.marketplace.toLowerCase() === marketplace.toLowerCase();
+  });
+  if (idx > -1){
+    // Merge: cuma timpa kolom target, kolom spending/omzet aktual tetap.
+    appState.marketplaceRows[idx].targetSpending = targetSpending;
+    appState.marketplaceRows[idx].targetOmzet = targetOmzet;
+  } else {
+    appState.marketplaceRows.push({ tanggal: tanggal, marketplace: marketplace, spending: 0, omzet: 0, targetSpending: targetSpending, targetOmzet: targetOmzet });
+  }
+  saveLocalState();
+  refreshInputDatalists();
+
+  const url = getAppsScriptUrl();
+  if (!url){
+    document.getElementById('mpTargetFormStatus').innerHTML = '<span class="badge ok">Tersimpan ✓ di perangkat ini</span> (belum terhubung ke Google Sheets — atur di tab Pengaturan).';
+    return;
+  }
+  document.getElementById('mpTargetFormStatus').innerHTML = '<span style="color:var(--sub)">Menyimpan &amp; mengirim ke spreadsheet…</span>';
+  const res = await pushToSheet({ type:'marketplaceTarget', tanggal:tanggal, marketplace:marketplace, targetspending:targetSpending, targetomzet:targetOmzet });
+  document.getElementById('mpTargetFormStatus').innerHTML = res === 'ok'
+    ? '<span class="badge ok">Target tersimpan ✓ ke sheet Marketplace</span>'
+    : '<span class="badge warn">Tersimpan di perangkat ini, tapi gagal mengirim ke spreadsheet. Cek koneksi/URL Apps Script.</span>';
+}
+
+// Form "Input Harian" — upsert berdasarkan (Tanggal + Marketplace). Kolom
+// Target Spending/Omzet di baris yang sama TIDAK ikut diubah kalau baris
+// sudah ada (merge), supaya tidak menimpa target yang sudah di-set.
+async function submitMarketplaceAktualForm(){
+  const tanggal = document.getElementById('fMpTanggal').value;
+  const marketplace = document.getElementById('fMpNama').value.trim();
+  const spending = Number(document.getElementById('fMpSpending').value) || 0;
+  const omzet = Number(document.getElementById('fMpOmzet').value) || 0;
+  const statusEl = document.getElementById('mpFormStatus');
+
+  if (!tanggal || !marketplace){
+    statusEl.innerHTML = '<span class="badge warn">Tanggal &amp; nama marketplace wajib diisi</span>';
+    return;
+  }
+  if (!spending || !omzet){
+    statusEl.innerHTML = '<span class="badge warn">Spending &amp; Omzet hari ini wajib diisi</span>';
+    return;
+  }
+
+  const idx = appState.marketplaceRows.findIndex(function(r){
+    return r.tanggal === tanggal && r.marketplace.toLowerCase() === marketplace.toLowerCase();
+  });
+  if (idx > -1){
+    // Merge: cuma timpa kolom spending/omzet, kolom target tetap.
+    appState.marketplaceRows[idx].spending = spending;
+    appState.marketplaceRows[idx].omzet = omzet;
+  } else {
+    appState.marketplaceRows.push({ tanggal: tanggal, marketplace: marketplace, spending: spending, omzet: omzet, targetSpending: 0, targetOmzet: 0 });
+  }
+  saveLocalState();
+  refreshInputDatalists();
+
+  const url = getAppsScriptUrl();
+  if (!url){
+    document.getElementById('mpFormStatus').innerHTML = '<span class="badge ok">Tersimpan ✓ di perangkat ini</span> (belum terhubung ke Google Sheets — atur di tab Pengaturan).';
+    return;
+  }
+  document.getElementById('mpFormStatus').innerHTML = '<span style="color:var(--sub)">Menyimpan &amp; mengirim ke spreadsheet…</span>';
+  const res = await pushToSheet({ type:'marketplaceAktual', tanggal:tanggal, marketplace:marketplace, spending:spending, omzet:omzet });
+  document.getElementById('mpFormStatus').innerHTML = res === 'ok'
+    ? '<span class="badge ok">Data harian tersimpan ✓ ke sheet Marketplace</span>'
+    : '<span class="badge warn">Tersimpan di perangkat ini, tapi gagal mengirim ke spreadsheet. Cek koneksi/URL Apps Script.</span>';
+}
+</script>
+</body>
+</html>
