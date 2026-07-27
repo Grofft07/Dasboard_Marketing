@@ -817,6 +817,12 @@ let _silentRefreshInFlight = false;
 async function silentBackgroundRefresh(){
   if (_silentRefreshInFlight) return;
   if (!getAppsScriptUrl()) return;
+  // Jangan auto-refresh saat tab "Input Data" sedang aktif — supaya tidak
+  // ada kemungkinan (sekecil apa pun) data yang baru saja disimpan lokal
+  // tertimpa oleh hasil tarikan sebelum tersimpan penuh di spreadsheet.
+  // Auto-refresh akan lanjut lagi begitu user pindah tab.
+  const inputEl = document.getElementById('inputContent');
+  if (inputEl && inputEl.style.display === 'block') return;
   _silentRefreshInFlight = true;
   try{
     const status = await pullFromSheet();
