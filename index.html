@@ -808,51 +808,23 @@ async function autoPullOnLoad(){
   refreshDropdownsFromLocalState();
 }
 
-// Menarik data terbaru diam-diam di background (tanpa mengubah tombol
-// Refresh atau memunculkan status "menarik data...") supaya tidak
-// mengganggu jika pengguna sedang melihat dashboard. Pilihan Periode &
-// Advertiser yang sedang aktif tetap dipertahankan oleh
-// refreshDropdownsFromLocalState().
-let _silentRefreshInFlight = false;
-async function silentBackgroundRefresh(){
-  if (_silentRefreshInFlight) return;
-  if (!getAppsScriptUrl()) return;
-  // Jangan auto-refresh saat tab "Input Data" sedang aktif — supaya tidak
-  // ada kemungkinan (sekecil apa pun) data yang baru saja disimpan lokal
-  // tertimpa oleh hasil tarikan sebelum tersimpan penuh di spreadsheet.
-  // Auto-refresh akan lanjut lagi begitu user pindah tab.
-  const inputEl = document.getElementById('inputContent');
-  if (inputEl && inputEl.style.display === 'block') return;
-  _silentRefreshInFlight = true;
-  try{
-    const status = await pullFromSheet();
-    updateConnBanner(status);
-    refreshDropdownsFromLocalState();
-  } finally {
-    _silentRefreshInFlight = false;
-  }
-}
-
 document.addEventListener('DOMContentLoaded', function(){
   loadLocalState();
-  initDropdowns();
+  // PENTING: pasang listener dropdown Periode & Advertiser PALING AWAL, sebelum
+  // initDropdowns()/autoPullOnLoad(). Sebelumnya listener ini dipasang SETELAH
+  // initDropdowns(), jadi kalau ada error tak terduga di dalam initDropdowns()
+  // (mis. saat merender ulang dropdown tab lain yang belum pernah dibuka),
+  // seluruh sisa fungsi callback ini berhenti dan dropdown Periode/Advertiser
+  // jadi tidak responsif — dashboard baru ter-update setelah tombol Refresh
+  // ditekan manual. Dengan listener dipasang duluan, dropdown selalu jalan
+  // apapun yang terjadi di langkah setelahnya.
   document.getElementById('periodeSelect').addEventListener('change', loadDashboard);
   document.getElementById('akunSelect').addEventListener('change', loadDashboard);
+  try{ initDropdowns(); }catch(e){ console.warn('initDropdowns error:', e); }
   updateConnBanner();
   // Auto-sync dari spreadsheet setiap kali halaman dibuka (berlaku juga di
   // device/browser baru), asal URL Apps Script sudah pernah diisi & disimpan.
-  autoPullOnLoad();
-
-  // Auto-sync berkala: tarik data terbaru setiap 30 detik selama tab ini
-  // terbuka, supaya perubahan di Google Sheets otomatis muncul tanpa perlu
-  // klik tombol Refresh atau reload halaman.
-  setInterval(silentBackgroundRefresh, 30000);
-
-  // Auto-sync saat tab kembali aktif (misalnya user habis pindah ke tab
-  // lain lalu balik lagi ke dashboard ini).
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'visible') silentBackgroundRefresh();
-  });
+  try{ autoPullOnLoad(); }catch(e){ console.warn('autoPullOnLoad error:', e); }
 });
 
 /* ======================================================================
@@ -2105,7 +2077,7 @@ function refreshAffiliateDropdowns(){
 
   if (periods.length){
     loadAffiliateDashboard();
-  } else {
+  } else if (document.getElementById('affDashboardArea')){
     document.getElementById('affDashboardArea').innerHTML = '<div class="loading">Belum ada data affiliate. Isi lewat form input di bawah, atau hubungkan Google Sheets di tab Pengaturan &amp; Panduan.</div>';
   }
 }
@@ -2117,12 +2089,14 @@ function loadAffiliateDashboard(){
     const data = getAffiliateDashboardDataLocal(periodeSel.value);
     renderAffiliateDashboardArea(data);
   }catch(err){
-    document.getElementById('affDashboardArea').innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
+    const area = document.getElementById('affDashboardArea');
+    if (area) area.innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
   }
 }
 
 function renderAffiliateDashboardArea(data){
   const area = document.getElementById('affDashboardArea');
+  if (!area) return;
   const komisiRateOk = data.target.komisiRate > 0 ? data.aktual.komisiRate <= data.target.komisiRate : true;
 
   area.innerHTML = `
@@ -2417,7 +2391,7 @@ function refreshMarketplaceDropdowns(){
 
   if (periods.length){
     loadMarketplaceDashboard();
-  } else {
+  } else if (document.getElementById('mpDashboardArea')){
     document.getElementById('mpDashboardArea').innerHTML = '<div class="loading">Belum ada data marketplace. Isi lewat form input di bawah, atau hubungkan Google Sheets di tab Pengaturan &amp; Panduan.</div>';
   }
 }
@@ -2432,12 +2406,14 @@ function loadMarketplaceDashboard(){
     const data = getMarketplaceDashboardDataLocal(periode, marketplace);
     renderMarketplaceDashboardArea(data);
   }catch(err){
-    document.getElementById('mpDashboardArea').innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
+    const area = document.getElementById('mpDashboardArea');
+    if (area) area.innerHTML = '<div class="loading">Gagal memuat data: '+err.message+'</div>';
   }
 }
 
 function renderMarketplaceDashboardArea(data){
   const area = document.getElementById('mpDashboardArea');
+  if (!area) return;
   const pctSpending = data.gap.pctSpending;
   const pctOmzet = data.gap.pctOmzet;
   const roasOk = data.target.roas > 0 ? data.aktual.roas >= data.target.roas : true;
