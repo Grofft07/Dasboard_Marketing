@@ -341,11 +341,16 @@ function jsonOutput(obj){
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-// Format sel tanggal (Date object atau string) jadi 'yyyy-MM-dd' memakai
-// timezone SPREADSHEET, supaya tanggal yang dibaca dashboard tidak geser.
+// Format sel tanggal (Date object atau string) jadi 'yyyy-MM-dd'.
+// PENTING: getValues() membentuk objek Date berdasarkan timezone PROJECT
+// Apps Script (Project Settings > Time zone), bukan timezone spreadsheet.
+// Kalau di sini kita format ulang pakai getSpreadsheetTimeZone() dan
+// timezone-nya beda dari timezone project, tanggal bisa geser mundur
+// (mis. sheet tercatat 1 Juli tapi kebaca 30 Juni). Supaya konsisten,
+// pakai Session.getScriptTimeZone() di kedua sisi (baca & format).
 function formatCellDate(v){
   if (Object.prototype.toString.call(v) === '[object Date]'){
-    return Utilities.formatDate(v, SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
   }
   return String(v).trim();
 }
