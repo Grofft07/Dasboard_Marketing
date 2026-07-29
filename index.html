@@ -355,6 +355,20 @@ function formatCellDate(v){
   return String(v).trim();
 }
 
+// Format sel "Periode" (mis. "2026-07") jadi string 'yyyy-MM'. Kolom ini
+// sering ditulis manual sebagai teks, TAPI kalau Google Sheets sempat
+// mendeteksinya sebagai tanggal (auto-convert), nilainya jadi Date object.
+// Date object yang lolos ke JSON.stringify() otomatis dikonversi ke ISO
+// string UTC — karena WIB = UTC+7, ini bisa menggeser periode mundur satu
+// bulan tepat di tanggal 1 (mis. "2026-07" jadi kebaca "2026-06"). Fungsi
+// ini memastikan periode SELALU keluar sebagai teks 'yyyy-MM' yang aman.
+function formatCellPeriode(v){
+  if (Object.prototype.toString.call(v) === '[object Date]'){
+    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM');
+  }
+  return String(v).trim();
+}
+
 // Ubah sebuah sheet jadi array of object. Header "Target Spending" jadi
 // key "targetspending" (huruf kecil, tanpa spasi) supaya gampang dibaca
 // dashboard tanpa peduli urutan kolom.
@@ -371,7 +385,7 @@ function sheetToObjects(sheet){
     var obj = {};
     headers.forEach(function(h, idx){
       var v = row[idx];
-      obj[h] = (h === 'tanggal') ? formatCellDate(v) : v;
+      obj[h] = (h === 'tanggal') ? formatCellDate(v) : (h === 'periode') ? formatCellPeriode(v) : v;
     });
     out.push(obj);
   }
@@ -386,7 +400,7 @@ function upsertTarget(ss, data){
   var periode = String(data.periode).trim();
   var adv = String(data.advertiser).trim().toLowerCase();
   for (var i = 1; i < rows.length; i++){
-    if (String(rows[i][0]).trim() === periode && String(rows[i][1]).trim().toLowerCase() === adv){
+    if (formatCellPeriode(rows[i][0]) === periode && String(rows[i][1]).trim().toLowerCase() === adv){
       sh.getRange(i + 1, 1, 1, 5).setValues([[data.periode, data.advertiser, data.spending, data.leads, data.cpl]]);
       return;
     }
@@ -420,7 +434,7 @@ function upsertMarketplaceTarget(ss, data){
   var periode = String(data.periode).trim();
   var mp = String(data.marketplace).trim().toLowerCase();
   for (var i = 1; i < rows.length; i++){
-    if (String(rows[i][0]).trim() === periode && String(rows[i][1]).trim().toLowerCase() === mp){
+    if (formatCellPeriode(rows[i][0]) === periode && String(rows[i][1]).trim().toLowerCase() === mp){
       sh.getRange(i + 1, 1, 1, 4).setValues([[data.periode, data.marketplace, data.targetspending, data.targetomzet]]);
       return;
     }
@@ -456,7 +470,7 @@ function upsertAffiliateTarget(ss, data){
   var periode = String(data.periode).trim();
   var rowValues = [data.periode, data.targetkonten, data.targetorder, data.targetgmv, data.targetkomisi, data.targetsample];
   for (var i = 1; i < rows.length; i++){
-    if (String(rows[i][0]).trim() === periode){
+    if (formatCellPeriode(rows[i][0]) === periode){
       sh.getRange(i + 1, 1, 1, 6).setValues([rowValues]);
       return;
     }
