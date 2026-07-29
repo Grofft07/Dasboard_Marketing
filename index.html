@@ -350,23 +350,6 @@ function formatCellDate(v){
   return String(v).trim();
 }
 
-// Sama seperti formatCellDate, tapi khusus kolom "Periode" (format 'yyyy-MM').
-// PENTING: kalau sel Periode diketik manual langsung di Google Sheets (mis.
-// "2026-07") dan sel itu otomatis ke-detect sebagai tanggal oleh Google
-// Sheets, nilainya jadi Date object. Kalau Date object ini langsung dikirim
-// tanpa diformat di sini, saat di-JSON.stringify dia otomatis dikonversi ke
-// UTC — dan karena timezone spreadsheet biasanya di depan UTC (mis. WIB
-// UTC+7), tanggalnya bisa MUNDUR (contoh: 1 Juli 00:00 WIB jadi 30 Juni 17:00
-// UTC), sehingga Periode yang harusnya "2026-07" kebaca "2026-06" oleh
-// dashboard. Makanya kolom Periode WAJIB lewat fungsi ini juga, bukan cuma
-// dikirim apa adanya.
-function formatCellPeriode(v){
-  if (Object.prototype.toString.call(v) === '[object Date]'){
-    return Utilities.formatDate(v, SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone(), 'yyyy-MM');
-  }
-  return String(v).trim();
-}
-
 // Ubah sebuah sheet jadi array of object. Header "Target Spending" jadi
 // key "targetspending" (huruf kecil, tanpa spasi) supaya gampang dibaca
 // dashboard tanpa peduli urutan kolom.
@@ -383,9 +366,7 @@ function sheetToObjects(sheet){
     var obj = {};
     headers.forEach(function(h, idx){
       var v = row[idx];
-      if (h === 'tanggal') obj[h] = formatCellDate(v);
-      else if (h === 'periode') obj[h] = formatCellPeriode(v);
-      else obj[h] = v;
+      obj[h] = (h === 'tanggal') ? formatCellDate(v) : v;
     });
     out.push(obj);
   }
@@ -400,7 +381,7 @@ function upsertTarget(ss, data){
   var periode = String(data.periode).trim();
   var adv = String(data.advertiser).trim().toLowerCase();
   for (var i = 1; i < rows.length; i++){
-    if (formatCellPeriode(rows[i][0]) === periode && String(rows[i][1]).trim().toLowerCase() === adv){
+    if (String(rows[i][0]).trim() === periode && String(rows[i][1]).trim().toLowerCase() === adv){
       sh.getRange(i + 1, 1, 1, 5).setValues([[data.periode, data.advertiser, data.spending, data.leads, data.cpl]]);
       return;
     }
@@ -434,7 +415,7 @@ function upsertMarketplaceTarget(ss, data){
   var periode = String(data.periode).trim();
   var mp = String(data.marketplace).trim().toLowerCase();
   for (var i = 1; i < rows.length; i++){
-    if (formatCellPeriode(rows[i][0]) === periode && String(rows[i][1]).trim().toLowerCase() === mp){
+    if (String(rows[i][0]).trim() === periode && String(rows[i][1]).trim().toLowerCase() === mp){
       sh.getRange(i + 1, 1, 1, 4).setValues([[data.periode, data.marketplace, data.targetspending, data.targetomzet]]);
       return;
     }
@@ -470,7 +451,7 @@ function upsertAffiliateTarget(ss, data){
   var periode = String(data.periode).trim();
   var rowValues = [data.periode, data.targetkonten, data.targetorder, data.targetgmv, data.targetkomisi, data.targetsample];
   for (var i = 1; i < rows.length; i++){
-    if (formatCellPeriode(rows[i][0]) === periode){
+    if (String(rows[i][0]).trim() === periode){
       sh.getRange(i + 1, 1, 1, 6).setValues([rowValues]);
       return;
     }
@@ -1836,7 +1817,10 @@ function getLatestMarketplaceTarget(periode, marketplace){
 
 function getMarketplaceDashboardDataLocal(periode, marketplace){
   const target = getLatestMarketplaceTarget(periode, marketplace);
-  const daysInMonth = 28;
+  // Khusus Marketplace: pakai jumlah hari asli bulan tsb (28-31), berbeda
+  // dari sisi Advertiser yang sengaja tetap dipakukan 28 hari.
+  const mpy = periode.split('-').map(Number);
+  const daysInMonth = new Date(mpy[0], mpy[1], 0).getDate();
 
   let aktualSpending = 0, aktualOmzet = 0;
   const dailyMap = {}, mpMap = {};
