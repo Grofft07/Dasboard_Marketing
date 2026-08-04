@@ -357,15 +357,16 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           </div>
           <div>
             <label>Omzet (Rp)</label>
-            <input type="number" id="in-omzet" placeholder="0">
+            <input type="text" id="in-omzet" placeholder="0">
           </div>
           <div>
-            <label>Spending Iklan (Rp)</label>
-            <input type="number" id="in-spend" placeholder="0">
+            <label>Budget Iklan (Rp) <span style="color:var(--muted);font-weight:400;">— sebelum PPN 11%</span></label>
+            <input type="text" id="in-spend" placeholder="0">
           </div>
           <button class="btn btn-primary" onclick="saveEntry()">Simpan</button>
         </div>
         <div id="in-roas-preview"></div>
+        <div id="in-ppn-preview"></div>
       </div>
 
       <div class="section-header"><h2>Riwayat Input</h2><span class="muted-note" id="entryCountNote"></span></div>
@@ -459,8 +460,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         <div class="quick-form quick-form-aff" style="margin-top:14px;">
           <div><label>Toko</label><select id="af-store"></select></div>
           <div><label>Tanggal</label><input type="date" id="af-date"></div>
-          <div><label>Total Omzet Affiliate (Rp)</label><input type="number" id="af-omzet" placeholder="Contoh: 2100000"></div>
-          <div><label>Total Komisi (Rp)</label><input type="number" id="af-komisi" placeholder="Contoh: 210000"></div>
+          <div><label>Total Omzet Affiliate (Rp)</label><input type="text" id="af-omzet" placeholder="Contoh: 2.100.000"></div>
+          <div><label>Total Komisi (Rp)</label><input type="text" id="af-komisi" placeholder="Contoh: 210.000"></div>
           <div><label>Jumlah Sampel Barang</label><input type="number" id="af-sampel" placeholder="Contoh: 15"></div>
           <button class="btn btn-primary" onclick="saveAffEntry()">Simpan</button>
         </div>
@@ -513,8 +514,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         <div class="muted-note" style="margin-top:16px;line-height:1.7;">
           Buka Google Sheet → <b>Extensions → Apps Script</b> → tempel kode dari tombol "Lihat Kode Apps Script" → <b>Deploy → New deployment → Web app</b> (Execute as: <b>Me</b>, Who has access: <b>Anyone</b>) → salin URL ke kolom di atas.
           Buat 5 sheet: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status),
-          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending),
-          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08"),
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending — nilai spending sudah termasuk PPN 11%),
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel — data affiliate specialist harian),
           dan <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetAffiliate</code> (kolom: tokoId, bulan, targetomzetafiliasi, targetkomisi, targetsampel — target affiliate bulanan) — otomatis terisi setiap kamu menambah toko, input harian, input affiliate, atau atur target.
         </div>
@@ -554,9 +555,10 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="grid grid-2" style="gap:10px 14px;">
       <div class="field"><label>Bulan</label><input type="month" id="tg-month"></div>
       <div class="field"><label>Target ROAS Bulan Ini (x)</label><input type="number" step="0.1" id="tg-roas" placeholder="Contoh: 5"></div>
-      <div class="field"><label>Target Omzet Bulan Ini (Rp)</label><input type="number" id="tg-omzet" placeholder="0"></div>
-      <div class="field"><label>Target Spending Bulan Ini (Rp)</label><input type="number" id="tg-spending" placeholder="0"></div>
+      <div class="field"><label>Target Omzet Bulan Ini (Rp)</label><input type="text" id="tg-omzet" placeholder="0"></div>
+      <div class="field"><label>Target Spending Bulan Ini (Rp) <span style="color:var(--muted);font-weight:400;">— sebelum PPN 11%</span></label><input type="text" id="tg-spending" placeholder="0"></div>
     </div>
+    <div id="tg-ppn-preview" style="margin-bottom:10px;"></div>
     <div class="modal-actions" style="justify-content:flex-start;margin-top:0;margin-bottom:14px;">
       <button class="btn btn-primary btn-sm" onclick="saveMonthTarget()">Simpan Target Bulan Ini</button>
     </div>
@@ -581,8 +583,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="grid grid-2" style="gap:10px 14px;">
       <div class="field"><label>Bulan</label><input type="month" id="tgaf-month"></div>
       <div class="field"><label>Target Sampel Bulan Ini (pcs)</label><input type="number" id="tgaf-sampel" placeholder="Contoh: 15"></div>
-      <div class="field"><label>Target Omzet Affiliate Bulan Ini (Rp)</label><input type="number" id="tgaf-omzet" placeholder="0"></div>
-      <div class="field"><label>Target Komisi Bulan Ini (Rp)</label><input type="number" id="tgaf-komisi" placeholder="0"></div>
+      <div class="field"><label>Target Omzet Affiliate Bulan Ini (Rp)</label><input type="text" id="tgaf-omzet" placeholder="0"></div>
+      <div class="field"><label>Target Komisi Bulan Ini (Rp)</label><input type="text" id="tgaf-komisi" placeholder="0"></div>
     </div>
     <div class="modal-actions" style="justify-content:flex-start;margin-top:0;margin-bottom:14px;">
       <button class="btn btn-primary btn-sm" onclick="saveMonthTargetAff()">Simpan Target Bulan Ini</button>
@@ -664,6 +666,31 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 
 <script>
 /* ================= DATA ================= */
+const PPN_RATE = 0.11; // PPN untuk budget/spending iklan, otomatis ditambahkan saat input disimpan
+
+/* Format input angka rupiah jadi bertitik ribuan (1909000 -> 1.909.000) biar gak salah input */
+function formatRibuan(numStr){
+  const digits = String(numStr).replace(/\D/g,'');
+  if(!digits) return '';
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+function rawNumber(id){
+  const el = document.getElementById(id);
+  if(!el) return 0;
+  const digits = String(el.value).replace(/\D/g,'');
+  return digits ? parseInt(digits,10) : 0;
+}
+function attachRibuanFormatting(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.setAttribute('inputmode','numeric');
+  el.addEventListener('input', ()=>{
+    const cursorFromEnd = el.value.length - el.selectionStart;
+    el.value = formatRibuan(el.value);
+    const pos = Math.max(0, el.value.length - cursorFromEnd);
+    el.setSelectionRange(pos, pos);
+  });
+}
 const PLATFORM_META = {
   shopee:{ name:'Shopee', color:'#EE4D2D', bgClass:'shopee', emoji:'🛍️',
     icon:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5c0-3 2.2-5 6-5s6 2 6 5" stroke-linecap="round"/><path d="M4.5 8.5h15l-1.2 11a2 2 0 0 1-2 1.8H7.7a2 2 0 0 1-2-1.8l-1.2-11Z"/><path d="M9.3 12c.3 1.6 1.4 2.6 2.7 2.6s2.4-1 2.7-2.6" stroke-linecap="round"/></svg>' },
@@ -1033,10 +1060,18 @@ function fillMonthTargetInputs(storeId){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tg-month').value;
   const existing = s.targets && s.targets[ym];
-  document.getElementById('tg-omzet').value = existing? (existing.omzet||'') : '';
-  document.getElementById('tg-spending').value = existing? (existing.spending||'') : '';
+  document.getElementById('tg-omzet').value = existing? formatRibuan(existing.omzet||'') : '';
+  document.getElementById('tg-spending').value = existing? (existing.spending? formatRibuan(Math.round(existing.spending/(1+PPN_RATE))) : '') : '';
   document.getElementById('tg-roas').value = existing? (existing.roas||'') : '';
+  updateTgPpnPreview();
 }
+function updateTgPpnPreview(){
+  const raw = rawNumber('tg-spending');
+  document.getElementById('tg-ppn-preview').innerHTML = raw>0 ? `<span class="roas-preview">Termasuk PPN 11%: <b>${rp(Math.round(raw*(1+PPN_RATE)))}</b> (akan disimpan)</span>` : '';
+}
+attachRibuanFormatting('tg-omzet');
+attachRibuanFormatting('tg-spending');
+document.getElementById('tg-spending').addEventListener('input', updateTgPpnPreview);
 document.getElementById('tg-month').addEventListener('change', ()=> fillMonthTargetInputs(document.getElementById('tg-store-id').value));
 function renderTargetList(storeId){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
@@ -1062,8 +1097,9 @@ function saveMonthTarget(){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tg-month').value;
   if(!ym){ alert('Pilih bulan dulu ya.'); return; }
-  const omzet = parseFloat(document.getElementById('tg-omzet').value)||0;
-  const spending = parseFloat(document.getElementById('tg-spending').value)||0;
+  const omzet = rawNumber('tg-omzet');
+  const spendRaw = rawNumber('tg-spending');
+  const spending = Math.round(spendRaw * (1+PPN_RATE));
   const roas = parseFloat(document.getElementById('tg-roas').value)||0;
   if(!s.targets) s.targets={};
   s.targets[ym] = {omzet, spending, roas};
@@ -1098,10 +1134,12 @@ function fillMonthTargetAffInputs(storeId){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tgaf-month').value;
   const existing = s.affTargets && s.affTargets[ym];
-  document.getElementById('tgaf-omzet').value = existing? (existing.omzet||'') : '';
-  document.getElementById('tgaf-komisi').value = existing? (existing.komisi||'') : '';
+  document.getElementById('tgaf-omzet').value = existing? formatRibuan(existing.omzet||'') : '';
+  document.getElementById('tgaf-komisi').value = existing? formatRibuan(existing.komisi||'') : '';
   document.getElementById('tgaf-sampel').value = existing? (existing.sampel||'') : '';
 }
+attachRibuanFormatting('tgaf-omzet');
+attachRibuanFormatting('tgaf-komisi');
 document.getElementById('tgaf-month').addEventListener('change', ()=> fillMonthTargetAffInputs(document.getElementById('tgaf-store-id').value));
 function renderTargetAffList(storeId){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
@@ -1122,8 +1160,8 @@ function saveMonthTargetAff(){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tgaf-month').value;
   if(!ym){ alert('Pilih bulan dulu ya.'); return; }
-  const omzet = parseFloat(document.getElementById('tgaf-omzet').value)||0;
-  const komisi = parseFloat(document.getElementById('tgaf-komisi').value)||0;
+  const omzet = rawNumber('tgaf-omzet');
+  const komisi = rawNumber('tgaf-komisi');
   const sampel = parseInt(document.getElementById('tgaf-sampel').value)||0;
   if(!s.affTargets) s.affTargets={};
   s.affTargets[ym] = {omzet, komisi, sampel};
@@ -1145,18 +1183,22 @@ function deleteMonthTargetAff(storeId, ym, btn){
 /* ================= INPUT HARIAN ================= */
 document.getElementById('in-date').valueAsDate = new Date();
 ['in-omzet','in-spend'].forEach(id=>{
+  attachRibuanFormatting(id);
   document.getElementById(id).addEventListener('input', ()=>{
-    const o = parseFloat(document.getElementById('in-omzet').value)||0;
-    const sp = parseFloat(document.getElementById('in-spend').value)||0;
-    const roas = sp>0 ? (o/sp).toFixed(2) : '-';
+    const o = rawNumber('in-omzet');
+    const spRaw = rawNumber('in-spend');
+    const spPpn = Math.round(spRaw * (1+PPN_RATE));
+    const roas = spPpn>0 ? (o/spPpn).toFixed(2) : '-';
     document.getElementById('in-roas-preview').innerHTML = `<span class="roas-preview">Perkiraan ROAS: ${roas}${roas!=='-'?'x':''}</span>`;
+    document.getElementById('in-ppn-preview').innerHTML = spRaw>0 ? `<span class="roas-preview">Termasuk PPN 11%: <b>${rp(spPpn)}</b> (akan disimpan)</span>` : '';
   });
 });
 function saveEntry(){
   const storeId = document.getElementById('in-store').value;
   const tanggal = document.getElementById('in-date').value;
-  const omzet = parseFloat(document.getElementById('in-omzet').value)||0;
-  const spending = parseFloat(document.getElementById('in-spend').value)||0;
+  const omzet = rawNumber('in-omzet');
+  const spendRaw = rawNumber('in-spend');
+  const spending = Math.round(spendRaw * (1+PPN_RATE));
   if(!storeId){ alert('Tambahkan toko dulu di menu Toko & Target.'); return; }
   if(!tanggal){ alert('Pilih tanggal dulu ya.'); return; }
   let e = entries.find(x=>x.storeId===storeId && x.tanggal===tanggal);
@@ -1165,6 +1207,7 @@ function saveEntry(){
   saveEntries();
   document.getElementById('in-omzet').value=''; document.getElementById('in-spend').value='';
   document.getElementById('in-roas-preview').innerHTML='';
+  document.getElementById('in-ppn-preview').innerHTML='';
   entryPage = 1;
   renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
   pushOneToSheet('input', entryToRow(e));
@@ -1707,9 +1750,10 @@ populateAffStoreSelects();
 document.getElementById('af-date').valueAsDate = new Date();
 document.getElementById('af-filter-store').addEventListener('change', ()=>{ affEntryPage=1; renderAffEntries(); });
 ['af-omzet','af-komisi'].forEach(id=>{
+  attachRibuanFormatting(id);
   document.getElementById(id).addEventListener('input', ()=>{
-    const o = parseFloat(document.getElementById('af-omzet').value)||0;
-    const k = parseFloat(document.getElementById('af-komisi').value)||0;
+    const o = rawNumber('af-omzet');
+    const k = rawNumber('af-komisi');
     const roi = k>0 ? (o/k).toFixed(2) : '-';
     document.getElementById('af-roi-preview').innerHTML = `<span class="roas-preview">Perkiraan ROI: ${roi}${roi!=='-'?'x':''}</span>`;
   });
@@ -1717,8 +1761,8 @@ document.getElementById('af-filter-store').addEventListener('change', ()=>{ affE
 function saveAffEntry(){
   const storeId = document.getElementById('af-store').value;
   const tanggal = document.getElementById('af-date').value;
-  const omzet = parseFloat(document.getElementById('af-omzet').value)||0;
-  const komisi = parseFloat(document.getElementById('af-komisi').value)||0;
+  const omzet = rawNumber('af-omzet');
+  const komisi = rawNumber('af-komisi');
   const sampel = parseInt(document.getElementById('af-sampel').value)||0;
   if(!storeId){ alert('Pilih toko dulu ya.'); return; }
   if(!tanggal){ alert('Pilih tanggal dulu ya.'); return; }
