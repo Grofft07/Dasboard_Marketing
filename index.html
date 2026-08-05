@@ -360,8 +360,12 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
             <input type="text" id="in-omzet" placeholder="0">
           </div>
           <div>
-            <label>Budget Iklan (Rp) <span style="color:var(--muted);font-weight:400;">— sebelum PPN 11%</span></label>
+            <label>Budget Marketplace (Rp) <span style="color:var(--muted);font-weight:400;">— sebelum PPN 11%</span></label>
             <input type="text" id="in-spend" placeholder="0">
+          </div>
+          <div>
+            <label>Budget CPAS (Rp) <span id="in-spend-cpas-label" style="color:var(--muted);font-weight:400;">— sebelum PPN</span></label>
+            <input type="text" id="in-spend-cpas" placeholder="0">
           </div>
           <button class="btn btn-primary" onclick="saveEntry()">Simpan</button>
         </div>
@@ -513,7 +517,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         <div id="sheetSyncMsg" class="muted-note" style="margin-top:10px;"></div>
         <div class="muted-note" style="margin-top:16px;line-height:1.7;">
           Buka Google Sheet → <b>Extensions → Apps Script</b> → tempel kode dari tombol "Lihat Kode Apps Script" → <b>Deploy → New deployment → Web app</b> (Execute as: <b>Me</b>, Who has access: <b>Anyone</b>) → salin URL ke kolom di atas.
-          Buat 5 sheet: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status),
+          Buat 5 sheet: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending — nilai spending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel — data affiliate specialist harian),
@@ -538,6 +542,9 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="field"><label>Username / ID Toko</label><input type="text" id="f-username" placeholder="Contoh: @kiossepatunusantara"></div>
     <div class="field"><label>Status</label>
       <select id="f-status"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select>
+    </div>
+    <div class="field"><label>PPN CPAS Toko Ini (%) <span style="color:var(--muted);font-weight:400;">— budget Marketplace tetap PPN 11%</span></label>
+      <input type="number" id="f-cpas-ppn" placeholder="Contoh: 4 (isi 0 kalau toko ini tidak pakai CPAS)" step="0.1" min="0">
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeStoreModal()">Batal</button>
@@ -709,7 +716,7 @@ function loadData(key, seed){
   localStorage.setItem(key, JSON.stringify(seed)); return seed;
 }
 let stores = loadData('kh_stores_v2', seedStores);
-stores.forEach(s=>{ if(!s.targets || typeof s.targets!=='object') s.targets={}; if(!s.affTargets || typeof s.affTargets!=='object') s.affTargets={}; });
+stores.forEach(s=>{ if(!s.targets || typeof s.targets!=='object') s.targets={}; if(!s.affTargets || typeof s.affTargets!=='object') s.affTargets={}; if(typeof s.cpasPpnRate!=='number') s.cpasPpnRate=0; });
 let entries = loadData('kh_entries_v2', seedEntries.map((e,i)=>({id:'e'+i, ...e})));
 function saveStores(){ localStorage.setItem('kh_stores_v2', JSON.stringify(stores)); }
 function saveEntries(){ localStorage.setItem('kh_entries_v2', JSON.stringify(entries)); }
@@ -986,6 +993,7 @@ function renderStores(){
         <div><b>${t.roas.toFixed(2)}x</b><span>ROAS Aktual</span></div>
       </div>
       ${Object.keys(s.targets||{}).length ? `<div class="muted-note" style="margin:-6px 0 12px;">🎯 ${Object.keys(s.targets).length} bulan punya target khusus</div>` : ''}
+      ${s.cpasPpnRate ? `<div class="muted-note" style="margin:-6px 0 12px;">🧾 PPN CPAS toko ini: <b>${s.cpasPpnRate}%</b></div>` : ''}
       <div class="store-card-foot">
         <button class="btn btn-ghost btn-sm" onclick="editStore('${s.id}')">Edit Toko</button>
         <button class="btn btn-ghost btn-sm" onclick="openTargetModal('${s.id}')">🎯 Target Bulanan</button>
@@ -1006,6 +1014,7 @@ function openStoreModal(){
   document.getElementById('f-id').value='';
   document.getElementById('f-name').value=''; document.getElementById('f-username').value='';
   document.getElementById('f-platform').value='shopee'; document.getElementById('f-status').value='aktif';
+  document.getElementById('f-cpas-ppn').value='0';
   document.getElementById('storeOverlay').classList.add('open');
 }
 function closeStoreModal(){ document.getElementById('storeOverlay').classList.remove('open'); }
@@ -1016,6 +1025,7 @@ function editStore(id){
   document.getElementById('f-name').value=s.name;
   document.getElementById('f-username').value=s.username;
   document.getElementById('f-status').value=s.status;
+  document.getElementById('f-cpas-ppn').value = (s.cpasPpnRate!=null? s.cpasPpnRate : 0);
   document.getElementById('storeOverlay').classList.add('open');
 }
 function saveStoreForm(){
@@ -1026,6 +1036,7 @@ function saveStoreForm(){
     platform: document.getElementById('f-platform').value,
     name, username: document.getElementById('f-username').value.trim() || '@toko-baru',
     status: document.getElementById('f-status').value,
+    cpasPpnRate: parseFloat(document.getElementById('f-cpas-ppn').value)||0,
   };
   let s;
   if(id){ s = stores.find(x=>x.id===id); Object.assign(s, payload); }
@@ -1182,30 +1193,50 @@ function deleteMonthTargetAff(storeId, ym, btn){
 
 /* ================= INPUT HARIAN ================= */
 document.getElementById('in-date').valueAsDate = new Date();
-['in-omzet','in-spend'].forEach(id=>{
+function currentCpasRate(){
+  const s = stores.find(x=>x.id===document.getElementById('in-store').value);
+  return s && s.cpasPpnRate ? s.cpasPpnRate : 0;
+}
+function updateCpasLabel(){
+  const rate = currentCpasRate();
+  document.getElementById('in-spend-cpas-label').textContent = `— sebelum PPN ${rate}%`;
+}
+document.getElementById('in-store').addEventListener('change', ()=>{ updateCpasLabel(); updateEntryPreview(); });
+function updateEntryPreview(){
+  const o = rawNumber('in-omzet');
+  const spMpRaw = rawNumber('in-spend');
+  const spCpasRaw = rawNumber('in-spend-cpas');
+  const spMpPpn = Math.round(spMpRaw * (1+PPN_RATE));
+  const spCpasPpn = Math.round(spCpasRaw * (1+currentCpasRate()/100));
+  const totalSpending = spMpPpn + spCpasPpn;
+  const roas = totalSpending>0 ? (o/totalSpending).toFixed(2) : '-';
+  document.getElementById('in-roas-preview').innerHTML = `<span class="roas-preview">Perkiraan ROAS: ${roas}${roas!=='-'?'x':''}</span>`;
+  const parts = [];
+  if(spMpRaw>0) parts.push(`Marketplace +PPN 11%: <b>${rp(spMpPpn)}</b>`);
+  if(spCpasRaw>0) parts.push(`CPAS +PPN ${currentCpasRate()}%: <b>${rp(spCpasPpn)}</b>`);
+  document.getElementById('in-ppn-preview').innerHTML = parts.length ? `<span class="roas-preview">${parts.join(' &nbsp;|&nbsp; ')} &nbsp;|&nbsp; Total spending tersimpan: <b>${rp(totalSpending)}</b></span>` : '';
+}
+['in-omzet','in-spend','in-spend-cpas'].forEach(id=>{
   attachRibuanFormatting(id);
-  document.getElementById(id).addEventListener('input', ()=>{
-    const o = rawNumber('in-omzet');
-    const spRaw = rawNumber('in-spend');
-    const spPpn = Math.round(spRaw * (1+PPN_RATE));
-    const roas = spPpn>0 ? (o/spPpn).toFixed(2) : '-';
-    document.getElementById('in-roas-preview').innerHTML = `<span class="roas-preview">Perkiraan ROAS: ${roas}${roas!=='-'?'x':''}</span>`;
-    document.getElementById('in-ppn-preview').innerHTML = spRaw>0 ? `<span class="roas-preview">Termasuk PPN 11%: <b>${rp(spPpn)}</b> (akan disimpan)</span>` : '';
-  });
+  document.getElementById(id).addEventListener('input', updateEntryPreview);
 });
+updateCpasLabel();
 function saveEntry(){
   const storeId = document.getElementById('in-store').value;
   const tanggal = document.getElementById('in-date').value;
   const omzet = rawNumber('in-omzet');
-  const spendRaw = rawNumber('in-spend');
-  const spending = Math.round(spendRaw * (1+PPN_RATE));
+  const spMpRaw = rawNumber('in-spend');
+  const spCpasRaw = rawNumber('in-spend-cpas');
+  const spendMarketplace = Math.round(spMpRaw * (1+PPN_RATE));
+  const spendCpas = Math.round(spCpasRaw * (1+currentCpasRate()/100));
+  const spending = spendMarketplace + spendCpas;
   if(!storeId){ alert('Tambahkan toko dulu di menu Toko & Target.'); return; }
   if(!tanggal){ alert('Pilih tanggal dulu ya.'); return; }
   let e = entries.find(x=>x.storeId===storeId && x.tanggal===tanggal);
   if(e){ e.omzet=omzet; e.spending=spending; }
   else { e = {id:'e'+Date.now(), storeId, tanggal, omzet, spending}; entries.push(e); }
   saveEntries();
-  document.getElementById('in-omzet').value=''; document.getElementById('in-spend').value='';
+  document.getElementById('in-omzet').value=''; document.getElementById('in-spend').value=''; document.getElementById('in-spend-cpas').value='';
   document.getElementById('in-roas-preview').innerHTML='';
   document.getElementById('in-ppn-preview').innerHTML='';
   entryPage = 1;
@@ -1890,18 +1921,19 @@ function doPost(e){
 }
 
 // Sheet "Toko": upsert berdasarkan kolom id. data.hapus=true untuk menghapus baris.
+// Kolom ke-6 "ppncpas" = persentase PPN khusus untuk budget CPAS toko ini (beda dari PPN 11% budget Marketplace biasa).
 function upsertToko(ss, data){
   var sh = ss.getSheetByName('Toko'); if(!sh) return;
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][0]).trim() === String(data.id).trim()){
       if(data.hapus){ sh.deleteRow(i+1); return; }
-      sh.getRange(i+1,1,1,5).setValues([[data.id,data.platform,data.nama,data.username,data.status]]);
+      sh.getRange(i+1,1,1,6).setValues([[data.id,data.platform,data.nama,data.username,data.status,data.ppncpas||0]]);
       return;
     }
   }
   if(data.hapus) return;
-  sh.appendRow([data.id,data.platform,data.nama,data.username,data.status]);
+  sh.appendRow([data.id,data.platform,data.nama,data.username,data.status,data.ppncpas||0]);
 }
 
 // Sheet "Target": upsert berdasarkan (tokoId + bulan) — 1 baris per toko per bulan.
@@ -1998,7 +2030,7 @@ function setSyncMsg(text, color){
   const el = document.getElementById('sheetSyncMsg'); if(!el) return;
   el.textContent = text; el.style.color = color || 'var(--muted)';
 }
-function storeToRow(s){ return {id:s.id, platform:s.platform, nama:s.name, username:s.username, status:s.status}; }
+function storeToRow(s){ return {id:s.id, platform:s.platform, nama:s.name, username:s.username, status:s.status, ppncpas:s.cpasPpnRate||0}; }
 function entryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, spending:e.spending}; }
 function affEntryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, komisi:e.komisi, sampel:e.sampel}; }
 function targetRowsForStore(s){
@@ -2011,7 +2043,10 @@ function targetAffRowsForStore(s){
 async function pushOneToSheet(type, payload){
   const url = getAppsScriptUrl(); if(!url) return;
   try{
-    await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({type}, payload))});
+    // mode:'no-cors' wajib dipakai untuk Apps Script Web App: responsnya lewat redirect tanpa header CORS,
+    // jadi fetch biasa sering dianggap gagal oleh browser padahal perintahnya sudah jalan di server.
+    // Dengan no-cors, request tetap benar-benar terkirim & dieksekusi, walau kita tidak bisa membaca isi responsnya.
+    await fetch(url, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({type}, payload))});
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
   }catch(err){ setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)'); }
 }
@@ -2039,6 +2074,7 @@ async function pullFromSheet(silent){
       stores = json.toko.map(r=>({
         id:String(r.id), platform:String(r.platform||'shopee').toLowerCase(), name:r.nama||'(Tanpa nama)',
         username:r.username||'', status:String(r.status||'aktif').toLowerCase(),
+        cpasPpnRate: parseFloat(r.ppncpas)||0,
         targets:{}, affTargets:{}
       }));
       if(Array.isArray(json.target)){
