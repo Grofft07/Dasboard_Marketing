@@ -1908,6 +1908,13 @@ const APPS_SCRIPT_CODE = `// ===================================================
 // ============================================================
 
 function doGet(e){
+  var params = (e && e.parameter) ? e.parameter : {};
+  // Kalau ada parameter "type", ini request TULIS (simpan/hapus), bukan baca.
+  // Sengaja dikirim lewat GET (bukan POST) karena browser sering mengubah method POST jadi GET
+  // saat mengikuti redirect internal Apps Script Web App, yang bikin doPost tidak pernah benar-benar jalan.
+  if(params.type){
+    return handleWrite(params);
+  }
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var toko = sheetToObjects(ss.getSheetByName('Toko'));
   var input = sheetToObjects(ss.getSheetByName('Input'));
@@ -1917,8 +1924,16 @@ function doGet(e){
   return jsonOutput({toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate});
 }
 
+// doPost tetap disediakan sebagai cadangan (kalau ada klien lain yang kirim lewat POST asli, misal dari server-to-server).
 function doPost(e){
   var data = JSON.parse(e.postData.contents);
+  return handleWrite(data);
+}
+
+function handleWrite(data){
+  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel'];
+  NUMERIC_KEYS.forEach(function(k){ if(data[k] !== undefined && data[k] !== null && data[k] !== '') data[k] = Number(data[k]) || 0; });
+  data.hapus = (data.hapus === true || data.hapus === 'true');
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var lock = LockService.getScriptLock();
   try{ lock.waitLock(30000); } catch(lockErr){ return jsonOutput({status:'error', message:'Server sibuk, coba lagi.'}); }
@@ -2052,13 +2067,21 @@ function targetAffRowsForStore(s){
   return Object.keys(s.affTargets||{}).map(ym=> ({tokoId:s.id, bulan:ym, targetomzetafiliasi:s.affTargets[ym].omzet, targetkomisi:s.affTargets[ym].komisi, targetsampel:s.affTargets[ym].sampel}));
 }
 
+function buildQueryString(obj){
+  return Object.keys(obj).map(function(k){
+    const v = (obj[k]===undefined || obj[k]===null) ? '' : obj[k];
+    return encodeURIComponent(k) + '=' + encodeURIComponent(v);
+  }).join('&');
+}
 async function pushOneToSheet(type, payload){
   const url = getAppsScriptUrl(); if(!url) return;
   try{
-    // mode:'no-cors' wajib dipakai untuk Apps Script Web App: responsnya lewat redirect tanpa header CORS,
-    // jadi fetch biasa sering dianggap gagal oleh browser padahal perintahnya sudah jalan di server.
-    // Dengan no-cors, request tetap benar-benar terkirim & dieksekusi, walau kita tidak bisa membaca isi responsnya.
-    await fetch(url, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({type}, payload))});
+    // Dikirim lewat GET (bukan POST) + mode:'no-cors'. Alasan pakai GET: browser sering mengubah method
+    // POST jadi GET saat mengikuti redirect internal Apps Script Web App, jadi doPost gak pernah beneran jalan
+    // walau permintaannya "kelihatan" terkirim. Dengan GET dari awal, gak ada proses redirect yang mengubah method.
+    // mode:'no-cors' tetap dipakai karena kita gak butuh baca isi responsnya, cuma mastiin request-nya terkirim.
+    const qs = buildQueryString(Object.assign({type}, payload));
+    await fetch(url + '?' + qs, {method:'GET', mode:'no-cors', cache:'no-store'});
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
   }catch(err){ setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)'); }
 }
