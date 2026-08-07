@@ -371,6 +371,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         </div>
         <div id="in-roas-preview"></div>
         <div id="in-ppn-preview"></div>
+        <div id="in-sync-status" style="margin-top:6px;font-size:12.5px;"></div>
       </div>
 
       <div class="section-header"><h2>Riwayat Input</h2><span class="muted-note" id="entryCountNote"></span></div>
@@ -470,6 +471,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           <button class="btn btn-primary" onclick="saveAffEntry()">Simpan</button>
         </div>
         <div id="af-roi-preview"></div>
+        <div id="af-sync-status" style="margin-top:6px;font-size:12.5px;"></div>
       </div>
 
       <div class="section-header"><h2>Riwayat Input Affiliate</h2><span class="muted-note" id="affEntryCountNote"></span></div>
@@ -1042,8 +1044,8 @@ function saveStoreForm(){
   if(id){ s = stores.find(x=>x.id===id); Object.assign(s, payload); }
   else { s = {id:'s'+Date.now(), ...payload, targets:{}, affTargets:{}}; stores.push(s); }
   saveStores(); closeStoreModal();
-  renderStores(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
   pushOneToSheet('toko', storeToRow(s));
+  renderStores(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
   document.querySelector('.navbtn[data-page="toko"]').click();
 }
 function deleteStore(id, btn){
@@ -1051,8 +1053,8 @@ function deleteStore(id, btn){
   stores = stores.filter(x=>x.id!==id);
   entries = entries.filter(x=>x.storeId!==id);
   saveStores(); saveEntries();
-  renderStores(); renderKPI(); renderOverviewTable(); renderPerforma(); renderEntries(); buildOverviewCharts();
   pushOneToSheet('toko', {id, hapus:true});
+  renderStores(); renderKPI(); renderOverviewTable(); renderPerforma(); renderEntries(); buildOverviewCharts();
 }
 
 /* ================= TARGET BULANAN (MODAL) ================= */
@@ -1115,9 +1117,9 @@ function saveMonthTarget(){
   if(!s.targets) s.targets={};
   s.targets[ym] = {omzet, spending, roas};
   saveStores();
+  pushOneToSheet('target', {tokoId:storeId, bulan:ym, targetomzet:omzet, targetspending:spending, targetroas:roas});
   renderTargetList(storeId);
   renderStores(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
-  pushOneToSheet('target', {tokoId:storeId, bulan:ym, targetomzet:omzet, targetspending:spending, targetroas:roas});
 }
 function deleteMonthTarget(storeId, ym, btn){
   if(btn && !armConfirm(btn)) return;
@@ -1177,18 +1179,18 @@ function saveMonthTargetAff(){
   if(!s.affTargets) s.affTargets={};
   s.affTargets[ym] = {omzet, komisi, sampel};
   saveStores();
+  pushOneToSheet('targetAffiliate', {tokoId:storeId, bulan:ym, targetomzetafiliasi:omzet, targetkomisi:komisi, targetsampel:sampel});
   renderTargetAffList(storeId);
   renderAffKPI();
-  pushOneToSheet('targetAffiliate', {tokoId:storeId, bulan:ym, targetomzetafiliasi:omzet, targetkomisi:komisi, targetsampel:sampel});
 }
 function deleteMonthTargetAff(storeId, ym, btn){
   if(btn && !armConfirm(btn)) return;
   const s = stores.find(x=>x.id===storeId); if(!s || !s.affTargets) return;
   delete s.affTargets[ym];
   saveStores();
+  pushOneToSheet('targetAffiliate', {tokoId:storeId, bulan:ym, hapus:true});
   renderTargetAffList(storeId);
   renderAffKPI();
-  pushOneToSheet('targetAffiliate', {tokoId:storeId, bulan:ym, hapus:true});
 }
 
 /* ================= INPUT HARIAN ================= */
@@ -1236,20 +1238,25 @@ function saveEntry(){
   if(e){ e.omzet=omzet; e.spending=spending; }
   else { e = {id:'e'+Date.now(), storeId, tanggal, omzet, spending}; entries.push(e); }
   saveEntries();
+  pushOneToSheet('input', entryToRow(e));
+  showSyncStatus('in-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
+  if(getAppsScriptUrl()){
+    verifySheetHasRow('input', r=> String(r.tokoId).trim()===storeId && String(r.tanggal).slice(0,10)===tanggal)
+      .then(ok=> showSyncStatus('in-sync-status', ok ? 'ok' : 'fail'));
+  }
   document.getElementById('in-omzet').value=''; document.getElementById('in-spend').value=''; document.getElementById('in-spend-cpas').value='';
   document.getElementById('in-roas-preview').innerHTML='';
   document.getElementById('in-ppn-preview').innerHTML='';
   entryPage = 1;
   renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
-  pushOneToSheet('input', entryToRow(e));
 }
 function deleteEntry(id, btn){
   const e = entries.find(x=>x.id===id); if(!e) return;
   if(btn && !armConfirm(btn)) return;
   entries = entries.filter(x=>x.id!==id);
   saveEntries();
-  renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
   pushOneToSheet('input', Object.assign(entryToRow(e), {hapus:true}));
+  renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
 }
 const ENTRY_PAGE_SIZE = 20;
 let entryPage = 1;
@@ -1801,19 +1808,24 @@ function saveAffEntry(){
   if(e){ e.omzet=omzet; e.komisi=komisi; e.sampel=sampel; }
   else { e = {id:'af'+Date.now(), storeId, tanggal, omzet, komisi, sampel}; affEntries.push(e); }
   saveAffEntries();
+  pushOneToSheet('affiliate', affEntryToRow(e));
+  showSyncStatus('af-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
+  if(getAppsScriptUrl()){
+    verifySheetHasRow('affiliate', r=> String(r.tokoId).trim()===storeId && String(r.tanggal).slice(0,10)===tanggal)
+      .then(ok=> showSyncStatus('af-sync-status', ok ? 'ok' : 'fail'));
+  }
   document.getElementById('af-omzet').value=''; document.getElementById('af-komisi').value=''; document.getElementById('af-sampel').value='';
   document.getElementById('af-roi-preview').innerHTML='';
   affEntryPage = 1;
   renderAffEntries(); renderAffKPI();
-  pushOneToSheet('affiliate', affEntryToRow(e));
 }
 function deleteAffEntry(id, btn){
   const e = affEntries.find(x=>x.id===id); if(!e) return;
   if(btn && !armConfirm(btn)) return;
   affEntries = affEntries.filter(x=>x.id!==id);
   saveAffEntries();
-  renderAffEntries(); renderAffKPI();
   pushOneToSheet('affiliate', {tokoId:e.storeId, tanggal:e.tanggal, hapus:true});
+  renderAffEntries(); renderAffKPI();
 }
 
 const AFF_ENTRY_PAGE_SIZE = 20;
@@ -2049,6 +2061,31 @@ async function pushOneToSheet(type, payload){
     await fetch(url, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({type}, payload))});
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
   }catch(err){ setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)'); }
+}
+
+/* Verifikasi nyata apakah baris sudah benar-benar ada di spreadsheet, dengan baca ulang datanya (GET, bukan no-cors,
+   jadi hasilnya bisa dibaca & dipercaya). Dipakai untuk kasih status "Terkirim ✅ / Belum masuk ⚠️" di dekat form input. */
+async function verifySheetHasRow(datasetKey, matchFn, tries){
+  const url = getAppsScriptUrl(); if(!url) return null;
+  tries = tries || 4;
+  for(let i=0;i<tries;i++){
+    await sleep(i===0 ? 900 : 1300);
+    try{
+      const res = await fetch(url+'?action=read', {cache:'no-store'});
+      const json = await res.json();
+      const arr = json[datasetKey];
+      if(Array.isArray(arr) && arr.some(matchFn)) return true;
+    }catch(err){ /* coba lagi */ }
+  }
+  return false;
+}
+function showSyncStatus(elId, state){
+  const el = document.getElementById(elId); if(!el) return;
+  if(state==='checking') el.innerHTML = `<span style="color:var(--muted);">⏳ Mengecek pengiriman ke spreadsheet...</span>`;
+  else if(state==='ok') el.innerHTML = `<span style="color:var(--green-dark);">✅ Terkonfirmasi masuk ke spreadsheet.</span>`;
+  else if(state==='fail') el.innerHTML = `<span style="color:var(--red);">⚠️ Belum terkonfirmasi masuk ke spreadsheet. Coba "Kirim Semua Data" di menu Integrasi Sheet, atau cek URL Apps Script-nya.</span>`;
+  else if(state==='nourl') el.innerHTML = `<span style="color:var(--muted);">Tersimpan di dashboard saja (URL Apps Script belum diisi di menu Integrasi Sheet).</span>`;
+  else el.innerHTML = '';
 }
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 async function pushAllToSheet(){
