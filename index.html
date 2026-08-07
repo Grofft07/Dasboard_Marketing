@@ -1223,7 +1223,7 @@ function updateEntryPreview(){
   document.getElementById(id).addEventListener('input', updateEntryPreview);
 });
 updateCpasLabel();
-function saveEntry(){
+async function saveEntry(){
   const storeId = document.getElementById('in-store').value;
   const tanggal = document.getElementById('in-date').value;
   const omzet = rawNumber('in-omzet');
@@ -1232,31 +1232,31 @@ function saveEntry(){
   const spendMarketplace = Math.round(spMpRaw * (1+PPN_RATE));
   const spendCpas = Math.round(spCpasRaw * (1+currentCpasRate()/100));
   const spending = spendMarketplace + spendCpas;
-  if(!storeId){ alert('Tambahkan toko dulu di menu Toko & Target.'); return; }
-  if(!tanggal){ alert('Pilih tanggal dulu ya.'); return; }
+  if(!storeId){ showSyncStatus('in-sync-status', 'nourl'); document.getElementById('in-sync-status').innerHTML = '<span style="color:var(--red);">Tambahkan toko dulu di menu Toko & Target.</span>'; return; }
+  if(!tanggal){ document.getElementById('in-sync-status').innerHTML = '<span style="color:var(--red);">Pilih tanggal dulu ya.</span>'; return; }
   let e = entries.find(x=>x.storeId===storeId && x.tanggal===tanggal);
   if(e){ e.omzet=omzet; e.spending=spending; }
   else { e = {id:'e'+Date.now(), storeId, tanggal, omzet, spending}; entries.push(e); }
   saveEntries();
-  pushOneToSheet('input', entryToRow(e));
+  // Tampilkan konfirmasi lokal LANGSUNG (gak perlu nunggu jaringan), baru kirim ke spreadsheet.
   showSyncStatus('in-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
-  if(getAppsScriptUrl()){
-    verifySheetHasRow('input', r=> String(r.tokoId).trim()===storeId && String(r.tanggal).slice(0,10)===tanggal)
-      .then(ok=> showSyncStatus('in-sync-status', ok ? 'ok' : 'fail'));
-  }
+  entryPage = 1;
+  renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
   document.getElementById('in-omzet').value=''; document.getElementById('in-spend').value=''; document.getElementById('in-spend-cpas').value='';
   document.getElementById('in-roas-preview').innerHTML='';
   document.getElementById('in-ppn-preview').innerHTML='';
-  entryPage = 1;
-  renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
+  if(getAppsScriptUrl()){
+    const status = await pushOneToSheet('input', entryToRow(e));
+    showSyncStatus('in-sync-status', status==='ok' ? 'ok' : 'fail');
+  }
 }
-function deleteEntry(id, btn){
+async function deleteEntry(id, btn){
   const e = entries.find(x=>x.id===id); if(!e) return;
   if(btn && !armConfirm(btn)) return;
   entries = entries.filter(x=>x.id!==id);
   saveEntries();
-  pushOneToSheet('input', Object.assign(entryToRow(e), {hapus:true}));
   renderEntries(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
+  if(getAppsScriptUrl()) await pushOneToSheet('input', Object.assign(entryToRow(e), {hapus:true}));
 }
 const ENTRY_PAGE_SIZE = 20;
 let entryPage = 1;
@@ -1796,36 +1796,35 @@ document.getElementById('af-filter-store').addEventListener('change', ()=>{ affE
     document.getElementById('af-roi-preview').innerHTML = `<span class="roas-preview">Perkiraan ROI: ${roi}${roi!=='-'?'x':''}</span>`;
   });
 });
-function saveAffEntry(){
+async function saveAffEntry(){
   const storeId = document.getElementById('af-store').value;
   const tanggal = document.getElementById('af-date').value;
   const omzet = rawNumber('af-omzet');
   const komisi = rawNumber('af-komisi');
   const sampel = parseInt(document.getElementById('af-sampel').value)||0;
-  if(!storeId){ alert('Pilih toko dulu ya.'); return; }
-  if(!tanggal){ alert('Pilih tanggal dulu ya.'); return; }
+  if(!storeId){ document.getElementById('af-sync-status').innerHTML = '<span style="color:var(--red);">Pilih toko dulu ya.</span>'; return; }
+  if(!tanggal){ document.getElementById('af-sync-status').innerHTML = '<span style="color:var(--red);">Pilih tanggal dulu ya.</span>'; return; }
   let e = affEntries.find(x=>x.tanggal===tanggal && x.storeId===storeId);
   if(e){ e.omzet=omzet; e.komisi=komisi; e.sampel=sampel; }
   else { e = {id:'af'+Date.now(), storeId, tanggal, omzet, komisi, sampel}; affEntries.push(e); }
   saveAffEntries();
-  pushOneToSheet('affiliate', affEntryToRow(e));
   showSyncStatus('af-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
-  if(getAppsScriptUrl()){
-    verifySheetHasRow('affiliate', r=> String(r.tokoId).trim()===storeId && String(r.tanggal).slice(0,10)===tanggal)
-      .then(ok=> showSyncStatus('af-sync-status', ok ? 'ok' : 'fail'));
-  }
   document.getElementById('af-omzet').value=''; document.getElementById('af-komisi').value=''; document.getElementById('af-sampel').value='';
   document.getElementById('af-roi-preview').innerHTML='';
   affEntryPage = 1;
   renderAffEntries(); renderAffKPI();
+  if(getAppsScriptUrl()){
+    const status = await pushOneToSheet('affiliate', affEntryToRow(e));
+    showSyncStatus('af-sync-status', status==='ok' ? 'ok' : 'fail');
+  }
 }
-function deleteAffEntry(id, btn){
+async function deleteAffEntry(id, btn){
   const e = affEntries.find(x=>x.id===id); if(!e) return;
   if(btn && !armConfirm(btn)) return;
   affEntries = affEntries.filter(x=>x.id!==id);
   saveAffEntries();
-  pushOneToSheet('affiliate', {tokoId:e.storeId, tanggal:e.tanggal, hapus:true});
   renderAffEntries(); renderAffKPI();
+  if(getAppsScriptUrl()) await pushOneToSheet('affiliate', {tokoId:e.storeId, tanggal:e.tanggal, hapus:true});
 }
 
 const AFF_ENTRY_PAGE_SIZE = 20;
@@ -2073,40 +2072,39 @@ function buildQueryString(obj){
     return encodeURIComponent(k) + '=' + encodeURIComponent(v);
   }).join('&');
 }
+/* Dikirim lewat POST asli (bukan GET+no-cors). Alasan ganti dari GET+no-cors: mode 'no-cors' bikin respons
+   dari server SELALU "opaque" — browser sengaja menyembunyikan isinya, jadi dashboard gak pernah bisa tahu
+   request-nya beneran sukses disimpan di spreadsheet atau diam-diam gagal (URL salah, sheet penuh, error di
+   Apps Script, dll). Body dikirim sebagai text/plain (bukan application/json) supaya request tetap dianggap
+   "simple request" oleh browser dan TIDAK memicu CORS preflight (OPTIONS) — preflight inilah yang sering bikin
+   Apps Script Web App gagal diakses dari browser. Status sukses/gagal dibaca langsung dari body JSON balikan
+   server, bukan cuma diasumsikan dari "fetch gak melempar error = berhasil".*/
 async function pushOneToSheet(type, payload){
-  const url = getAppsScriptUrl(); if(!url) return;
+  const url = getAppsScriptUrl(); if(!url) return 'no-url';
   try{
-    // Dikirim lewat GET (bukan POST) + mode:'no-cors'. Alasan pakai GET: browser sering mengubah method
-    // POST jadi GET saat mengikuti redirect internal Apps Script Web App, jadi doPost gak pernah beneran jalan
-    // walau permintaannya "kelihatan" terkirim. Dengan GET dari awal, gak ada proses redirect yang mengubah method.
-    // mode:'no-cors' tetap dipakai karena kita gak butuh baca isi responsnya, cuma mastiin request-nya terkirim.
-    const qs = buildQueryString(Object.assign({type}, payload));
-    await fetch(url + '?' + qs, {method:'GET', mode:'no-cors', cache:'no-store'});
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), 15000);
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({type}, payload)),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    const body = await res.json().catch(()=>null);
+    if(body && body.status === 'error'){ setSyncMsg('Gagal tersinkron: '+(body.message||'server menolak data.'), 'var(--red)'); return 'error'; }
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
-  }catch(err){ setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)'); }
-}
-
-/* Verifikasi nyata apakah baris sudah benar-benar ada di spreadsheet, dengan baca ulang datanya (GET, bukan no-cors,
-   jadi hasilnya bisa dibaca & dipercaya). Dipakai untuk kasih status "Terkirim ✅ / Belum masuk ⚠️" di dekat form input. */
-async function verifySheetHasRow(datasetKey, matchFn, tries){
-  const url = getAppsScriptUrl(); if(!url) return null;
-  tries = tries || 4;
-  for(let i=0;i<tries;i++){
-    await sleep(i===0 ? 900 : 1300);
-    try{
-      const res = await fetch(url+'?action=read', {cache:'no-store'});
-      const json = await res.json();
-      const arr = json[datasetKey];
-      if(Array.isArray(arr) && arr.some(matchFn)) return true;
-    }catch(err){ /* coba lagi */ }
+    return 'ok';
+  }catch(err){
+    setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)');
+    return 'error';
   }
-  return false;
 }
 function showSyncStatus(elId, state){
   const el = document.getElementById(elId); if(!el) return;
-  if(state==='checking') el.innerHTML = `<span style="color:var(--muted);">⏳ Mengecek pengiriman ke spreadsheet...</span>`;
+  if(state==='checking') el.innerHTML = `<span style="color:var(--muted);">⏳ Mengirim ke spreadsheet...</span>`;
   else if(state==='ok') el.innerHTML = `<span style="color:var(--green-dark);">✅ Terkonfirmasi masuk ke spreadsheet.</span>`;
-  else if(state==='fail') el.innerHTML = `<span style="color:var(--red);">⚠️ Belum terkonfirmasi masuk ke spreadsheet. Coba "Kirim Semua Data" di menu Integrasi Sheet, atau cek URL Apps Script-nya.</span>`;
+  else if(state==='fail') el.innerHTML = `<span style="color:var(--red);">⚠️ Gagal terkirim ke spreadsheet. Coba "Kirim Semua Data" di menu Integrasi Sheet, atau cek URL Apps Script-nya.</span>`;
   else if(state==='nourl') el.innerHTML = `<span style="color:var(--muted);">Tersimpan di dashboard saja (URL Apps Script belum diisi di menu Integrasi Sheet).</span>`;
   else el.innerHTML = '';
 }
