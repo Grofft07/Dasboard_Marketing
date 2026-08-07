@@ -1908,25 +1908,34 @@ const APPS_SCRIPT_CODE = `// ===================================================
 
 function doGet(e){
   var params = (e && e.parameter) ? e.parameter : {};
+  var result;
   // Kalau ada parameter "type", ini request TULIS (simpan/hapus), bukan baca.
-  // Sengaja dikirim lewat GET (bukan POST) karena browser sering mengubah method POST jadi GET
-  // saat mengikuti redirect internal Apps Script Web App, yang bikin doPost tidak pernah benar-benar jalan.
+  // Sengaja dikirim lewat GET (bukan POST) karena Apps Script Web App TIDAK mengirim header CORS
+  // di respons redirect-nya, jadi fetch() POST/'cors' akan selalu diblokir browser.
   if(params.type){
-    return handleWrite(params);
+    result = handleWrite(params);
+  } else {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var toko = sheetToObjects(ss.getSheetByName('Toko'));
+    var input = sheetToObjects(ss.getSheetByName('Input'));
+    var target = sheetToObjects(ss.getSheetByName('Target'));
+    var affiliate = sheetToObjects(ss.getSheetByName('Affiliate'));
+    var targetAffiliate = sheetToObjects(ss.getSheetByName('TargetAffiliate'));
+    result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate};
   }
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var toko = sheetToObjects(ss.getSheetByName('Toko'));
-  var input = sheetToObjects(ss.getSheetByName('Input'));
-  var target = sheetToObjects(ss.getSheetByName('Target'));
-  var affiliate = sheetToObjects(ss.getSheetByName('Affiliate'));
-  var targetAffiliate = sheetToObjects(ss.getSheetByName('TargetAffiliate'));
-  return jsonOutput({toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate});
+  // Kalau ada parameter "callback", ini request JSONP (dikirim lewat tag <script> di browser, bukan fetch()) —
+  // teknik ini kebal terhadap batasan CORS di atas karena tag <script> tidak tunduk aturan CORS sama sekali.
+  // Respons dibungkus jadi pemanggilan fungsi JS: namafungsi({...}) dan dikirim sebagai javascript, bukan JSON biasa.
+  if(params.callback){
+    return ContentService.createTextOutput(params.callback + '(' + JSON.stringify(result) + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonOutput(result);
 }
 
 // doPost tetap disediakan sebagai cadangan (kalau ada klien lain yang kirim lewat POST asli, misal dari server-to-server).
 function doPost(e){
   var data = JSON.parse(e.postData.contents);
-  return handleWrite(data);
+  return jsonOutput(handleWrite(data));
 }
 
 function handleWrite(data){
@@ -1935,7 +1944,7 @@ function handleWrite(data){
   data.hapus = (data.hapus === true || data.hapus === 'true');
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var lock = LockService.getScriptLock();
-  try{ lock.waitLock(30000); } catch(lockErr){ return jsonOutput({status:'error', message:'Server sibuk, coba lagi.'}); }
+  try{ lock.waitLock(30000); } catch(lockErr){ return {status:'error', message:'Server sibuk, coba lagi.'}; }
   try{
     if(data.type === 'toko') upsertToko(ss, data);
     else if(data.type === 'input') upsertInput(ss, data);
@@ -1943,7 +1952,7 @@ function handleWrite(data){
     else if(data.type === 'affiliate') upsertAffiliate(ss, data);
     else if(data.type === 'targetAffiliate') upsertTargetAffiliate(ss, data);
   } finally { lock.releaseLock(); }
-  return jsonOutput({status:'ok'});
+  return {status:'ok'};
 }
 
 // Sheet "Toko": upsert berdasarkan kolom id. data.hapus=true untuk menghapus baris.
@@ -2072,26 +2081,29 @@ function buildQueryString(obj){
     return encodeURIComponent(k) + '=' + encodeURIComponent(v);
   }).join('&');
 }
-/* Dikirim lewat POST asli (bukan GET+no-cors). Alasan ganti dari GET+no-cors: mode 'no-cors' bikin respons
-   dari server SELALU "opaque" — browser sengaja menyembunyikan isinya, jadi dashboard gak pernah bisa tahu
-   request-nya beneran sukses disimpan di spreadsheet atau diam-diam gagal (URL salah, sheet penuh, error di
-   Apps Script, dll). Body dikirim sebagai text/plain (bukan application/json) supaya request tetap dianggap
-   "simple request" oleh browser dan TIDAK memicu CORS preflight (OPTIONS) — preflight inilah yang sering bikin
-   Apps Script Web App gagal diakses dari browser. Status sukses/gagal dibaca langsung dari body JSON balikan
-   server, bukan cuma diasumsikan dari "fetch gak melempar error = berhasil".*/
+/* JSONP: kirim request lewat tag <script src="...&callback=fn">, BUKAN fetch(). Ini satu-satunya cara
+   yang kebal terhadap batasan CORS Apps Script Web App (yang sudah kebukti dari Console: server ini
+   TIDAK mengirim header Access-Control-Allow-Origin di respons redirect-nya, jadi fetch() mode 'cors'
+   SELALU gagal walau data-nya sendiri sukses tersimpan). Tag <script> tidak tunduk pada aturan CORS sama
+   sekali, dan berbeda dari mode 'no-cors', responsnya BISA dibaca lewat nama fungsi callback yang dipanggil
+   Apps Script — jadi dashboard tetap tahu pasti berhasil/gagal, bukan cuma nembak lalu diam. */
+let __jsonpCounter = 0;
+function jsonpRequest(url, params, timeoutMs){
+  return new Promise((resolve, reject)=>{
+    const cbName = '__khjsonp_' + Date.now() + '_' + (__jsonpCounter++);
+    const timer = setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, timeoutMs || 15000);
+    function cleanup(){ clearTimeout(timer); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = function(data){ cleanup(); resolve(data); };
+    const script = document.createElement('script');
+    script.onerror = function(){ cleanup(); reject(new Error('gagal memuat request (URL salah / server menolak).')); };
+    script.src = url + '?' + buildQueryString(Object.assign({}, params, {callback: cbName}));
+    document.head.appendChild(script);
+  });
+}
 async function pushOneToSheet(type, payload){
   const url = getAppsScriptUrl(); if(!url) return 'no-url';
   try{
-    const controller = new AbortController();
-    const timer = setTimeout(()=>controller.abort(), 15000);
-    const res = await fetch(url, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(Object.assign({type}, payload)),
-      signal: controller.signal
-    });
-    clearTimeout(timer);
-    const body = await res.json().catch(()=>null);
+    const body = await jsonpRequest(url, Object.assign({type}, payload), 15000);
     if(body && body.status === 'error'){ setSyncMsg('Gagal tersinkron: '+(body.message||'server menolak data.'), 'var(--red)'); return 'error'; }
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
     return 'ok';
@@ -2128,8 +2140,7 @@ async function pullFromSheet(silent){
   if(!url){ if(!silent) setSyncMsg('Isi URL Web App Apps Script terlebih dahulu.', 'var(--red)'); return {ok:false}; }
   if(!silent) setSyncMsg('Menarik data dari spreadsheet...', 'var(--muted)');
   try{
-    const res = await fetch(url+'?action=read', {cache:'no-store'});
-    const json = await res.json();
+    const json = await jsonpRequest(url, {action:'read'}, 15000);
     if(Array.isArray(json.toko)){
       stores = json.toko.map(r=>({
         id:String(r.id), platform:String(r.platform||'shopee').toLowerCase(), name:r.nama||'(Tanpa nama)',
