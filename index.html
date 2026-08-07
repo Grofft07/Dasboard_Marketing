@@ -2050,16 +2050,18 @@ async function pushOneToSheet(type, payload){
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
   }catch(err){ setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)'); }
 }
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 async function pushAllToSheet(){
   const url = getAppsScriptUrl();
   if(!url){ setSyncMsg('Isi URL Web App Apps Script terlebih dahulu.', 'var(--red)'); return; }
   setSyncMsg('Mengirim semua data ke spreadsheet...', 'var(--muted)');
   try{
-    for(const s of stores) await pushOneToSheet('toko', storeToRow(s));
-    for(const e of entries) await pushOneToSheet('input', entryToRow(e));
-    for(const s of stores) for(const row of targetRowsForStore(s)) await pushOneToSheet('target', row);
-    for(const e of affEntries) await pushOneToSheet('affiliate', affEntryToRow(e));
-    for(const s of stores) for(const row of targetAffRowsForStore(s)) await pushOneToSheet('targetAffiliate', row);
+    // Jeda kecil antar-request (250ms) biar gak numpuk/tabrakan ke Apps Script saat kirim banyak data sekaligus.
+    for(const s of stores){ await pushOneToSheet('toko', storeToRow(s)); await sleep(250); }
+    for(const e of entries){ await pushOneToSheet('input', entryToRow(e)); await sleep(250); }
+    for(const s of stores) for(const row of targetRowsForStore(s)){ await pushOneToSheet('target', row); await sleep(250); }
+    for(const e of affEntries){ await pushOneToSheet('affiliate', affEntryToRow(e)); await sleep(250); }
+    for(const s of stores) for(const row of targetAffRowsForStore(s)){ await pushOneToSheet('targetAffiliate', row); await sleep(250); }
     setSyncMsg('Semua data (Toko, Input, Target, Affiliate & Target Affiliate) berhasil dikirim ke spreadsheet.', 'var(--green-dark)');
   }catch(err){ setSyncMsg('Sebagian gagal terkirim. Cek URL Apps Script & koneksi internet.', 'var(--red)'); }
 }
