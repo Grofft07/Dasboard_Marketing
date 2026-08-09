@@ -514,12 +514,17 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" id="btnPullSheet">Tarik Data dari Spreadsheet</button>
           <button class="btn btn-ghost btn-sm" id="btnPushSheet">Kirim Semua Data ke Spreadsheet</button>
+          <button class="btn btn-ghost btn-sm" id="btnTestConn">Tes Koneksi</button>
           <button class="btn btn-ghost btn-sm" id="btnShowScript">Lihat Kode Apps Script</button>
         </div>
         <div id="sheetSyncMsg" class="muted-note" style="margin-top:10px;"></div>
+        <div id="sheetTestResult" class="muted-note" style="margin-top:6px;line-height:1.7;"></div>
+        <div style="background:#FCEEEC;border:1px solid #F7D9D5;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.3px;color:#8A2E1F;display:flex;gap:8px;">
+          <span>⚠️</span><span><b>Penyebab paling sering data "hilang":</b> setelah mengubah/tempel ulang kode Apps Script, URL lama TIDAK otomatis terupdate. Harus lewat <b>Deploy → Manage deployments → ikon pensil (Edit) → Version: New version → Deploy</b>, bukan bikin deployment baru (nanti URL-nya beda lagi). Selalu klik tombol <b>Tes Koneksi</b> di atas setelah deploy untuk memastikan benar-benar tersambung.</span>
+        </div>
         <div class="muted-note" style="margin-top:16px;line-height:1.7;">
           Buka Google Sheet → <b>Extensions → Apps Script</b> → tempel kode dari tombol "Lihat Kode Apps Script" → <b>Deploy → New deployment → Web app</b> (Execute as: <b>Me</b>, Who has access: <b>Anyone</b>) → salin URL ke kolom di atas.
-          Buat 5 sheet: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
+          Sheet dengan nama yang benar akan <b>dibuat otomatis</b> saat data pertama kali tersimpan, tapi supaya rapi sejak awal, buat 5 sheet berikut manual: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending — nilai spending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel — data affiliate specialist harian),
@@ -1912,16 +1917,22 @@ function doGet(e){
   // Kalau ada parameter "type", ini request TULIS (simpan/hapus), bukan baca.
   // Sengaja dikirim lewat GET (bukan POST) karena Apps Script Web App TIDAK mengirim header CORS
   // di respons redirect-nya, jadi fetch() POST/'cors' akan selalu diblokir browser.
-  if(params.type){
+  if(params.action === 'ping'){
+    result = handlePing();
+  } else if(params.type){
     result = handleWrite(params);
   } else {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var toko = sheetToObjects(ss.getSheetByName('Toko'));
-    var input = sheetToObjects(ss.getSheetByName('Input'));
-    var target = sheetToObjects(ss.getSheetByName('Target'));
-    var affiliate = sheetToObjects(ss.getSheetByName('Affiliate'));
-    var targetAffiliate = sheetToObjects(ss.getSheetByName('TargetAffiliate'));
-    result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate};
+    try{
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var toko = sheetToObjects(ss.getSheetByName('Toko'));
+      var input = sheetToObjects(ss.getSheetByName('Input'));
+      var target = sheetToObjects(ss.getSheetByName('Target'));
+      var affiliate = sheetToObjects(ss.getSheetByName('Affiliate'));
+      var targetAffiliate = sheetToObjects(ss.getSheetByName('TargetAffiliate'));
+      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate};
+    }catch(err){
+      result = {status:'error', message:'Gagal membaca spreadsheet: '+err.message};
+    }
   }
   // Kalau ada parameter "callback", ini request JSONP (dikirim lewat tag <script> di browser, bukan fetch()) —
   // teknik ini kebal terhadap batasan CORS di atas karena tag <script> tidak tunduk aturan CORS sama sekali.
@@ -1938,6 +1949,20 @@ function doPost(e){
   return jsonOutput(handleWrite(data));
 }
 
+// Diagnostik: konfirmasi script ini terhubung ke spreadsheet yang benar, dan sheet apa saja yang sudah ada.
+// Dipakai tombol "Tes Koneksi" di dashboard — kalau nama spreadsheet/sheet tidak sesuai dugaan, itu sumber masalahnya.
+function handlePing(){
+  try{
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate'];
+    var existing = ss.getSheets().map(function(s){ return s.getName(); });
+    var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
+    return {status:'ok', spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
+  }catch(err){
+    return {status:'error', message: 'Ping gagal: '+err.message};
+  }
+}
+
 function handleWrite(data){
   var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel'];
   NUMERIC_KEYS.forEach(function(k){ if(data[k] !== undefined && data[k] !== null && data[k] !== '') data[k] = Number(data[k]) || 0; });
@@ -1951,14 +1976,30 @@ function handleWrite(data){
     else if(data.type === 'target') upsertTarget(ss, data);
     else if(data.type === 'affiliate') upsertAffiliate(ss, data);
     else if(data.type === 'targetAffiliate') upsertTargetAffiliate(ss, data);
+    else return {status:'error', message:'Tipe data tidak dikenal: '+data.type};
+  } catch(err){
+    return {status:'error', message: 'Gagal menyimpan ke sheet "'+data.type+'": '+err.message};
   } finally { lock.releaseLock(); }
   return {status:'ok'};
+}
+
+// Ambil sheet berdasarkan nama; kalau belum ada, BUAT OTOMATIS dengan header yang benar.
+// Ini mencegah kegagalan senyap: sebelumnya kalau nama sheet salah/belum dibuat, data dianggap "berhasil"
+// dikirim padahal tidak pernah tersimpan kemana pun.
+function getOrCreateSheet(ss, name, headers){
+  var sh = ss.getSheetByName(name);
+  if(!sh){
+    sh = ss.insertSheet(name);
+    sh.appendRow(headers);
+    sh.setFrozenRows(1);
+  }
+  return sh;
 }
 
 // Sheet "Toko": upsert berdasarkan kolom id. data.hapus=true untuk menghapus baris.
 // Kolom ke-6 "ppncpas" = persentase PPN khusus untuk budget CPAS toko ini (beda dari PPN 11% budget Marketplace biasa).
 function upsertToko(ss, data){
-  var sh = ss.getSheetByName('Toko'); if(!sh) return;
+  var sh = getOrCreateSheet(ss, 'Toko', ['id','platform','nama','username','status','ppncpas']);
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][0]).trim() === String(data.id).trim()){
@@ -1973,7 +2014,7 @@ function upsertToko(ss, data){
 
 // Sheet "Target": upsert berdasarkan (tokoId + bulan) — 1 baris per toko per bulan.
 function upsertTarget(ss, data){
-  var sh = ss.getSheetByName('Target'); if(!sh) return;
+  var sh = getOrCreateSheet(ss, 'Target', ['tokoId','bulan','targetomzet','targetspending','targetroas']);
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][0]).trim() === String(data.tokoId).trim() && String(rows[i][1]).trim() === String(data.bulan).trim()){
@@ -1988,7 +2029,7 @@ function upsertTarget(ss, data){
 
 // Sheet "Input": upsert berdasarkan (tokoId + tanggal) — 1 baris per toko per hari.
 function upsertInput(ss, data){
-  var sh = ss.getSheetByName('Input'); if(!sh) return;
+  var sh = getOrCreateSheet(ss, 'Input', ['tanggal','tokoId','omzet','spending']);
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][1]).trim() === String(data.tokoId).trim() && formatCellDate(rows[i][0]) === String(data.tanggal).trim()){
@@ -2010,7 +2051,7 @@ function formatCellDate(v){
 
 // Sheet "Affiliate": upsert berdasarkan (tokoId + tanggal) — 1 baris per toko per hari.
 function upsertAffiliate(ss, data){
-  var sh = ss.getSheetByName('Affiliate'); if(!sh) return;
+  var sh = getOrCreateSheet(ss, 'Affiliate', ['tanggal','tokoId','omzet','komisi','sampel']);
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][1]).trim() === String(data.tokoId).trim() && formatCellDate(rows[i][0]) === String(data.tanggal).trim()){
@@ -2025,7 +2066,7 @@ function upsertAffiliate(ss, data){
 
 // Sheet "TargetAffiliate": upsert berdasarkan (tokoId + bulan) — 1 baris per toko per bulan.
 function upsertTargetAffiliate(ss, data){
-  var sh = ss.getSheetByName('TargetAffiliate'); if(!sh) return;
+  var sh = getOrCreateSheet(ss, 'TargetAffiliate', ['tokoId','bulan','targetomzetafiliasi','targetkomisi','targetsampel']);
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][0]).trim() === String(data.tokoId).trim() && String(rows[i][1]).trim() === String(data.bulan).trim()){
@@ -2184,6 +2225,30 @@ sheetUrlInputEl.value = getAppsScriptUrl();
 sheetUrlInputEl.addEventListener('change', ()=> localStorage.setItem('kh_sheet_url', sheetUrlInputEl.value.trim()));
 document.getElementById('btnPullSheet').addEventListener('click', ()=> pullFromSheet(false));
 document.getElementById('btnPushSheet').addEventListener('click', pushAllToSheet);
+document.getElementById('btnTestConn').addEventListener('click', testConnection);
+async function testConnection(){
+  const url = getAppsScriptUrl();
+  const resultEl = document.getElementById('sheetTestResult');
+  if(!url){ resultEl.innerHTML = '<span style="color:var(--red);">Isi dulu URL Web App Apps Script di atas.</span>'; return; }
+  resultEl.innerHTML = '<span style="color:var(--muted);">Menguji koneksi...</span>';
+  try{
+    const body = await jsonpRequest(url, {action:'ping'}, 15000);
+    if(body && body.status === 'error'){
+      resultEl.innerHTML = `<span style="color:var(--red);">⚠️ ${body.message}</span>`;
+      return;
+    }
+    const missing = body.missingSheets || [];
+    let html = `<b>Terhubung ke spreadsheet:</b> ${body.spreadsheet}<br><b>Sheet yang ditemukan:</b> ${(body.sheets||[]).join(', ')}`;
+    if(missing.length){
+      html += `<br><span style="color:var(--red);">⚠️ Sheet belum ada: ${missing.join(', ')} — akan dibuat otomatis saat pertama kali ada data yang tersimpan ke sana, atau bisa dibuat manual dulu.</span>`;
+    } else {
+      html += `<br><span style="color:var(--green-dark);">✓ Kelima sheet (Toko, Input, Target, Affiliate, TargetAffiliate) sudah lengkap.</span>`;
+    }
+    resultEl.innerHTML = html;
+  }catch(err){
+    resultEl.innerHTML = '<span style="color:var(--red);">⚠️ Gagal terhubung — URL salah, deployment belum "Anyone" access, atau belum di-deploy ulang setelah update kode. Coba paste ulang kode terbaru (tombol "Lihat Kode Apps Script") lalu Deploy → Manage deployments → Edit → New version.</span>';
+  }
+}
 
 /* ================= REFRESH GLOBAL (SIDEBAR) ================= */
 const btnGlobalRefresh = document.getElementById('btnGlobalRefresh');
