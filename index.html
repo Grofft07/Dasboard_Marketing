@@ -1251,8 +1251,8 @@ async function saveEntry(){
   document.getElementById('in-roas-preview').innerHTML='';
   document.getElementById('in-ppn-preview').innerHTML='';
   if(getAppsScriptUrl()){
-    const status = await pushOneToSheet('input', entryToRow(e));
-    showSyncStatus('in-sync-status', status==='ok' ? 'ok' : 'fail');
+    const result = await pushOneToSheet('input', entryToRow(e));
+    showSyncStatus('in-sync-status', result.status==='ok' ? 'ok' : 'fail', result.message);
   }
 }
 async function deleteEntry(id, btn){
@@ -1819,8 +1819,8 @@ async function saveAffEntry(){
   affEntryPage = 1;
   renderAffEntries(); renderAffKPI();
   if(getAppsScriptUrl()){
-    const status = await pushOneToSheet('affiliate', affEntryToRow(e));
-    showSyncStatus('af-sync-status', status==='ok' ? 'ok' : 'fail');
+    const result = await pushOneToSheet('affiliate', affEntryToRow(e));
+    showSyncStatus('af-sync-status', result.status==='ok' ? 'ok' : 'fail', result.message);
   }
 }
 async function deleteAffEntry(id, btn){
@@ -2142,22 +2142,27 @@ function jsonpRequest(url, params, timeoutMs){
   });
 }
 async function pushOneToSheet(type, payload){
-  const url = getAppsScriptUrl(); if(!url) return 'no-url';
+  const url = getAppsScriptUrl(); if(!url) return {status:'no-url'};
   try{
     const body = await jsonpRequest(url, Object.assign({type}, payload), 15000);
-    if(body && body.status === 'error'){ setSyncMsg('Gagal tersinkron: '+(body.message||'server menolak data.'), 'var(--red)'); return 'error'; }
+    if(body && body.status === 'error'){
+      const msg = 'Gagal tersinkron: '+(body.message||'server menolak data.');
+      setSyncMsg(msg, 'var(--red)');
+      return {status:'error', message: msg};
+    }
     setSyncMsg('Tersinkron ke spreadsheet.', 'var(--green-dark)');
-    return 'ok';
+    return {status:'ok'};
   }catch(err){
-    setSyncMsg('Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet. Cek URL & koneksi internet.', 'var(--red)');
-    return 'error';
+    const msg = 'Tersimpan di dashboard, tapi gagal terkirim ke spreadsheet ('+err.message+'). Cek URL & koneksi internet.';
+    setSyncMsg(msg, 'var(--red)');
+    return {status:'error', message: msg};
   }
 }
-function showSyncStatus(elId, state){
+function showSyncStatus(elId, state, message){
   const el = document.getElementById(elId); if(!el) return;
   if(state==='checking') el.innerHTML = `<span style="color:var(--muted);">⏳ Mengirim ke spreadsheet...</span>`;
   else if(state==='ok') el.innerHTML = `<span style="color:var(--green-dark);">✅ Terkonfirmasi masuk ke spreadsheet.</span>`;
-  else if(state==='fail') el.innerHTML = `<span style="color:var(--red);">⚠️ Gagal terkirim ke spreadsheet. Coba "Kirim Semua Data" di menu Integrasi Sheet, atau cek URL Apps Script-nya.</span>`;
+  else if(state==='fail') el.innerHTML = `<span style="color:var(--red);">⚠️ ${message || 'Gagal terkirim ke spreadsheet.'} Coba "Kirim Semua Data" di menu Integrasi Sheet, atau cek URL Apps Script-nya.</span>`;
   else if(state==='nourl') el.innerHTML = `<span style="color:var(--muted);">Tersimpan di dashboard saja (URL Apps Script belum diisi di menu Integrasi Sheet).</span>`;
   else el.innerHTML = '';
 }
