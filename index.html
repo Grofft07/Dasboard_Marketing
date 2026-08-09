@@ -2043,8 +2043,14 @@ function upsertInput(ss, data){
 }
 
 function formatCellDate(v){
+  // Sengaja TIDAK pakai Utilities.formatDate(v, timeZone, fmt) — argumen timeZone dari
+  // getSpreadsheetTimeZone() kadang ditolak Apps Script ("Argumen tak valid: timeZone"),
+  // penyebab data Input/Affiliate gagal tersimpan. Format manual ini tidak butuh timeZone sama sekali.
   if(Object.prototype.toString.call(v) === '[object Date]'){
-    return Utilities.formatDate(v, SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+    var y = v.getFullYear();
+    var m = ('0'+(v.getMonth()+1)).slice(-2);
+    var d = ('0'+v.getDate()).slice(-2);
+    return y+'-'+m+'-'+d;
   }
   return String(v).trim();
 }
