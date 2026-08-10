@@ -2193,6 +2193,11 @@ async function pullFromSheet(silent){
   if(!silent) setSyncMsg('Menarik data dari spreadsheet...', 'var(--muted)');
   try{
     const json = await jsonpRequest(url, {action:'read'}, 15000);
+    if(json && json.status === 'error'){
+      const msg = json.message || 'Server menolak permintaan baca data.';
+      if(!silent) setSyncMsg('Gagal menarik data: '+msg, 'var(--red)');
+      return {ok:false, message: msg};
+    }
     if(Array.isArray(json.toko)){
       stores = json.toko.map(r=>({
         id:String(r.id), platform:String(r.platform||'shopee').toLowerCase(), name:r.nama||'(Tanpa nama)',
@@ -2227,7 +2232,11 @@ async function pullFromSheet(silent){
     renderStores(); renderKPI(); renderOverviewTable(); renderEntries(); renderPerforma(); renderAffKPI(); renderAffEntries(); buildOverviewCharts();
     if(!silent) setSyncMsg('Data terbaru dari spreadsheet berhasil dimuat.', 'var(--green-dark)');
     return {ok:true};
-  }catch(err){ if(!silent) setSyncMsg('Gagal menarik data — pastikan URL benar & deployment "Anyone" access.', 'var(--red)'); return {ok:false}; }
+  }catch(err){
+    const msg = 'pastikan URL benar & deployment "Anyone" access ('+err.message+').';
+    if(!silent) setSyncMsg('Gagal menarik data — '+msg, 'var(--red)');
+    return {ok:false, message: msg};
+  }
 }
 
 /* ================= WIRING INTEGRASI ================= */
@@ -2276,11 +2285,11 @@ async function doGlobalRefresh(){
       globalRefreshNote.textContent = 'Diperbarui pukul '+fmtJamSingkat();
       globalRefreshNote.style.color = 'var(--sidebar-text)';
     } else {
-      globalRefreshNote.textContent = 'Gagal menarik data, coba lagi';
+      globalRefreshNote.textContent = 'Gagal: '+(result && result.message ? result.message : 'coba lagi');
       globalRefreshNote.style.color = '#F2B8A8';
     }
   }catch(err){
-    globalRefreshNote.textContent = 'Gagal menarik data, coba lagi';
+    globalRefreshNote.textContent = 'Gagal: '+err.message;
     globalRefreshNote.style.color = '#F2B8A8';
   }finally{
     btnGlobalRefresh.disabled = false; btnGlobalRefresh.classList.remove('spinning');
