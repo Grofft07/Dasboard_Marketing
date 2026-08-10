@@ -443,6 +443,33 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       <div class="topbar">
         <div><h1>Affiliate Specialist</h1><div class="sub">Pendataan total harian Omzet Affiliate, Komisi, dan ROI (Omzet ÷ Komisi)</div></div>
         <div class="top-actions">
+          <div class="dr-wrap" id="afWrap">
+            <button class="dr-trigger" id="afTrigger">
+              <span class="dr-ic">📅</span>
+              <span id="afLabel">Semua Data</span>
+              <span class="dr-dot"></span>
+            </button>
+            <div class="dr-panel" id="afPanel">
+              <div class="dr-body">
+                <div class="dr-presets" id="afPresets"></div>
+                <div class="dr-calendars">
+                  <div class="dr-cal-nav">
+                    <button class="dr-nav-btn" id="afPrev">←</button>
+                    <div class="dr-cal-titles"><span id="afTitleLeft"></span><span id="afTitleRight"></span></div>
+                    <button class="dr-nav-btn" id="afNext">→</button>
+                  </div>
+                  <div class="dr-cal-grids">
+                    <div class="dr-cal" id="afCalLeft"></div>
+                    <div class="dr-cal" id="afCalRight"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="dr-footer">
+                <button class="btn btn-ghost btn-sm" id="afCancel">Batal</button>
+                <button class="btn btn-primary btn-sm" id="afApply">Terapkan</button>
+              </div>
+            </div>
+          </div>
           <button class="btn btn-wa" id="btnWaReportAffiliate">📊 Buat Report WA</button>
         </div>
       </div>
@@ -1710,9 +1737,11 @@ function populateAffStoreSelects(){
   filterSel.value = stores.some(s=>s.id===keepFilter) ? keepFilter : '';
 }
 function renderAffKPI(){
-  const totalOmzet = affEntries.reduce((s,x)=>s+(x.omzet||0),0);
-  const totalKomisi = affEntries.reduce((s,x)=>s+(x.komisi||0),0);
-  const totalSampel = affEntries.reduce((s,x)=>s+(x.sampel||0),0);
+  const range = currentRangeOrNull();
+  const filteredAffEntries = range ? affEntries.filter(e=> (!range.start||e.tanggal>=range.start) && (!range.end||e.tanggal<=range.end)) : affEntries;
+  const totalOmzet = filteredAffEntries.reduce((s,x)=>s+(x.omzet||0),0);
+  const totalKomisi = filteredAffEntries.reduce((s,x)=>s+(x.komisi||0),0);
+  const totalSampel = filteredAffEntries.reduce((s,x)=>s+(x.sampel||0),0);
   const roiAvg = totalKomisi>0 ? (totalOmzet/totalKomisi) : 0;
   let totalTargetOmzet=0, totalTargetKomisi=0, totalTargetSampel=0;
   stores.forEach(s=>{ const tg=targetAffForAllTime(s); totalTargetOmzet+=tg.omzet; totalTargetKomisi+=tg.komisi; totalTargetSampel+=tg.sampel; });
@@ -1760,13 +1789,13 @@ function renderAffKPI(){
     barPct: capaianSampelPct!==null ? Math.min(capaianSampelPct,100) : 0,
     remainLabel: sampelTercapai?'Melebihi target':'Sisa menuju target',
     remainValue: sampelTercapai? '+'+(totalSampel-totalTargetSampel)+' pcs lebih' : Math.max(totalTargetSampel-totalSampel,0)+' pcs lagi',
-    delta: affEntries.length+' hari tercatat'
+    delta: filteredAffEntries.length+' hari tercatat'
   });
 
   document.getElementById('affKpiRow').innerHTML = omzetCard + komisiCard + roiCard + sampelCard;
 
   document.getElementById('affByStoreBody').innerHTML = stores.map(s=>{
-    const list = affEntries.filter(e=>e.storeId===s.id);
+    const list = filteredAffEntries.filter(e=>e.storeId===s.id);
     const omzet = list.reduce((a,x)=>a+(x.omzet||0),0);
     const komisi = list.reduce((a,x)=>a+(x.komisi||0),0);
     const sampel = list.reduce((a,x)=>a+(x.sampel||0),0);
@@ -2107,7 +2136,11 @@ function jsonOutput(obj){
 }
 `;
 
-function getAppsScriptUrl(){ return (localStorage.getItem('kh_sheet_url')||'').trim(); }
+const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwYSJloPlzPW8OvcebblOIH64uUfLTjuEv4QgyUvGsbd9GFEQZYOCDu85uZumsigVz-tw/exec';
+function getAppsScriptUrl(){
+  const stored = (localStorage.getItem('kh_sheet_url')||'').trim();
+  return stored || DEFAULT_SHEET_URL;
+}
 function setSyncMsg(text, color){
   const el = document.getElementById('sheetSyncMsg'); if(!el) return;
   el.textContent = text; el.style.color = color || 'var(--muted)';
@@ -2308,6 +2341,7 @@ document.querySelectorAll('.overlay').forEach(ov=> ov.addEventListener('click', 
 /* ================= INIT ================= */
 drInstances.push(createDateRangePicker('ov', ()=>{ renderKPI(); renderOverviewTable(); buildOverviewCharts(); }));
 drInstances.push(createDateRangePicker('pf', ()=>{ renderPerforma(); }));
+drInstances.push(createDateRangePicker('af', ()=>{ renderAffKPI(); }));
 renderStores();
 renderKPI();
 renderOverviewTable();
