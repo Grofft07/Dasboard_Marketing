@@ -16,7 +16,8 @@
   --shopee:#EE4D2D; --shopee-bg:#FDEAE5;
   --tiktok:#111111; --tiktok-bg:#EFEFEF;
   --lazada:#0F146D; --lazada-bg:#EAEBF7;
-  --yellow:#F2B705; --red:#E4483A; --blue:#2F86EB;
+  --yellow:#F2B705; --red:#E4483A; --blue:#2F86EB; --purple:#7A56E0;
+  --good-bg:rgba(47,168,90,.14); --warn-bg:rgba(242,183,5,.18); --bad-bg:rgba(228,72,58,.14);
   --radius:16px; --shadow:0 2px 14px rgba(16,40,28,.05);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -229,6 +230,101 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 .dr-day.dr-single{border-radius:50%;}
 .dr-footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--panel-2);}
 @media(max-width:640px){.dr-body{flex-direction:column;} .dr-presets{width:100%;flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--line);max-height:none;} .dr-cal-grids{flex-direction:column;gap:20px;} .dr-panel{right:auto;left:0;}}
+/* ===== OKR ===== */
+.okr-period-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.okr-period-pill{padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);cursor:pointer;white-space:nowrap;}
+.okr-period-pill:hover{color:var(--text);border-color:var(--green);}
+.okr-period-pill.active{background:var(--green-light);color:var(--green-dark);border-color:var(--green);font-weight:700;}
+.okr-add-period{padding:7px 12px;border-radius:20px;font-size:12.5px;font-weight:700;color:var(--green-dark);background:transparent;border:1px dashed var(--green);cursor:pointer;white-space:nowrap;}
+.okr-add-period:hover{background:var(--good-bg);}
+
+.okr-obj-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 3px 0 rgba(16,40,28,.05),0 8px 18px rgba(16,40,28,.06);}
+.okr-obj-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.okr-obj-title{font-weight:800;font-size:15.5px;line-height:1.4;}
+.okr-obj-owner{font-size:12px;color:var(--muted);margin-top:4px;}
+.okr-obj-owner b{color:var(--text);font-weight:700;}
+.okr-obj-actions{display:flex;gap:8px;flex-shrink:0;align-items:center;}
+.okr-icon-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 0 rgba(16,40,28,.10),0 3px 6px rgba(16,40,28,.08),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .12s ease,box-shadow .12s ease,color .12s ease,border-color .12s ease;}
+.okr-icon-btn:hover{color:var(--text);border-color:var(--green);transform:translateY(-1px);box-shadow:0 3px 0 rgba(16,40,28,.12),0 5px 10px rgba(16,40,28,.10),inset 0 1px 0 rgba(255,255,255,.7);}
+.okr-icon-btn:active{transform:translateY(2px);box-shadow:inset 0 1px 3px rgba(16,40,28,.20);}
+.okr-icon-btn.danger:hover{color:var(--red);border-color:var(--red);}
+
+.okr-score-chip{flex-shrink:0;min-width:64px;text-align:center;border-radius:10px;padding:7px 12px;font-weight:800;font-size:16px;box-shadow:0 2px 0 rgba(16,40,28,.06),0 3px 6px rgba(16,40,28,.06),inset 0 1px 0 rgba(255,255,255,.5);}
+.okr-score-chip .sub{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:1px;opacity:.85;}
+.okr-score-chip.good{background:var(--good-bg);color:var(--green-dark);}
+.okr-score-chip.warn{background:var(--warn-bg);color:#8A6400;}
+.okr-score-chip.bad{background:var(--bad-bg);color:var(--red);}
+
+.okr-kr-row{padding:10px 0;border-top:1px solid var(--line);}
+.okr-kr-row:first-of-type{border-top:none;padding-top:0;}
+.okr-kr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
+.okr-kr-text{font-size:13px;font-weight:600;line-height:1.45;}
+.okr-kr-nums{font-size:11.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.okr-kr-nums b{color:var(--text);}
+.okr-kr-actions{display:flex;gap:6px;flex-shrink:0;}
+.okr-kr-mini-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 rgba(16,40,28,.10),0 3px 5px rgba(16,40,28,.07),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .12s ease,box-shadow .12s ease,color .12s ease,border-color .12s ease;}
+.okr-kr-mini-btn:hover{color:var(--text);border-color:var(--green);transform:translateY(-1px);box-shadow:0 3px 0 rgba(16,40,28,.12),0 5px 9px rgba(16,40,28,.10),inset 0 1px 0 rgba(255,255,255,.7);}
+.okr-kr-mini-btn:active{transform:translateY(2px);box-shadow:inset 0 1px 3px rgba(16,40,28,.20);}
+.okr-kr-track{height:7px;border-radius:6px;background:var(--panel-2);overflow:hidden;}
+.okr-kr-fill{height:100%;border-radius:6px;transition:width .3s ease;}
+.okr-kr-fill.good{background:var(--green);}
+.okr-kr-fill.warn{background:var(--yellow);}
+.okr-kr-fill.bad{background:var(--red);}
+.okr-kr-pct{font-size:11px;font-weight:800;flex-shrink:0;width:38px;text-align:right;}
+
+.okr-add-kr-btn{margin-top:12px;background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;width:100%;cursor:pointer;}
+.okr-add-kr-btn:hover{border-color:var(--green);color:var(--green-dark);}
+.okr-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;border:1.5px dashed var(--line);border-radius:14px;}
+.okr-empty b{display:block;color:var(--text);font-size:14.5px;margin-bottom:5px;font-weight:800;}
+
+.okr-init-wrap{margin-top:9px;padding-left:2px;}
+.okr-init-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;flex-wrap:wrap;}
+.okr-init-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--panel-2);font-size:11px;color:transparent;}
+.okr-init-check.done{background:var(--green);border-color:var(--green);color:#fff;}
+.okr-init-text{flex:1;font-size:12.5px;color:var(--text);line-height:1.5;}
+.okr-init-text.done{color:var(--muted);text-decoration:line-through;}
+.okr-init-actions{display:flex;gap:6px;flex-shrink:0;align-items:center;}
+.okr-add-init-btn{margin-top:4px;background:transparent;border:none;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;padding:4px 0;}
+.okr-add-init-btn:hover{color:var(--green-dark);}
+
+.okr-refl-btn{padding:10px 16px;border-radius:10px;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));color:var(--muted);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;height:40px;box-shadow:0 2px 0 rgba(16,40,28,.10),0 3px 6px rgba(16,40,28,.08),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .12s ease,box-shadow .12s ease,color .12s ease,border-color .12s ease;}
+.okr-refl-btn:hover{color:var(--text);border-color:var(--blue);transform:translateY(-1px);box-shadow:0 3px 0 rgba(16,40,28,.12),0 5px 10px rgba(16,40,28,.10),inset 0 1px 0 rgba(255,255,255,.7);}
+.okr-refl-btn:active{transform:translateY(2px);box-shadow:inset 0 1px 3px rgba(16,40,28,.20);}
+.okr-refl-btn.filled{color:var(--blue);border-color:var(--blue);}
+.okr-refl-block{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);}
+.okr-refl-title{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.okr-refl-item{display:flex;gap:10px;margin-bottom:10px;}
+.okr-refl-item:last-child{margin-bottom:0;}
+.okr-refl-tag{flex-shrink:0;width:78px;font-size:10.5px;font-weight:800;letter-spacing:.03em;padding:3px 0;color:#fff;border-radius:6px;text-align:center;height:20px;line-height:14px;}
+.okr-refl-tag.what{background:var(--blue);}
+.okr-refl-tag.sowhat{background:var(--purple);}
+.okr-refl-tag.nowwhat{background:var(--green);}
+.okr-refl-text{flex:1;font-size:12.5px;line-height:1.55;color:var(--text);padding-top:2px;}
+.okr-refl-text.muted-note{color:var(--muted);font-style:italic;}
+.okr-refl-modal textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:10px 11px;font-size:13px;font-family:inherit;resize:vertical;min-height:64px;}
+.okr-refl-what-box{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--muted);line-height:1.5;}
+
+.okr-dir-tag{display:inline-block;margin-left:7px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--panel-2);color:var(--blue);white-space:nowrap;}
+
+.okr-filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.okr-filter-select{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 10px;font-size:12.5px;font-family:inherit;cursor:pointer;}
+.okr-expand-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}
+.okr-expand-btn:hover{color:var(--text);border-color:var(--green);}
+.okr-obj-toggle{width:18px;flex-shrink:0;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;color:var(--muted);font-size:10.5px;cursor:pointer;user-select:none;}
+.okr-obj-summary{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:11px;color:var(--muted);flex-wrap:wrap;}
+.okr-obj-mini-track{height:5px;width:110px;border-radius:4px;background:var(--panel-2);overflow:hidden;flex-shrink:0;}
+.okr-obj-mini-fill{height:100%;border-radius:4px;}
+.okr-obj-mini-fill.good{background:var(--green);}
+.okr-obj-mini-fill.warn{background:var(--yellow);}
+.okr-obj-mini-fill.bad{background:var(--red);}
+.okr-obj-body{margin-top:14px;}
+.okr-init-deadline{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:6px;}
+.okr-init-deadline.normal{background:var(--panel-2);color:var(--muted);}
+.okr-init-deadline.soon{background:var(--warn-bg);color:#8A6400;}
+.okr-init-deadline.overdue{background:var(--bad-bg);color:var(--red);}
+.okr-init-deadline.done{background:var(--good-bg);color:var(--green-dark);}
+.okr-deadline-banner{display:none;align-items:center;gap:10px;background:var(--bad-bg);border:1px solid rgba(228,72,58,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:12.5px;color:var(--red);line-height:1.5;}
+.okr-deadline-banner b{font-weight:800;}
 </style>
 </head>
 <body>
@@ -246,6 +342,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="navbtn" data-page="input"><span class="ic">＋</span> Input Harian</div>
     <div class="navbtn" data-page="performa"><span class="ic">📊</span> Performa &amp; ROAS</div>
     <div class="navbtn" data-page="affiliate"><span class="ic">🤝</span> Affiliate Specialist</div>
+    <div class="navbtn" data-page="okr"><span class="ic">🎯</span> OKR Divisi</div>
     <div class="navbtn" data-page="integrasi"><span class="ic">🔗</span> Integrasi Sheet</div>
     <div class="sidebar-foot">
       <button class="btn btn-sm btn-sidebar-refresh" id="btnGlobalRefresh"><span class="ic-spin">🔄</span> Refresh Data</button>
@@ -524,13 +621,51 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     </div>
 
     <!-- ============ INTEGRASI SHEET ============ -->
+    <!-- ============ OKR DIVISI ============ -->
+    <div class="page" id="page-okr">
+      <div class="topbar">
+        <div><h1>OKR Divisi</h1><div class="sub">Objectives &amp; Key Results — evaluasi target &amp; pencapaian tim per periode</div></div>
+      </div>
+
+      <div class="okr-period-bar" id="okrPeriodBar"></div>
+
+      <div class="grid grid-4" style="margin-bottom:18px;">
+        <div class="card kpi"><div class="label">Skor Rata-rata Divisi</div><div class="value" id="okrKpiScore">0%</div></div>
+        <div class="card kpi"><div class="label">Jumlah Objective</div><div class="value" id="okrKpiObj">0</div></div>
+        <div class="card kpi"><div class="label">Key Result Tercapai</div><div class="value" id="okrKpiDone" style="color:var(--green-dark);">0</div></div>
+        <div class="card kpi"><div class="label">Key Result Berisiko</div><div class="value" id="okrKpiRisk" style="color:var(--red);">0</div></div>
+      </div>
+
+      <div class="okr-deadline-banner" id="okrDeadlineBanner"></div>
+
+      <div class="section-header">
+        <h2>Daftar Objective</h2>
+        <button class="btn btn-primary" id="btnAddObjective">+ Objective Baru</button>
+      </div>
+
+      <div class="okr-filter-bar">
+        <select id="okrFilterPicSelect" class="okr-filter-select"><option value="">Semua PIC</option></select>
+        <select id="okrFilterStatusSelect" class="okr-filter-select">
+          <option value="all">Semua Status</option>
+          <option value="good">🟢 On Track</option>
+          <option value="warn">🟡 Perlu Perhatian</option>
+          <option value="bad">🔴 Berisiko</option>
+        </select>
+        <div style="flex:1;"></div>
+        <button class="okr-expand-btn" id="btnOkrExpandAll" type="button">⤢ Buka Semua</button>
+        <button class="okr-expand-btn" id="btnOkrCollapseAll" type="button">⤡ Tutup Semua</button>
+      </div>
+
+      <div id="okrObjList"></div>
+    </div><!-- /page-okr -->
+
     <div class="page" id="page-integrasi">
       <div class="topbar">
         <div><h1>Integrasi Sheet</h1><div class="sub">Hubungkan ke Google Sheet via Apps Script — sama seperti Dashboard Advertiser</div></div>
       </div>
       <div class="card">
         <div class="panel-title">Integrasi Spreadsheet (Google Apps Script)</div>
-        <div class="panel-desc">Data Toko &amp; Input Harian tersinkron otomatis ke Google Sheets, bisa diakses dari device manapun.</div>
+        <div class="panel-desc">Data Toko, Input Harian &amp; OKR tersinkron otomatis ke Google Sheets, bisa diakses dari device manapun.</div>
         <div style="background:var(--green-light);border:1px solid #CDEBD3;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.3px;color:#1B5E33;display:flex;gap:8px;">
           <span>ℹ️</span><span><b>Auto-Sync Aktif:</b> setiap dashboard dibuka, data terbaru otomatis ditarik dari spreadsheet (asal URL sudah diisi).</span>
         </div>
@@ -551,11 +686,12 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         </div>
         <div class="muted-note" style="margin-top:16px;line-height:1.7;">
           Buka Google Sheet → <b>Extensions → Apps Script</b> → tempel kode dari tombol "Lihat Kode Apps Script" → <b>Deploy → New deployment → Web app</b> (Execute as: <b>Me</b>, Who has access: <b>Anyone</b>) → salin URL ke kolom di atas.
-          Sheet dengan nama yang benar akan <b>dibuat otomatis</b> saat data pertama kali tersimpan, tapi supaya rapi sejak awal, buat 5 sheet berikut manual: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
+          Sheet dengan nama yang benar akan <b>dibuat otomatis</b> saat data pertama kali tersimpan, tapi supaya rapi sejak awal, buat 6 sheet berikut manual: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending — nilai spending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel — data affiliate specialist harian),
-          dan <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetAffiliate</code> (kolom: tokoId, bulan, targetomzetafiliasi, targetkomisi, targetsampel — target affiliate bulanan) — otomatis terisi setiap kamu menambah toko, input harian, input affiliate, atau atur target.
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetAffiliate</code> (kolom: tokoId, bulan, targetomzetafiliasi, targetkomisi, targetsampel — target affiliate bulanan),
+          dan <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">OKR</code> (kolom: periode, objId, objTitle, objOwner, krId, krText, krTarget, krCurrent, krUnit, krDirection, initId, initText, initDone, initDeadline, reflSoWhat, reflNowWhat — 1 baris per Initiative, jadi kolom-kolomnya "menyesuaikan" isi OKR: Objective dengan 3 Key Result & masing-masing 2 Initiative otomatis jadi 6 baris, dengan objTitle/krText diulang di tiap barisnya; kalau sheet OKR-mu masih format lama (cuma kolom periode+data), akan otomatis dimigrasikan ke format ini saat pertama kali disinkron ulang) — otomatis terisi setiap kamu menambah toko, input harian, input affiliate, atur target, atau mengubah OKR.
         </div>
       </div>
     </div>
@@ -651,6 +787,101 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="document.getElementById('scriptOverlay').classList.remove('open')">Tutup</button>
       <button class="btn btn-primary" id="btnCopyScript">Salin Kode</button>
+    </div>
+  </div>
+</div>
+
+<!-- OKR: Modal Objective -->
+<div class="overlay" id="okrObjModalOverlay">
+  <div class="modal">
+    <h3 id="okrObjModalTitle">Objective Baru</h3>
+    <div class="field">
+      <label>Objective</label>
+      <input type="text" id="okrObjTitleInput" placeholder="Contoh: Meningkatkan omzet toko Shopee">
+    </div>
+    <div class="field">
+      <label>PIC / Owner</label>
+      <input type="text" id="okrObjOwnerInput" placeholder="Contoh: Tim Marketplace">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="okrObjCancelBtn">Batal</button>
+      <button class="btn btn-primary" id="okrObjSaveBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- OKR: Modal Key Result -->
+<div class="overlay" id="okrKrModalOverlay">
+  <div class="modal">
+    <h3 id="okrKrModalTitle">Key Result Baru</h3>
+    <div class="field">
+      <label>Deskripsi Key Result</label>
+      <input type="text" id="okrKrTextInput" placeholder="Contoh: Menaikkan ROAS ke 6x">
+    </div>
+    <div class="field">
+      <label>Arah Target</label>
+      <select id="okrKrDirectionInput">
+        <option value="higher">Semakin tinggi semakin baik (omzet, ROAS, dll)</option>
+        <option value="lower">Semakin rendah semakin baik (CPA, biaya, dll)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Target</label>
+      <input type="number" id="okrKrTargetInput" placeholder="Contoh: 100">
+    </div>
+    <div class="field">
+      <label>Capaian Saat Ini</label>
+      <input type="number" id="okrKrCurrentInput" placeholder="Contoh: 65">
+    </div>
+    <div class="field">
+      <label>Satuan (opsional)</label>
+      <input type="text" id="okrKrUnitInput" placeholder="Contoh: %, x, Rp, toko">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="okrKrCancelBtn">Batal</button>
+      <button class="btn btn-primary" id="okrKrSaveBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- OKR: Modal Initiative -->
+<div class="overlay" id="okrInitModalOverlay">
+  <div class="modal">
+    <h3 id="okrInitModalTitle">Initiative Baru</h3>
+    <div class="field">
+      <label>Kegiatan / Aktivitas</label>
+      <input type="text" id="okrInitTextInput" placeholder="Contoh: Ujicoba flash sale mingguan">
+    </div>
+    <div class="field">
+      <label>Deadline (opsional)</label>
+      <input type="date" id="okrInitDeadlineInput">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="okrInitCancelBtn">Batal</button>
+      <button class="btn btn-primary" id="okrInitSaveBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- OKR: Modal Refleksi (What / So What / Now What) -->
+<div class="overlay" id="okrReflModalOverlay">
+  <div class="modal modal-lg okr-refl-modal">
+    <h3>Refleksi Akhir Periode</h3>
+    <div class="field">
+      <label>What — Apa yang terjadi (otomatis dari skor)</label>
+      <div class="okr-refl-what-box" id="okrReflWhatBox">—</div>
+    </div>
+    <div class="field">
+      <label>So What — Kenapa itu penting / apa maknanya</label>
+      <textarea id="okrReflSoWhatInput" placeholder="Contoh: Omzet masih di bawah target, kemungkinan karena stok kurang lengkap."></textarea>
+    </div>
+    <div class="field">
+      <label>Now What — Langkah selanjutnya</label>
+      <textarea id="okrReflNowWhatInput" placeholder="Contoh: Bulan depan fokus tambah varian produk & ikut campaign platform."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="okrReflCancelBtn">Batal</button>
+      <button class="btn btn-primary" id="okrReflSaveBtn">Simpan</button>
     </div>
   </div>
 </div>
@@ -1958,7 +2189,8 @@ function doGet(e){
       var target = sheetToObjects(ss.getSheetByName('Target'));
       var affiliate = sheetToObjects(ss.getSheetByName('Affiliate'));
       var targetAffiliate = sheetToObjects(ss.getSheetByName('TargetAffiliate'));
-      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate};
+      var okr = sheetToObjects(getOkrSheetMigrated(ss));
+      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate, okr: okr};
     }catch(err){
       result = {status:'error', message:'Gagal membaca spreadsheet: '+err.message};
     }
@@ -1983,7 +2215,7 @@ function doPost(e){
 function handlePing(){
   try{
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate'];
+    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR'];
     var existing = ss.getSheets().map(function(s){ return s.getName(); });
     var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
     return {status:'ok', spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
@@ -2005,6 +2237,7 @@ function handleWrite(data){
     else if(data.type === 'target') upsertTarget(ss, data);
     else if(data.type === 'affiliate') upsertAffiliate(ss, data);
     else if(data.type === 'targetAffiliate') upsertTargetAffiliate(ss, data);
+    else if(data.type === 'okr') upsertOkr(ss, data);
     else return {status:'error', message:'Tipe data tidak dikenal: '+data.type};
   } catch(err){
     return {status:'error', message: 'Gagal menyimpan ke sheet "'+data.type+'": '+err.message};
@@ -2114,6 +2347,79 @@ function upsertTargetAffiliate(ss, data){
   sh.appendRow([data.tokoId,data.bulan,data.targetomzetafiliasi,data.targetkomisi,data.targetsampel]);
 }
 
+// Sheet "OKR": 1 SHEET, banyak kolom, menyesuaikan isi OKR — 1 baris per Initiative
+// (kalau sebuah Key Result belum punya Initiative, tetap 1 baris untuk KR itu; kalau sebuah
+// Objective belum punya KR, tetap 1 baris untuk Objective itu). objTitle/krText diulang di
+// tiap baris turunannya supaya sheet-nya tetap flat & gampang difilter/pivot di Google Sheets.
+var OKR_HEADERS = ['periode','objId','objTitle','objOwner','krId','krText','krTarget','krCurrent','krUnit','krDirection','initId','initText','initDone','initDeadline','reflSoWhat','reflNowWhat'];
+
+// Ambil sheet "OKR"; kalau masih format lama (header cuma periode+data berisi JSON blob),
+// migrasikan otomatis ke format kolom baru di atas — supaya sheet lama gak perlu dihapus manual.
+function getOkrSheetMigrated(ss){
+  var sh = ss.getSheetByName('OKR');
+  if(!sh) return getOrCreateSheet(ss, 'OKR', OKR_HEADERS);
+  var values = sh.getDataRange().getValues();
+  var headerRow = values.length ? values[0].map(function(h){ return String(h).trim(); }) : [];
+  var isOldFormat = headerRow.length === 2 && headerRow[0] === 'periode' && headerRow[1] === 'data';
+  if(!isOldFormat){
+    if(!headerRow.length) sh.appendRow(OKR_HEADERS); // sheet baru dibuat manual & masih kosong
+    return sh;
+  }
+  // --- migrasi dari format lama ---
+  var oldPeriods = [];
+  for(var i=1;i<values.length;i++){
+    var periode = String(values[i][0]||'').trim();
+    if(!periode) continue;
+    var parsed;
+    try{ parsed = JSON.parse(values[i][1] || '{}'); }catch(e){ parsed = null; }
+    if(parsed) oldPeriods.push({periode:periode, data:parsed});
+  }
+  sh.clear();
+  sh.appendRow(OKR_HEADERS);
+  sh.setFrozenRows(1);
+  oldPeriods.forEach(function(p){ appendOkrPeriodRows(sh, p.periode, p.data); });
+  return sh;
+}
+
+// Ubah 1 objek periode ({objectives:[...]}) jadi baris-baris flat & tambahkan ke sheet.
+function appendOkrPeriodRows(sh, periode, periodData){
+  var objectives = (periodData && periodData.objectives) || [];
+  objectives.forEach(function(obj){
+    var refl = obj.reflection || {};
+    var krs = obj.krs || [];
+    if(!krs.length){
+      sh.appendRow([periode, obj.id||'', obj.title||'', obj.owner||'', '', '', '', '', '', '', '', '', '', '', refl.soWhat||'', refl.nowWhat||'']);
+      return;
+    }
+    krs.forEach(function(kr){
+      var inits = kr.initiatives || [];
+      if(!inits.length){
+        sh.appendRow([periode, obj.id||'', obj.title||'', obj.owner||'', kr.id||'', kr.text||'', kr.target, kr.current, kr.unit||'', kr.direction||'higher', '', '', '', '', refl.soWhat||'', refl.nowWhat||'']);
+        return;
+      }
+      inits.forEach(function(ini){
+        sh.appendRow([periode, obj.id||'', obj.title||'', obj.owner||'', kr.id||'', kr.text||'', kr.target, kr.current, kr.unit||'', kr.direction||'higher', ini.id||'', ini.text||'', ini.done?'TRUE':'FALSE', ini.deadline||'', refl.soWhat||'', refl.nowWhat||'']);
+      });
+    });
+  });
+}
+
+// Upsert per periode: hapus dulu semua baris existing utk periode itu, baru tulis ulang versi
+// terbaru — supaya KR/Initiative yang dihapus di dashboard juga otomatis hilang dari sheet.
+function upsertOkr(ss, data){
+  var sh = getOkrSheetMigrated(ss);
+  var periode = String(data.periode||'').trim();
+  if(!periode) return;
+  var values = sh.getDataRange().getValues();
+  for(var i=values.length-1;i>=1;i--){
+    if(String(values[i][0]).trim() === periode) sh.deleteRow(i+1);
+  }
+  if(data.hapus) return;
+  var periodData;
+  try{ periodData = JSON.parse(data.data || '{}'); }catch(e){ periodData = {objectives:[]}; }
+  appendOkrPeriodRows(sh, periode, periodData);
+}
+
 function sheetToObjects(sheet){
   if(!sheet) return [];
   var values = sheet.getDataRange().getValues();
@@ -2217,7 +2523,8 @@ async function pushAllToSheet(){
     for(const s of stores) for(const row of targetRowsForStore(s)){ await pushOneToSheet('target', row); await sleep(250); }
     for(const e of affEntries){ await pushOneToSheet('affiliate', affEntryToRow(e)); await sleep(250); }
     for(const s of stores) for(const row of targetAffRowsForStore(s)){ await pushOneToSheet('targetAffiliate', row); await sleep(250); }
-    setSyncMsg('Semua data (Toko, Input, Target, Affiliate & Target Affiliate) berhasil dikirim ke spreadsheet.', 'var(--green-dark)');
+    if(typeof okrPushAllPeriods === 'function') await okrPushAllPeriods();
+    setSyncMsg('Semua data (Toko, Input, Target, Affiliate, Target Affiliate & OKR) berhasil dikirim ke spreadsheet.', 'var(--green-dark)');
   }catch(err){ setSyncMsg('Sebagian gagal terkirim. Cek URL Apps Script & koneksi internet.', 'var(--red)'); }
 }
 async function pullFromSheet(silent){
@@ -2262,6 +2569,10 @@ async function pullFromSheet(silent){
       affEntries = json.affiliate.map((r,i)=>({ id:'af'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), omzet:parseFloat(r.omzet)||0, komisi:parseFloat(r.komisi)||0, sampel:parseInt(r.sampel)||0 }));
       saveAffEntries();
     }
+    if(Array.isArray(json.okr) && typeof okrApplyPulledRows === 'function'){
+      okrApplyPulledRows(json.okr);
+      if(typeof okrRenderAll === 'function') okrRenderAll();
+    }
     renderStores(); renderKPI(); renderOverviewTable(); renderEntries(); renderPerforma(); renderAffKPI(); renderAffEntries(); buildOverviewCharts();
     if(!silent) setSyncMsg('Data terbaru dari spreadsheet berhasil dimuat.', 'var(--green-dark)');
     return {ok:true};
@@ -2295,7 +2606,7 @@ async function testConnection(){
     if(missing.length){
       html += `<br><span style="color:var(--red);">⚠️ Sheet belum ada: ${missing.join(', ')} — akan dibuat otomatis saat pertama kali ada data yang tersimpan ke sana, atau bisa dibuat manual dulu.</span>`;
     } else {
-      html += `<br><span style="color:var(--green-dark);">✓ Kelima sheet (Toko, Input, Target, Affiliate, TargetAffiliate) sudah lengkap.</span>`;
+      html += `<br><span style="color:var(--green-dark);">✓ Keenam sheet (Toko, Input, Target, Affiliate, TargetAffiliate, OKR) sudah lengkap.</span>`;
     }
     resultEl.innerHTML = html;
   }catch(err){
@@ -2351,6 +2662,588 @@ renderAffKPI();
 renderAffEntries();
 buildOverviewCharts();
 if(getAppsScriptUrl()) pullFromSheet(true);
+
+/* ================= OKR DIVISI ================= */
+const OKR_KEY = 'khOkrState_v1';
+let okrFilterPic = '';
+let okrFilterStatus = 'all';
+let OKR_UI_COLLAPSED = null;
+
+function okrCurrentQuarterLabel(){
+  const d = new Date();
+  const q = Math.floor(d.getMonth()/3)+1;
+  return d.getFullYear()+'-Q'+q;
+}
+function okrLoad(){
+  let state = null;
+  try{ state = JSON.parse(localStorage.getItem(OKR_KEY) || 'null'); }catch(e){ state = null; }
+  if(!state || typeof state !== 'object'){
+    state = { activePeriod: okrCurrentQuarterLabel(), periods: {} };
+  }
+  if(!state.periods) state.periods = {};
+  if(!state.activePeriod) state.activePeriod = okrCurrentQuarterLabel();
+  if(!state.periods[state.activePeriod]) state.periods[state.activePeriod] = { objectives: [] };
+  return state;
+}
+function okrSaveLocalOnly(){
+  try{ localStorage.setItem(OKR_KEY, JSON.stringify(OKR_STATE)); }catch(e){ console.warn('Gagal menyimpan data OKR:', e); }
+}
+function okrSave(){
+  okrSaveLocalOnly();
+  // Fire-and-forget: kirim periode aktif ke sheet "OKR" (1 baris per periode, isinya JSON) —
+  // kalau URL Apps Script belum diisi/gagal, data tetap aman di localStorage.
+  pushOneToSheet('okr', { periode: OKR_STATE.activePeriod, data: JSON.stringify(OKR_STATE.periods[OKR_STATE.activePeriod]) });
+}
+let OKR_STATE = okrLoad();
+
+function okrGenId(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function okrEnsurePeriod(p){
+  if(!OKR_STATE.periods[p]) OKR_STATE.periods[p] = { objectives: [] };
+  return OKR_STATE.periods[p];
+}
+function okrActivePeriodData(){ return okrEnsurePeriod(OKR_STATE.activePeriod); }
+
+function okrKrScore(kr){
+  const target = Number(kr.target);
+  const current = Number(kr.current);
+  if(!isFinite(target) || target === 0) return 0;
+  if(kr.direction === 'lower'){
+    if(!isFinite(current)) return 0;
+    if(current <= 0) return 1.5;
+    const raw = target / current;
+    return Math.max(0, Math.min(raw, 1.5));
+  }
+  const raw = current / target;
+  return Math.max(0, Math.min(raw, 1.5));
+}
+function okrObjScore(obj){
+  if(!obj.krs || !obj.krs.length) return 0;
+  const scores = obj.krs.map(okrKrScore);
+  const capped = scores.map(s=> Math.min(s,1));
+  return capped.reduce((a,b)=>a+b,0) / capped.length;
+}
+function okrScoreClass(pct){
+  if(pct >= 70) return 'good';
+  if(pct >= 40) return 'warn';
+  return 'bad';
+}
+
+function okrRenderPeriodBar(){
+  const wrap = document.getElementById('okrPeriodBar');
+  if(!wrap) return;
+  const periods = Object.keys(OKR_STATE.periods).sort();
+  wrap.innerHTML = periods.map(p=>
+    '<div class="okr-period-pill'+(p===OKR_STATE.activePeriod?' active':'')+'" data-period="'+p+'">'+p+'</div>'
+  ).join('') + '<div class="okr-add-period" id="okrAddPeriodBtn">+ Periode Baru</div>';
+
+  wrap.querySelectorAll('.okr-period-pill').forEach(pill=>{
+    pill.addEventListener('click', ()=>{
+      OKR_STATE.activePeriod = pill.dataset.period;
+      OKR_UI_COLLAPSED = null; okrFilterPic=''; okrFilterStatus='all';
+      okrSaveLocalOnly();
+      okrRenderAll();
+    });
+  });
+  const addBtn = document.getElementById('okrAddPeriodBtn');
+  if(addBtn) addBtn.addEventListener('click', ()=>{
+    const val = prompt('Nama periode baru (format bebas, contoh: 2026-Q4 atau "Tahunan 2027"):', okrCurrentQuarterLabel());
+    if(!val) return;
+    const clean = val.trim();
+    if(!clean) return;
+    okrEnsurePeriod(clean);
+    OKR_STATE.activePeriod = clean;
+    OKR_UI_COLLAPSED = null; okrFilterPic=''; okrFilterStatus='all';
+    okrSave();
+    okrRenderAll();
+  });
+}
+
+function okrRenderKpi(){
+  const data = okrActivePeriodData();
+  const objs = data.objectives || [];
+  let allKrScores = [];
+  objs.forEach(o=> (o.krs||[]).forEach(kr=> allKrScores.push(okrKrScore(kr))));
+
+  const avgObjScore = objs.length ? (objs.reduce((a,o)=> a+okrObjScore(o), 0) / objs.length) : 0;
+  const done = allKrScores.filter(s=> s>=1).length;
+  const risk = allKrScores.filter(s=> s<0.4).length;
+
+  document.getElementById('okrKpiScore').textContent = Math.round(avgObjScore*100) + '%';
+  document.getElementById('okrKpiObj').textContent = objs.length;
+  document.getElementById('okrKpiDone').textContent = done;
+  document.getElementById('okrKpiRisk').textContent = risk;
+}
+
+function okrObjSummary(obj){
+  const krs = obj.krs || [];
+  const done = krs.filter(kr=> okrKrScore(kr) >= 1).length;
+  const risk = krs.filter(kr=> okrKrScore(kr) < 0.4).length;
+  return { total: krs.length, done: done, risk: risk };
+}
+
+function okrPopulatePicFilter(objs){
+  const sel = document.getElementById('okrFilterPicSelect');
+  if(!sel) return;
+  const owners = Array.from(new Set(objs.map(o=> (o.owner||'').trim()).filter(Boolean))).sort();
+  if(okrFilterPic && !owners.includes(okrFilterPic)) okrFilterPic = '';
+  sel.innerHTML = '<option value="">Semua PIC</option>' + owners.map(o=>
+    '<option value="'+escapeHtmlOkr(o)+'"'+(o===okrFilterPic?' selected':'')+'>'+escapeHtmlOkr(o)+'</option>'
+  ).join('');
+}
+
+function okrRenderObjectives(){
+  const list = document.getElementById('okrObjList');
+  if(!list) return;
+  const data = okrActivePeriodData();
+  const allObjs = data.objectives || [];
+
+  if(!allObjs.length){
+    okrPopulatePicFilter(allObjs);
+    list.innerHTML = '<div class="okr-empty"><b>Belum ada Objective di periode ini</b>Klik "+ Objective Baru" untuk mulai menyusun target divisi.</div>';
+    return;
+  }
+
+  if(OKR_UI_COLLAPSED === null){
+    OKR_UI_COLLAPSED = allObjs.length > 2 ? new Set(allObjs.map(o=> o.id)) : new Set();
+  }
+
+  okrPopulatePicFilter(allObjs);
+
+  const objs = allObjs.filter(obj=>{
+    if(okrFilterPic && (obj.owner||'').trim() !== okrFilterPic) return false;
+    if(okrFilterStatus !== 'all'){
+      const pctF = Math.round(okrObjScore(obj)*100);
+      if(okrScoreClass(pctF) !== okrFilterStatus) return false;
+    }
+    return true;
+  });
+
+  if(!objs.length){
+    list.innerHTML = '<div class="okr-empty"><b>Tidak ada Objective yang cocok dengan filter</b>Coba ubah atau reset filter PIC/status di atas.</div>';
+    return;
+  }
+
+  list.innerHTML = objs.map(obj=>{
+    const score = okrObjScore(obj);
+    const pct = Math.round(score*100);
+    const cls = okrScoreClass(pct);
+    const summary = okrObjSummary(obj);
+    const collapsed = OKR_UI_COLLAPSED.has(obj.id);
+    const krsHtml = (obj.krs||[]).length ? (obj.krs||[]).map(kr=>{
+      const krScoreRaw = okrKrScore(kr);
+      const krPctDisplay = Math.round(krScoreRaw*100);
+      const krPctBar = Math.min(krPctDisplay, 100);
+      const krCls = okrScoreClass(Math.min(krPctDisplay,100));
+      const unit = kr.unit ? (' '+kr.unit) : '';
+      const dirTag = kr.direction==='lower' ? '<span class="okr-dir-tag">↓ makin kecil makin baik</span>' : '';
+      const inits = kr.initiatives || [];
+      const initsHtml = inits.map(ini=>
+        '<div class="okr-init-row">'+
+          '<div class="okr-init-check'+(ini.done?' done':'')+'" data-act="toggle-init" data-obj="'+obj.id+'" data-kr="'+kr.id+'" data-init="'+ini.id+'">✓</div>'+
+          '<div class="okr-init-text'+(ini.done?' done':'')+'">'+escapeHtmlOkr(ini.text)+'</div>'+
+          okrInitDeadlineBadge(ini)+
+          '<div class="okr-init-actions">'+
+            '<button class="okr-kr-mini-btn" data-act="edit-init" data-obj="'+obj.id+'" data-kr="'+kr.id+'" data-init="'+ini.id+'" title="Edit">✎</button>'+
+            '<button class="okr-kr-mini-btn" data-act="del-init" data-obj="'+obj.id+'" data-kr="'+kr.id+'" data-init="'+ini.id+'" title="Hapus">🗑</button>'+
+          '</div>'+
+        '</div>'
+      ).join('');
+      return '<div class="okr-kr-row">'+
+        '<div class="okr-kr-top">'+
+          '<div class="okr-kr-text">'+escapeHtmlOkr(kr.text)+'</div>'+
+          '<div class="okr-kr-actions">'+
+            '<button class="okr-kr-mini-btn" data-act="edit-kr" data-obj="'+obj.id+'" data-kr="'+kr.id+'" title="Edit">✎</button>'+
+            '<button class="okr-kr-mini-btn" data-act="del-kr" data-obj="'+obj.id+'" data-kr="'+kr.id+'" title="Hapus">🗑</button>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+          '<div class="okr-kr-track" style="flex:1;"><div class="okr-kr-fill '+krCls+'" style="width:'+krPctBar+'%;"></div></div>'+
+          '<div class="okr-kr-pct" style="color:var(--'+(krCls==='good'?'green':krCls==='warn'?'yellow':'red')+');">'+krPctDisplay+'%</div>'+
+        '</div>'+
+        '<div class="okr-kr-nums">Capaian: <b>'+fmtOkrNum(kr.current)+unit+'</b> dari target <b>'+fmtOkrNum(kr.target)+unit+'</b>'+dirTag+'</div>'+
+        '<div class="okr-init-wrap">'+
+          initsHtml+
+          '<button class="okr-add-init-btn" data-act="add-init" data-obj="'+obj.id+'" data-kr="'+kr.id+'">+ Tambah Initiative</button>'+
+        '</div>'+
+      '</div>';
+    }).join('') : '<div class="muted-note" style="padding:6px 0 2px;">Belum ada Key Result. Tambahkan minimal 1 untuk mulai mengukur objective ini.</div>';
+
+    const refl = obj.reflection || {};
+    const hasRefl = !!(refl.soWhat || refl.nowWhat);
+    const reflBlock = hasRefl ?
+      '<div class="okr-refl-block">'+
+        '<div class="okr-refl-title">🔄 Refleksi Akhir Periode</div>'+
+        '<div class="okr-refl-item"><div class="okr-refl-tag what">WHAT</div><div class="okr-refl-text">'+escapeHtmlOkr(okrWhatText(obj))+'</div></div>'+
+        '<div class="okr-refl-item"><div class="okr-refl-tag sowhat">SO WHAT</div><div class="okr-refl-text'+(refl.soWhat?'':' muted-note')+'">'+escapeHtmlOkr(refl.soWhat||'Belum diisi')+'</div></div>'+
+        '<div class="okr-refl-item"><div class="okr-refl-tag nowwhat">NOW WHAT</div><div class="okr-refl-text'+(refl.nowWhat?'':' muted-note')+'">'+escapeHtmlOkr(refl.nowWhat||'Belum diisi')+'</div></div>'+
+      '</div>' : '';
+
+    const summaryLine = summary.total ?
+      ('<div class="okr-obj-summary">'+
+        '<div class="okr-obj-mini-track"><div class="okr-obj-mini-fill '+cls+'" style="width:'+Math.min(pct,100)+'%;"></div></div>'+
+        '<span>'+summary.total+' KR'+(summary.done?' · '+summary.done+' tercapai':'')+(summary.risk?' · '+summary.risk+' berisiko':'')+'</span>'+
+      '</div>') :
+      '<div class="okr-obj-summary" style="font-style:italic;">Belum ada Key Result</div>';
+
+    return '<div class="okr-obj-card">'+
+      '<div class="okr-obj-head">'+
+        '<div class="okr-obj-toggle" data-act="toggle-collapse" data-obj="'+obj.id+'" title="'+(collapsed?'Buka':'Tutup')+'">'+(collapsed?'▸':'▾')+'</div>'+
+        '<div style="flex:1;min-width:180px;cursor:pointer;" data-act="toggle-collapse" data-obj="'+obj.id+'">'+
+          '<div class="okr-obj-title">'+escapeHtmlOkr(obj.title)+'</div>'+
+          (obj.owner ? '<div class="okr-obj-owner">PIC: <b>'+escapeHtmlOkr(obj.owner)+'</b></div>' : '')+
+          summaryLine+
+        '</div>'+
+        '<div class="okr-score-chip '+cls+'">'+pct+'%<span class="sub">skor</span></div>'+
+        '<div class="okr-obj-actions">'+
+          '<button class="okr-refl-btn'+(hasRefl?' filled':'')+'" data-act="reflect-obj" data-obj="'+obj.id+'">🔄 Refleksi</button>'+
+          '<button class="okr-icon-btn" data-act="edit-obj" data-obj="'+obj.id+'" title="Edit Objective">✎</button>'+
+          '<button class="okr-icon-btn danger" data-act="del-obj" data-obj="'+obj.id+'" title="Hapus Objective">🗑</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="okr-obj-body" id="okrObjBody-'+obj.id+'" style="display:'+(collapsed?'none':'block')+';">'+
+        krsHtml+
+        '<button class="okr-add-kr-btn" data-act="add-kr" data-obj="'+obj.id+'">+ Tambah Key Result</button>'+
+        reflBlock+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  list.querySelectorAll('[data-act="toggle-collapse"]').forEach(b=> b.addEventListener('click', ()=> okrToggleCollapse(b.dataset.obj)));
+  list.querySelectorAll('[data-act="edit-obj"]').forEach(b=> b.addEventListener('click', ()=> okrOpenObjModal('edit', b.dataset.obj)));
+  list.querySelectorAll('[data-act="del-obj"]').forEach(b=> b.addEventListener('click', ()=> okrDeleteObjective(b.dataset.obj)));
+  list.querySelectorAll('[data-act="add-kr"]').forEach(b=> b.addEventListener('click', ()=> okrOpenKrModal('add', b.dataset.obj, null)));
+  list.querySelectorAll('[data-act="edit-kr"]').forEach(b=> b.addEventListener('click', ()=> okrOpenKrModal('edit', b.dataset.obj, b.dataset.kr)));
+  list.querySelectorAll('[data-act="del-kr"]').forEach(b=> b.addEventListener('click', ()=> okrDeleteKr(b.dataset.obj, b.dataset.kr)));
+  list.querySelectorAll('[data-act="add-init"]').forEach(b=> b.addEventListener('click', ()=> okrOpenInitModal('add', b.dataset.obj, b.dataset.kr, null)));
+  list.querySelectorAll('[data-act="edit-init"]').forEach(b=> b.addEventListener('click', ()=> okrOpenInitModal('edit', b.dataset.obj, b.dataset.kr, b.dataset.init)));
+  list.querySelectorAll('[data-act="del-init"]').forEach(b=> b.addEventListener('click', ()=> okrDeleteInit(b.dataset.obj, b.dataset.kr, b.dataset.init)));
+  list.querySelectorAll('[data-act="toggle-init"]').forEach(b=> b.addEventListener('click', ()=> okrToggleInit(b.dataset.obj, b.dataset.kr, b.dataset.init)));
+  list.querySelectorAll('[data-act="reflect-obj"]').forEach(b=> b.addEventListener('click', ()=> okrOpenReflModal(b.dataset.obj)));
+}
+
+function okrWhatText(obj){
+  const krs = obj.krs || [];
+  if(!krs.length) return 'Belum ada Key Result yang diukur pada Objective ini.';
+  const pct = Math.round(okrObjScore(obj)*100);
+  const done = krs.filter(kr=> okrKrScore(kr) >= 1).length;
+  const risk = krs.filter(kr=> okrKrScore(kr) < 0.4).length;
+  return 'Skor akhir objective ini '+pct+'% dari '+krs.length+' Key Result ('+done+' tercapai penuh'+(risk?', '+risk+' jauh dari target':'')+').';
+}
+
+let okrReflObjId = null;
+function okrOpenReflModal(objId){
+  okrReflObjId = objId;
+  const obj = okrActivePeriodData().objectives.find(o=> o.id===objId);
+  if(!obj) return;
+  const refl = obj.reflection || {};
+  document.getElementById('okrReflWhatBox').textContent = okrWhatText(obj);
+  document.getElementById('okrReflSoWhatInput').value = refl.soWhat || '';
+  document.getElementById('okrReflNowWhatInput').value = refl.nowWhat || '';
+  document.getElementById('okrReflModalOverlay').classList.add('open');
+  document.getElementById('okrReflSoWhatInput').focus();
+}
+function okrCloseReflModal(){ document.getElementById('okrReflModalOverlay').classList.remove('open'); }
+function okrSaveReflFromModal(){
+  const obj = okrActivePeriodData().objectives.find(o=> o.id===okrReflObjId);
+  if(!obj) return;
+  obj.reflection = {
+    soWhat: document.getElementById('okrReflSoWhatInput').value.trim(),
+    nowWhat: document.getElementById('okrReflNowWhatInput').value.trim()
+  };
+  okrSave();
+  okrCloseReflModal();
+  okrRenderAll();
+}
+
+function fmtOkrNum(n){
+  n = Number(n);
+  if(!isFinite(n)) return '0';
+  return n.toLocaleString('id-ID', {maximumFractionDigits:2});
+}
+function escapeHtmlOkr(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function okrTodayMidnight(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+function okrInitDeadlineBadge(ini){
+  if(!ini.deadline) return '';
+  const d = new Date(ini.deadline+'T00:00:00');
+  if(isNaN(d.getTime())) return '';
+  const label = d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'});
+  let cls = 'normal';
+  if(ini.done){
+    cls = 'done';
+  } else {
+    const diffDays = Math.round((d - okrTodayMidnight()) / 86400000);
+    if(diffDays < 0) cls = 'overdue';
+    else if(diffDays <= 3) cls = 'soon';
+  }
+  return '<span class="okr-init-deadline '+cls+'">📅 '+label+'</span>';
+}
+
+function okrRenderDeadlineBanner(){
+  const el = document.getElementById('okrDeadlineBanner');
+  if(!el) return;
+  const data = okrActivePeriodData();
+  const today = okrTodayMidnight();
+  const overdue = [];
+  (data.objectives||[]).forEach(obj=> (obj.krs||[]).forEach(kr=> (kr.initiatives||[]).forEach(ini=>{
+    if(ini.done || !ini.deadline) return;
+    const d = new Date(ini.deadline+'T00:00:00');
+    if(!isNaN(d.getTime()) && d < today) overdue.push(ini.text);
+  })));
+  if(!overdue.length){ el.style.display = 'none'; el.innerHTML=''; return; }
+  el.style.display = 'flex';
+  const preview = overdue.slice(0,3).map(t=> escapeHtmlOkr(t)).join(' · ');
+  el.innerHTML = '⏰ <div><b>'+overdue.length+' Initiative</b> sudah lewat deadline dan belum selesai: '+preview+(overdue.length>3?' …':'')+'</div>';
+}
+
+function okrRenderAll(){
+  okrRenderPeriodBar();
+  okrRenderKpi();
+  okrRenderDeadlineBanner();
+  okrRenderObjectives();
+}
+
+function okrToggleCollapse(id){
+  if(OKR_UI_COLLAPSED === null) OKR_UI_COLLAPSED = new Set();
+  const body = document.getElementById('okrObjBody-'+id);
+  if(!body) return;
+  const wasCollapsed = OKR_UI_COLLAPSED.has(id);
+  if(wasCollapsed){ OKR_UI_COLLAPSED.delete(id); body.style.display = 'block'; }
+  else { OKR_UI_COLLAPSED.add(id); body.style.display = 'none'; }
+  const chevron = document.querySelector('.okr-obj-toggle[data-obj="'+id+'"]');
+  if(chevron){ chevron.textContent = wasCollapsed ? '▾' : '▸'; chevron.title = wasCollapsed ? 'Tutup' : 'Buka'; }
+}
+function okrExpandAllObjectives(){ OKR_UI_COLLAPSED = new Set(); okrRenderObjectives(); }
+function okrCollapseAllObjectives(){
+  const data = okrActivePeriodData();
+  OKR_UI_COLLAPSED = new Set((data.objectives||[]).map(o=> o.id));
+  okrRenderObjectives();
+}
+
+let okrObjModalMode = 'add';
+let okrObjModalEditId = null;
+function okrOpenObjModal(mode, id){
+  okrObjModalMode = mode;
+  okrObjModalEditId = id || null;
+  document.getElementById('okrObjModalTitle').textContent = mode==='edit' ? 'Edit Objective' : 'Objective Baru';
+  let title = '', owner = '';
+  if(mode==='edit'){
+    const obj = okrActivePeriodData().objectives.find(o=> o.id===id);
+    if(obj){ title = obj.title; owner = obj.owner||''; }
+  }
+  document.getElementById('okrObjTitleInput').value = title;
+  document.getElementById('okrObjOwnerInput').value = owner;
+  document.getElementById('okrObjModalOverlay').classList.add('open');
+  document.getElementById('okrObjTitleInput').focus();
+}
+function okrCloseObjModal(){ document.getElementById('okrObjModalOverlay').classList.remove('open'); }
+function okrSaveObjectiveFromModal(){
+  const title = document.getElementById('okrObjTitleInput').value.trim();
+  const owner = document.getElementById('okrObjOwnerInput').value.trim();
+  if(!title){ alert('Objective tidak boleh kosong.'); return; }
+  const data = okrActivePeriodData();
+  if(okrObjModalMode==='edit' && okrObjModalEditId){
+    const obj = data.objectives.find(o=> o.id===okrObjModalEditId);
+    if(obj){ obj.title = title; obj.owner = owner; }
+  } else {
+    data.objectives.push({ id: okrGenId('obj'), title, owner, krs: [] });
+  }
+  okrSave();
+  okrCloseObjModal();
+  okrRenderAll();
+}
+function okrDeleteObjective(id){
+  const data = okrActivePeriodData();
+  const obj = data.objectives.find(o=> o.id===id);
+  if(!obj) return;
+  if(!confirm('Hapus Objective "'+obj.title+'" beserta semua Key Result-nya?\n\nTindakan ini tidak bisa dibatalkan.')) return;
+  data.objectives = data.objectives.filter(o=> o.id!==id);
+  okrSave();
+  okrRenderAll();
+}
+
+let okrKrModalMode = 'add';
+let okrKrModalObjId = null;
+let okrKrModalEditId = null;
+function okrOpenKrModal(mode, objId, krId){
+  okrKrModalMode = mode;
+  okrKrModalObjId = objId;
+  okrKrModalEditId = krId || null;
+  document.getElementById('okrKrModalTitle').textContent = mode==='edit' ? 'Edit Key Result' : 'Key Result Baru';
+  let text='', target='', current='', unit='', direction='higher';
+  if(mode==='edit'){
+    const obj = okrActivePeriodData().objectives.find(o=> o.id===objId);
+    const kr = obj && obj.krs.find(k=> k.id===krId);
+    if(kr){ text=kr.text; target=kr.target; current=kr.current; unit=kr.unit||''; direction=kr.direction||'higher'; }
+  }
+  document.getElementById('okrKrTextInput').value = text;
+  document.getElementById('okrKrDirectionInput').value = direction;
+  document.getElementById('okrKrTargetInput').value = target;
+  document.getElementById('okrKrCurrentInput').value = current;
+  document.getElementById('okrKrUnitInput').value = unit;
+  document.getElementById('okrKrModalOverlay').classList.add('open');
+  document.getElementById('okrKrTextInput').focus();
+}
+function okrCloseKrModal(){ document.getElementById('okrKrModalOverlay').classList.remove('open'); }
+function okrSaveKrFromModal(){
+  const text = document.getElementById('okrKrTextInput').value.trim();
+  const direction = document.getElementById('okrKrDirectionInput').value === 'lower' ? 'lower' : 'higher';
+  const target = parseFloat(document.getElementById('okrKrTargetInput').value);
+  const current = parseFloat(document.getElementById('okrKrCurrentInput').value);
+  const unit = document.getElementById('okrKrUnitInput').value.trim();
+  if(!text){ alert('Deskripsi Key Result tidak boleh kosong.'); return; }
+  if(!target){ alert('Target harus diisi dengan angka lebih dari 0.'); return; }
+  const obj = okrActivePeriodData().objectives.find(o=> o.id===okrKrModalObjId);
+  if(!obj) return;
+  if(okrKrModalMode==='edit' && okrKrModalEditId){
+    const kr = obj.krs.find(k=> k.id===okrKrModalEditId);
+    if(kr){ kr.text=text; kr.target=target; kr.current=current||0; kr.unit=unit; kr.direction=direction; }
+  } else {
+    obj.krs.push({ id: okrGenId('kr'), text, target, current: current||0, unit, direction });
+  }
+  okrSave();
+  okrCloseKrModal();
+  okrRenderAll();
+}
+function okrDeleteKr(objId, krId){
+  const obj = okrActivePeriodData().objectives.find(o=> o.id===objId);
+  if(!obj) return;
+  const kr = obj.krs.find(k=> k.id===krId);
+  if(!kr) return;
+  if(!confirm('Hapus Key Result "'+kr.text+'"?')) return;
+  obj.krs = obj.krs.filter(k=> k.id!==krId);
+  okrSave();
+  okrRenderAll();
+}
+
+let okrInitModalMode = 'add';
+let okrInitModalObjId = null;
+let okrInitModalKrId = null;
+let okrInitModalEditId = null;
+function okrFindKr(objId, krId){
+  const obj = okrActivePeriodData().objectives.find(o=> o.id===objId);
+  if(!obj) return null;
+  return obj.krs.find(k=> k.id===krId) || null;
+}
+function okrOpenInitModal(mode, objId, krId, initId){
+  okrInitModalMode = mode;
+  okrInitModalObjId = objId;
+  okrInitModalKrId = krId;
+  okrInitModalEditId = initId || null;
+  document.getElementById('okrInitModalTitle').textContent = mode==='edit' ? 'Edit Initiative' : 'Initiative Baru';
+  let text = '', deadline = '';
+  if(mode==='edit'){
+    const kr = okrFindKr(objId, krId);
+    const ini = kr && (kr.initiatives||[]).find(i=> i.id===initId);
+    if(ini){ text = ini.text; deadline = ini.deadline || ''; }
+  }
+  document.getElementById('okrInitTextInput').value = text;
+  document.getElementById('okrInitDeadlineInput').value = deadline;
+  document.getElementById('okrInitModalOverlay').classList.add('open');
+  document.getElementById('okrInitTextInput').focus();
+}
+function okrCloseInitModal(){ document.getElementById('okrInitModalOverlay').classList.remove('open'); }
+function okrSaveInitFromModal(){
+  const text = document.getElementById('okrInitTextInput').value.trim();
+  const deadline = document.getElementById('okrInitDeadlineInput').value || '';
+  if(!text){ alert('Kegiatan/Initiative tidak boleh kosong.'); return; }
+  const kr = okrFindKr(okrInitModalObjId, okrInitModalKrId);
+  if(!kr) return;
+  if(!kr.initiatives) kr.initiatives = [];
+  if(okrInitModalMode==='edit' && okrInitModalEditId){
+    const ini = kr.initiatives.find(i=> i.id===okrInitModalEditId);
+    if(ini){ ini.text = text; ini.deadline = deadline; }
+  } else {
+    kr.initiatives.push({ id: okrGenId('init'), text, done: false, deadline });
+  }
+  okrSave();
+  okrCloseInitModal();
+  okrRenderAll();
+}
+function okrDeleteInit(objId, krId, initId){
+  const kr = okrFindKr(objId, krId);
+  if(!kr) return;
+  const ini = (kr.initiatives||[]).find(i=> i.id===initId);
+  if(!ini) return;
+  if(!confirm('Hapus initiative "'+ini.text+'"?')) return;
+  kr.initiatives = kr.initiatives.filter(i=> i.id!==initId);
+  okrSave();
+  okrRenderAll();
+}
+function okrToggleInit(objId, krId, initId){
+  const kr = okrFindKr(objId, krId);
+  if(!kr) return;
+  const ini = (kr.initiatives||[]).find(i=> i.id===initId);
+  if(!ini) return;
+  ini.done = !ini.done;
+  okrSave();
+  okrRenderAll();
+}
+
+/* ---------- Sinkron OKR ke/dari sheet "OKR" ---------- */
+// Sheet "OKR" sekarang flat (1 baris per Initiative/KR/Objective, banyak kolom) — bukan lagi
+// 1 baris per periode berisi JSON blob. Di sini baris-baris itu disusun ulang jadi struktur
+// bersarang { periods: { "2026-Q3": { objectives: [...] } } } yang dipakai UI dashboard.
+function okrApplyPulledRows(rows){
+  if(!Array.isArray(rows)) return;
+  const periods = {};
+  rows.forEach(r=>{
+    const periode = String(r.periode||'').trim();
+    if(!periode) return;
+    if(!periods[periode]) periods[periode] = { objectives: [] };
+    const pd = periods[periode];
+    const objId = String(r.objId||'').trim();
+    if(!objId) return;
+    let obj = pd.objectives.find(o=> o.id === objId);
+    if(!obj){
+      obj = { id: objId, title: r.objTitle||'', owner: r.objOwner||'', krs: [] };
+      const soWhat = String(r.reflSoWhat||'').trim();
+      const nowWhat = String(r.reflNowWhat||'').trim();
+      if(soWhat || nowWhat) obj.reflection = { soWhat, nowWhat };
+      pd.objectives.push(obj);
+    }
+    const krId = String(r.krId||'').trim();
+    if(!krId) return;
+    let kr = obj.krs.find(k=> k.id === krId);
+    if(!kr){
+      kr = { id: krId, text: r.krText||'', target: Number(r.krTarget)||0, current: Number(r.krCurrent)||0, unit: r.krUnit||'', direction: r.krDirection||'higher', initiatives: [] };
+      obj.krs.push(kr);
+    }
+    const initId = String(r.initId||'').trim();
+    if(!initId) return;
+    if(!kr.initiatives.find(i=> i.id === initId)){
+      kr.initiatives.push({ id: initId, text: r.initText||'', done: String(r.initDone).toUpperCase()==='TRUE', deadline: r.initDeadline||'' });
+    }
+  });
+  Object.keys(periods).forEach(p=> { OKR_STATE.periods[p] = periods[p]; });
+  if(!OKR_STATE.periods[OKR_STATE.activePeriod]) OKR_STATE.activePeriod = okrCurrentQuarterLabel();
+  okrEnsurePeriod(OKR_STATE.activePeriod);
+  okrSaveLocalOnly();
+}
+async function okrPushAllPeriods(){
+  for(const periode of Object.keys(OKR_STATE.periods)){
+    await pushOneToSheet('okr', { periode, data: JSON.stringify(OKR_STATE.periods[periode]) });
+    await sleep(250);
+  }
+}
+
+document.getElementById('btnAddObjective').addEventListener('click', ()=> okrOpenObjModal('add', null));
+document.getElementById('btnOkrExpandAll').addEventListener('click', okrExpandAllObjectives);
+document.getElementById('btnOkrCollapseAll').addEventListener('click', okrCollapseAllObjectives);
+document.getElementById('okrFilterPicSelect').addEventListener('change', (e)=>{ okrFilterPic = e.target.value; okrRenderObjectives(); });
+document.getElementById('okrFilterStatusSelect').addEventListener('change', (e)=>{ okrFilterStatus = e.target.value; okrRenderObjectives(); });
+document.getElementById('okrObjCancelBtn').addEventListener('click', okrCloseObjModal);
+document.getElementById('okrObjSaveBtn').addEventListener('click', okrSaveObjectiveFromModal);
+document.getElementById('okrKrCancelBtn').addEventListener('click', okrCloseKrModal);
+document.getElementById('okrKrSaveBtn').addEventListener('click', okrSaveKrFromModal);
+document.getElementById('okrInitCancelBtn').addEventListener('click', okrCloseInitModal);
+document.getElementById('okrInitSaveBtn').addEventListener('click', okrSaveInitFromModal);
+document.getElementById('okrReflCancelBtn').addEventListener('click', okrCloseReflModal);
+document.getElementById('okrReflSaveBtn').addEventListener('click', okrSaveReflFromModal);
+
+okrRenderAll();
+
 </script>
 </body>
 </html>
