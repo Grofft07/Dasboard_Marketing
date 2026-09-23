@@ -127,6 +127,34 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .kpi.dark .kpi-remain-row b{color:#fff;}
 .kpi-extra-line{font-size:11px;color:var(--muted);margin-top:8px;white-space:nowrap;}
 .kpi.dark .kpi-extra-line{color:rgba(255,255,255,.78);}
+.value-with-delta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.mini-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.mini-delta.up{background:var(--green-light);color:var(--green-dark);}
+.mini-delta.down{background:#FCEEEC;color:var(--red);}
+.kpi.dark .mini-delta.up{background:rgba(255,255,255,.18);color:#EFFFF4;}
+.kpi.dark .mini-delta.down{background:rgba(255,255,255,.28);color:#fff;}
+td .mini-delta{margin-left:6px;}
+.store-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;}
+.store-detail-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-weight:800;font-size:14px;}
+.insight-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-top:16px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow);}
+.insight-box .ins-ic{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-top:1px;}
+.insight-box .ins-title{font-weight:800;font-size:13px;margin-bottom:2px;}
+.insight-box .ins-text{font-size:13px;color:var(--text);line-height:1.5;}
+.crosscheck-card{margin-top:16px;}
+.crosscheck-title{font-weight:800;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.crosscheck-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:900px){.crosscheck-grid{grid-template-columns:1fr;}}
+.crosscheck-item{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+.crosscheck-item .cc-label{font-size:11.5px;color:var(--muted);margin-bottom:6px;}
+.crosscheck-item .cc-value{font-size:19px;font-weight:800;}
+.mini-trend-wrap{display:grid;grid-template-columns:300px 1fr;gap:16px;margin-top:16px;}
+@media(max-width:900px){.mini-trend-wrap{grid-template-columns:1fr;}}
+.mini-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start;min-width:0;}
+.mini-stat-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);min-width:0;overflow:hidden;}
+.mini-stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:4px;}
+.mini-stat-ic{width:24px;height:24px;border-radius:7px;background:var(--green-light);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.mini-stat-value{font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mini-stat-label{font-size:10.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 .two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
 @media(max-width:1000px){.two-col{grid-template-columns:1fr;}}
@@ -398,6 +426,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         </div>
       </div>
       <div class="grid grid-4" id="kpiRow"></div>
+      <div class="muted-note" id="ovCompareNote" style="margin-top:8px;"></div>
       <div class="two-col" style="margin-top:16px;">
         <div class="card">
           <div class="panel-title">Omzet vs Spending per Platform</div>
@@ -527,8 +556,17 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           </div>
         </div>
       </div>
-      <div class="grid grid-3" id="platformStatCards"></div>
-      <div class="section-header"><h2>Detail per Toko</h2></div>
+      <div class="section-header" style="margin-top:0;"><h2>Detail per Toko</h2><span class="muted-note">Breakdown lengkap satu toko, mirip laporan per-akun</span></div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Toko</label>
+          <select id="storeDetailSelect" style="max-width:280px;"></select>
+        </div>
+      </div>
+      <div id="storeDetailBody"></div>
+
+      <div class="grid grid-3" id="platformStatCards" style="margin-top:24px;"></div>
+      <div class="section-header"><h2>Semua Toko</h2></div>
       <div class="card">
         <div class="table-scroll">
           <table>
@@ -1151,6 +1189,45 @@ function targetAffForAllTime(store){
   return sumTargetAffMonths(store, Object.keys(store.affTargets||{}));
 }
 
+/* ================= PERBANDINGAN PERIODE (indikator naik/turun) ================= */
+function shiftDateStr(dateStr, days){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+days);
+  return d.toISOString().slice(0,10);
+}
+function daysInRange(range){
+  const s = new Date(range.start+'T00:00:00');
+  const e = new Date(range.end+'T00:00:00');
+  return Math.round((e-s)/86400000)+1;
+}
+// Mengembalikan range dengan durasi sama persis, langsung sebelum range yang aktif.
+// null jika tidak ada range spesifik aktif (mis. "Semua Data") — dalam hal itu tidak ada baseline pembanding yang adil.
+function previousPeriodRange(range){
+  if(!range || !range.start || !range.end) return null;
+  const len = daysInRange(range);
+  const prevEnd = shiftDateStr(range.start, -1);
+  const prevStart = shiftDateStr(prevEnd, -(len-1));
+  return {start:prevStart, end:prevEnd};
+}
+// opts.invert: true untuk metrik "biaya" dimana naik = buruk (mis. Spending, CPL) sehingga warnanya dibalik.
+function deltaBadgeHTML(cur, prev, opts){
+  opts = opts || {};
+  if(prev===null || prev===undefined) return '';
+  cur = cur||0; prev = prev||0;
+  if(prev===0){
+    if(cur===0) return '';
+    const good = !opts.invert;
+    return `<span class="mini-delta ${good?'up':'down'}">▲ Baru</span>`;
+  }
+  const pct = ((cur-prev)/Math.abs(prev))*100;
+  const rising = pct>=0.05;
+  const falling = pct<=-0.05;
+  if(!rising && !falling) return `<span class="mini-delta up">± 0%</span>`;
+  const good = opts.invert ? !rising : rising;
+  const arrow = rising ? '▲' : '▼';
+  return `<span class="mini-delta ${good?'up':'down'}">${arrow} ${Math.abs(pct).toFixed(0)}%</span>`;
+}
+
 /* ================= OVERVIEW ================= */
 const KPI_ICONS = {
   omzet: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M9.5 15c.5 1 1.5 1.5 2.5 1.5s2-.5 2.5-1.5-.5-2-2.5-2.5-3-1.5-2.5-2.5S10.5 8.5 12 8.5s2 .5 2.5 1.5"/></svg>',
@@ -1161,9 +1238,8 @@ const KPI_ICONS = {
 function kpiCardHTML(o){
   return `
     <div class="card kpi ${o.dark?'dark':''}">
-      ${o.hasTarget ? `<div class="kpi-status-badge ${o.warn?'warn':''}">${o.badgeText}</div>` : ''}
       <div class="top-row"><div class="label">${o.label}</div><div class="ic-badge">${o.ic}</div></div>
-      <div class="value">${o.value}</div>
+      <div class="value-with-delta"><div class="value">${o.value}</div>${o.deltaBadge||''}</div>
       ${o.hasTarget ? `
         <div class="kpi-target-line">${o.targetLine}</div>
         <div class="kpi-progress-track"><div class="kpi-progress-fill ${o.warn?'warn':''}" style="width:${o.barPct}%"></div></div>
@@ -1174,15 +1250,26 @@ function kpiCardHTML(o){
 }
 function renderKPI(){
   const range = currentRangeOrNull();
+  const prevRange = previousPeriodRange(range);
   let totalOmzet=0, totalSpend=0, totalTarget=0, totalTargetSpending=0, targetRoasSum=0, targetRoasCount=0;
+  let prevOmzet=0, prevSpend=0;
   stores.forEach(s=>{
     const t=totalsForStore(s.id,range); totalOmzet+=t.omzet; totalSpend+=t.spending;
     const tg=targetForRange(s,range); totalTarget+=tg.omzet; totalTargetSpending+=tg.spending;
     if(tg.roas){ targetRoasSum+=tg.roas; targetRoasCount++; }
+    if(prevRange){ const pt=totalsForStore(s.id,prevRange); prevOmzet+=pt.omzet; prevSpend+=pt.spending; }
   });
   const roasAvg = totalSpend>0 ? (totalOmzet/totalSpend) : 0;
+  const prevRoasAvg = prevRange ? (prevSpend>0 ? prevOmzet/prevSpend : 0) : null;
   const targetRoasAvg = targetRoasCount>0 ? (targetRoasSum/targetRoasCount) : 0;
   const tokoAktif = stores.filter(s=>s.status==='aktif').length;
+
+  const omzetDeltaBadge = prevRange ? deltaBadgeHTML(totalOmzet, prevOmzet) : '';
+  const spendDeltaBadge = prevRange ? deltaBadgeHTML(totalSpend, prevSpend, {invert:true}) : '';
+  const roasDeltaBadge = prevRange ? deltaBadgeHTML(roasAvg, prevRoasAvg) : '';
+
+  const compareNote = document.getElementById('ovCompareNote');
+  if(compareNote) compareNote.textContent = prevRange ? `Dibandingkan periode sebelumnya (${fmtDate(prevRange.start)} - ${fmtDate(prevRange.end)}, durasi sama)` : '';
 
   // Total Omzet vs target omzet
   const kekuranganOmzet = Math.max(totalTarget-totalOmzet, 0);
@@ -1196,7 +1283,7 @@ function renderKPI(){
     barPct: capaianOmzetPct!==null ? Math.min(capaianOmzetPct,100) : 0,
     remainLabel: omzetTercapai?'Melebihi target':'Sisa menuju target',
     remainValue: omzetTercapai? '+'+rp(totalOmzet-totalTarget)+' lebih' : rp(kekuranganOmzet)+' lagi',
-    delta:'Akumulasi seluruh input'
+    delta:'Akumulasi seluruh input', deltaBadge: omzetDeltaBadge
   });
 
   // Total Spending vs anggaran/target spending
@@ -1211,7 +1298,7 @@ function renderKPI(){
     barPct: capaianSpendPct!==null ? Math.min(capaianSpendPct,100) : 0,
     remainLabel: spendLebih?'Melebihi anggaran':'Sisa anggaran',
     remainValue: spendLebih? '+'+rp(totalSpend-totalTargetSpending)+' lebih' : rp(sisaAnggaran)+' lagi',
-    delta:'Biaya iklan seluruh toko'
+    delta:'Biaya iklan seluruh toko', deltaBadge: spendDeltaBadge
   });
 
   // ROAS rata-rata vs target ROAS
@@ -1226,7 +1313,7 @@ function renderKPI(){
     barPct: capaianRoasPct!==null ? Math.min(capaianRoasPct,100) : 0,
     remainLabel: roasTercapai?'Melebihi target':'Kurang dari target',
     remainValue: roasTercapai? '+'+(roasAvg-targetRoasAvg).toFixed(2).replace('.',',')+'x lebih' : kekuranganRoas.toFixed(2).replace('.',',')+'x lagi',
-    delta: roasAvg>=4 ? 'Sehat' : 'Perlu dioptimalkan'
+    delta: roasAvg>=4 ? 'Sehat' : 'Perlu dioptimalkan', deltaBadge: roasDeltaBadge
   });
 
   const tokoCard = kpiCardHTML({
@@ -1238,18 +1325,26 @@ function renderKPI(){
 }
 function renderOverviewTable(){
   const range = currentRangeOrNull();
+  const prevRange = previousPeriodRange(range);
   document.getElementById('overviewTableBody').innerHTML = stores.map(s=>{
     const t = totalsForStore(s.id, range);
     const pm = PLATFORM_META[s.platform];
     const tg = targetForRange(s, range);
     const capaian = tg.omzet>0 ? (t.omzet/tg.omzet*100) : null;
     const tercapai = capaian!==null && capaian>=100;
+    let omzetDelta='', spendDelta='', roasDelta='';
+    if(prevRange){
+      const pt = totalsForStore(s.id, prevRange);
+      omzetDelta = deltaBadgeHTML(t.omzet, pt.omzet);
+      spendDelta = deltaBadgeHTML(t.spending, pt.spending, {invert:true});
+      roasDelta = deltaBadgeHTML(t.roas, pt.roas);
+    }
     return `<tr>
       <td><b>${s.name}</b></td>
       <td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td>
-      <td>${rp(t.omzet)}</td>
-      <td>${rp(t.spending)}</td>
-      <td>${t.roas.toFixed(2)}x</td>
+      <td>${rp(t.omzet)}${omzetDelta}</td>
+      <td>${rp(t.spending)}${spendDelta}</td>
+      <td>${t.roas.toFixed(2)}x${roasDelta}</td>
       <td>${tg.omzet? rp(tg.omzet) : '-'}</td>
       <td>${tg.omzet ? `<span class="status-tag ${tercapai?'tercapai':'kurang'}">${tercapai?'Tercapai':'Kurang '+(100-capaian).toFixed(0)+'%'}</span>` : '<span class="muted-note">Belum diatur</span>'}</td>
     </tr>`;
@@ -1631,7 +1726,172 @@ function renderPerforma(){
       </div>
     </div>`;
   }).join('');
+  renderStoreDetail();
 }
+
+/* ================= DETAIL PER TOKO (gaya breakdown per-akun) ================= */
+let storeDetailChartRef = null;
+function monthProgressForStore(store){
+  const now = new Date();
+  const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const dayOfMonth = now.getDate();
+  const monthStart = ym+'-01';
+  const todayStr = now.toISOString().slice(0,10);
+  const t = totalsForStore(store.id, {start:monthStart, end:todayStr});
+  const tg = monthTarget(store, ym);
+  const daysLeft = Math.max(daysInMonth-dayOfMonth, 0);
+  const kekuranganOmzet = Math.max(tg.omzet-t.omzet, 0);
+  const sisaAnggaran = Math.max(tg.spending-t.spending, 0);
+  const neededOmzetPerDay = daysLeft>0 ? kekuranganOmzet/daysLeft : kekuranganOmzet;
+  const neededSpendPerDay = daysLeft>0 ? sisaAnggaran/daysLeft : sisaAnggaran;
+  const targetOmzetPerDayAvg = daysInMonth>0 ? tg.omzet/daysInMonth : 0;
+  const paceOmzetGap = (targetOmzetPerDayAvg*dayOfMonth) - t.omzet; // >0 = pace tertinggal dari target harian rata-rata
+  return {ym, daysInMonth, dayOfMonth, daysLeft, t, tg, kekuranganOmzet, sisaAnggaran, neededOmzetPerDay, neededSpendPerDay, paceOmzetGap};
+}
+function miniStatCardHTML(icon, value, label, deltaHtml){
+  return `<div class="mini-stat-card">
+    <div class="mini-stat-top"><div class="mini-stat-ic">${icon}</div>${deltaHtml||''}</div>
+    <div class="mini-stat-value">${value}</div>
+    <div class="mini-stat-label">${label}</div>
+  </div>`;
+}
+function renderStoreDetail(){
+  const sel = document.getElementById('storeDetailSelect');
+  if(!sel) return;
+  const prevVal = sel.value;
+  sel.innerHTML = stores.map(s=>`<option value="${s.id}">${s.name}</option>`).join('') || '<option value="">Belum ada toko</option>';
+  if(prevVal && stores.some(s=>s.id===prevVal)) sel.value = prevVal;
+  const storeId = sel.value;
+  const store = stores.find(s=>s.id===storeId);
+  const body = document.getElementById('storeDetailBody');
+  if(!body) return;
+  if(!store){ body.innerHTML = '<div class="card"><span class="muted-note">Belum ada toko untuk ditampilkan.</span></div>'; return; }
+
+  const range = currentRangeOrNull();
+  const prevRange = previousPeriodRange(range);
+  const t = totalsForStore(store.id, range);
+  const tg = targetForRange(store, range);
+  const pm = PLATFORM_META[store.platform];
+  const pt = prevRange ? totalsForStore(store.id, prevRange) : null;
+
+  const kekuranganOmzet = Math.max(tg.omzet-t.omzet,0);
+  const capaianOmzetPct = tg.omzet>0 ? (t.omzet/tg.omzet*100) : null;
+  const omzetTercapai = capaianOmzetPct!==null && capaianOmzetPct>=100;
+  const omzetCard = kpiCardHTML({
+    dark:true, label:'Total Omzet', value: rp(t.omzet), ic:KPI_ICONS.omzet,
+    hasTarget: tg.omzet>0,
+    badgeText: omzetTercapai?'Target Tercapai':'Menuju Target', warn:false,
+    targetLine: `Target: ${rp(tg.omzet)} (${capaianOmzetPct?capaianOmzetPct.toFixed(1):'0'}% tercapai)`,
+    barPct: capaianOmzetPct!==null ? Math.min(capaianOmzetPct,100) : 0,
+    remainLabel: omzetTercapai?'Melebihi target':'Sisa menuju target',
+    remainValue: omzetTercapai? '+'+rp(t.omzet-tg.omzet)+' lebih' : rp(kekuranganOmzet)+' lagi',
+    delta:'Periode terpilih', deltaBadge: pt ? deltaBadgeHTML(t.omzet, pt.omzet) : ''
+  });
+
+  const sisaAnggaranNow = Math.max(tg.spending-t.spending,0);
+  const capaianSpendPct = tg.spending>0 ? (t.spending/tg.spending*100) : null;
+  const spendLebih = capaianSpendPct!==null && capaianSpendPct>100;
+  const spendingCard = kpiCardHTML({
+    dark:false, label:'Total Spending', value: rp(t.spending), ic:KPI_ICONS.spending,
+    hasTarget: tg.spending>0,
+    badgeText: spendLebih?'Melebihi Anggaran':'Dalam Anggaran', warn:spendLebih,
+    targetLine: `Target: ${rp(tg.spending)} (${capaianSpendPct?capaianSpendPct.toFixed(1):'0'}% terpakai)`,
+    barPct: capaianSpendPct!==null ? Math.min(capaianSpendPct,100) : 0,
+    remainLabel: spendLebih?'Melebihi anggaran':'Sisa anggaran',
+    remainValue: spendLebih? '+'+rp(t.spending-tg.spending)+' lebih' : rp(sisaAnggaranNow)+' lagi',
+    delta:'Periode terpilih', deltaBadge: pt ? deltaBadgeHTML(t.spending, pt.spending, {invert:true}) : ''
+  });
+
+  const targetRoas = tg.roas||0;
+  const kekuranganRoas = Math.max(targetRoas-t.roas,0);
+  const capaianRoasPct = targetRoas>0 ? (t.roas/targetRoas*100) : null;
+  const roasTercapai = capaianRoasPct!==null && capaianRoasPct>=100;
+  const roasCard = kpiCardHTML({
+    dark:false, label:'ROAS', value: t.roas.toFixed(2).replace('.',',')+'x', ic:KPI_ICONS.roas,
+    hasTarget: targetRoas>0,
+    badgeText: roasTercapai?'Target Tercapai':'Di Bawah Target', warn:!roasTercapai,
+    targetLine: `Target: ${targetRoas.toFixed(2).replace('.',',')}x (${capaianRoasPct?capaianRoasPct.toFixed(1):'0'}% tercapai)`,
+    barPct: capaianRoasPct!==null ? Math.min(capaianRoasPct,100) : 0,
+    remainLabel: roasTercapai?'Melebihi target':'Kurang dari target',
+    remainValue: roasTercapai? '+'+(t.roas-targetRoas).toFixed(2).replace('.',',')+'x lebih' : kekuranganRoas.toFixed(2).replace('.',',')+'x lagi',
+    delta: t.roas>=4?'Sehat':'Perlu dioptimalkan', deltaBadge: pt ? deltaBadgeHTML(t.roas, pt.roas) : ''
+  });
+
+  const mp = monthProgressForStore(store);
+  const paceText = mp.tg.omzet>0
+    ? (mp.paceOmzetGap>0
+        ? `Pace omzet tertinggal ${rp(mp.paceOmzetGap)} dari target harian rata-rata sampai hari ini`
+        : `Pace omzet sudah sesuai atau melebihi target harian rata-rata sampai hari ini`)
+    : `Belum ada target omzet bulan ini untuk toko ini`;
+  const roasNote = tg.roas>0
+    ? `, dan ROAS saat ini ${t.roas>=tg.roas?'di atas':'di bawah'} patokan ${tg.roas.toFixed(2).replace('.',',')}x`
+    : '';
+  const insightHtml = `
+    <div class="insight-box">
+      <div class="ins-ic">i</div>
+      <div>
+        <div class="ins-title">Insight Otomatis</div>
+        <div class="ins-text">${paceText}${roasNote}.</div>
+      </div>
+    </div>`;
+
+  const crosscheckHtml = `
+    <div class="card crosscheck-card">
+      <div class="crosscheck-title">📅 Crosscheck Kekurangan Target Bulanan <span class="muted-note">(sisa ${mp.daysLeft} hari dari ${mp.daysInMonth} hari)</span></div>
+      <div class="crosscheck-grid">
+        <div class="crosscheck-item"><div class="cc-label">Kebutuhan Omzet / hari agar capai target</div><div class="cc-value">${rp(mp.neededOmzetPerDay)}</div></div>
+        <div class="crosscheck-item"><div class="cc-label">Sisa Anggaran / hari (agar sesuai budget)</div><div class="cc-value">${rp(mp.neededSpendPerDay)}</div></div>
+        <div class="crosscheck-item"><div class="cc-label">Hari berjalan</div><div class="cc-value">${mp.dayOfMonth} / ${mp.daysInMonth} hari</div></div>
+      </div>
+    </div>`;
+
+  const entriesList = entriesForStore(store.id, range).slice().sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+  const avgOmzetHari = entriesList.length ? t.omzet/entriesList.length : 0;
+
+  const miniGrid = `
+    <div class="mini-stat-grid">
+      ${miniStatCardHTML('Rp', rp(t.omzet), 'Omzet', pt?deltaBadgeHTML(t.omzet,pt.omzet):'')}
+      ${miniStatCardHTML('💸', rp(t.spending), 'Spending', pt?deltaBadgeHTML(t.spending,pt.spending,{invert:true}):'')}
+      ${miniStatCardHTML('🎯', t.roas.toFixed(2)+'x', 'ROAS', pt?deltaBadgeHTML(t.roas,pt.roas):'')}
+      ${miniStatCardHTML('📈', capaianOmzetPct!==null?capaianOmzetPct.toFixed(0)+'%':'-', 'Capaian Target Omzet', '')}
+      ${miniStatCardHTML('⚠️', rp(kekuranganOmzet), 'Kekurangan vs Target', '')}
+      ${miniStatCardHTML('📆', rp(avgOmzetHari), 'Rata-rata Omzet/Hari', '')}
+    </div>`;
+
+  const trendLabels = entriesList.slice(-30).map(e=>fmtDate(e.tanggal).slice(0,6));
+  const trendOmzet = entriesList.slice(-30).map(e=>e.omzet||0);
+  const trendSpend = entriesList.slice(-30).map(e=>e.spending||0);
+
+  body.innerHTML = `
+    <div class="store-detail-head"><span class="store-dot"></span> ${store.name} <span class="plat-pill ${pm.bgClass}" style="margin-left:6px;"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></div>
+    <div class="grid grid-3">${omzetCard}${spendingCard}${roasCard}</div>
+    ${insightHtml}
+    ${crosscheckHtml}
+    <div class="section-header"><h2>Tren Harian — Omzet &amp; Spending</h2><span class="muted-note">${entriesList.length} input pada periode terpilih</span></div>
+    <div class="mini-trend-wrap">
+      ${miniGrid}
+      <div class="card"><div class="chart-wrap" style="height:280px;"><canvas id="storeDetailTrendChart"></canvas></div></div>
+    </div>
+  `;
+
+  if(storeDetailChartRef) storeDetailChartRef.destroy();
+  const ctx = document.getElementById('storeDetailTrendChart');
+  if(ctx){
+    storeDetailChartRef = new Chart(ctx, {
+      type:'line',
+      data:{ labels:trendLabels, datasets:[
+        { label:'Omzet', data:trendOmzet, borderColor:'#2FA85A', backgroundColor:'rgba(47,168,90,.12)', fill:true, tension:.4, pointRadius:2 },
+        { label:'Spending', data:trendSpend, borderColor:'#2F86EB', borderDash:[4,3], backgroundColor:'transparent', fill:false, tension:.4, pointRadius:2 },
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ position:'top', align:'end', labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11}} } },
+        scales:{ y:{ grid:{color:'#EEF3EF'}, ticks:{ callback:v=>'Rp'+(v/1000000).toFixed(1)+'jt', font:{size:9.5} } }, x:{ grid:{display:false}, ticks:{font:{size:9.5}} } }
+      }
+    });
+  }
+}
+document.getElementById('storeDetailSelect').addEventListener('change', renderStoreDetail);
 
 /* ================= BUAT & KIRIM REPORT WHATSAPP ================= */
 let waReportType = 'marketplace'; // 'marketplace' | 'affiliate'
