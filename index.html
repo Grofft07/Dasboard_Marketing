@@ -212,6 +212,19 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 .quick-form label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:5px;}
 .input-readonly{background:var(--panel-2)!important;color:var(--muted);cursor:not-allowed;}
 .gmv-breakdown-cell{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;}
+.af-sampel-box{margin-top:16px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2);}
+.af-sampel-title{font-size:13px;font-weight:800;margin-bottom:10px;}
+.af-sampel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+.af-sampel-item label{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.af-hpp-tag{background:var(--green-light);color:var(--green-dark);border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+.af-footer{display:flex;align-items:stretch;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;}
+.af-summary{display:flex;gap:10px;flex-wrap:wrap;}
+.af-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 14px;min-width:110px;}
+.af-stat small{display:block;font-size:11px;color:var(--muted);font-weight:700;}
+.af-stat b{font-size:15px;}
+.af-stat.af-stat-roi{background:var(--green-light);border-color:transparent;color:var(--green-dark);}
+.af-stat.af-stat-roi small{color:var(--green-dark);}
+.af-footer>.btn{align-self:center;padding-left:28px;padding-right:28px;}
 .roas-preview{background:var(--green-light);color:var(--green-dark);border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:700;margin-top:12px;display:inline-block;}
 
 /* Modal */
@@ -580,7 +593,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <!-- ============ AFFILIATE SPECIALIST ============ -->
     <div class="page" id="page-affiliate">
       <div class="topbar">
-        <div><h1>Affiliate Specialist</h1><div class="sub">Pendataan total harian Omzet Affiliate, Komisi, dan ROI (Omzet ÷ Komisi)</div></div>
+        <div><h1>Affiliate Specialist</h1><div class="sub">Pendataan total harian Omzet Affiliate, Komisi, HPP Sampel, dan ROI (Omzet ÷ (Komisi + HPP Sampel))</div></div>
         <div class="top-actions">
           <div class="dr-wrap" id="afWrap">
             <button class="dr-trigger" id="afTrigger">
@@ -614,12 +627,13 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       </div>
 
       <div class="grid grid-4" id="affKpiRow"></div>
+      <div class="muted-note" id="affCompareNote" style="margin-top:8px;"></div>
 
       <div class="section-header" style="margin-top:26px;"><h2>Omzet Affiliate per Toko</h2></div>
       <div class="card">
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Toko</th><th>Platform</th><th>Omzet Affiliate</th><th>Komisi</th><th>ROI</th><th>Sampel</th><th>Target Omzet</th><th>Capaian</th><th></th></tr></thead>
+            <thead><tr><th>Toko</th><th>Platform</th><th>Omzet Affiliate</th><th>Komisi</th><th>ROI</th><th>Sampel</th><th>Total HPP Sampel</th><th>Target Omzet</th><th>Capaian</th><th></th></tr></thead>
             <tbody id="affByStoreBody"></tbody>
           </table>
         </div>
@@ -627,7 +641,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 
       <div class="section-header" style="margin-top:26px;"><h2>Input Total Harian</h2></div>
       <div class="card">
-        <div class="panel-desc">Isi total omzet affiliate dan komisi untuk tanggal tertentu (gabungan semua affiliate/kreator hari itu) — ROI dihitung otomatis. Untuk toko Shopee &amp; TikTokShop, Omzet Affiliate dipecah per kategori GMV.</div>
+        <div class="panel-desc">Isi total omzet affiliate dan komisi untuk tanggal tertentu (gabungan semua affiliate/kreator hari itu) — ROI = Omzet ÷ (Komisi + Total HPP Sampel), dihitung otomatis. Untuk toko Shopee &amp; TikTokShop, Omzet Affiliate dipecah per kategori GMV.</div>
         <div class="quick-form quick-form-aff" style="margin-top:14px;">
           <div><label>Toko</label><select id="af-store"></select></div>
           <div><label>Tanggal</label><input type="date" id="af-date"></div>
@@ -636,12 +650,24 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           <div id="af-gmv-c3-wrap" style="display:none;"><label id="af-gmv-c3-label">GMV Produk (Rp)</label><input type="text" id="af-gmv-c3" placeholder="Contoh: 500.000"></div>
           <div id="af-omzet-wrap"><label id="af-omzet-label">Total Omzet Affiliate (Rp)</label><input type="text" id="af-omzet" placeholder="Contoh: 2.100.000"></div>
           <div><label>Total Komisi (Rp)</label><input type="text" id="af-komisi" placeholder="Contoh: 210.000"></div>
-          <div><label>Jumlah Sampel Barang</label><input type="number" id="af-sampel" placeholder="Contoh: 15"></div>
-          <button class="btn btn-primary" onclick="saveAffEntry()">Simpan</button>
+
         </div>
         <div class="muted-note" id="af-breakdown-hint" style="margin-top:8px;"></div>
         <div id="af-computed-total" style="margin-top:4px;font-weight:800;font-size:14px;"></div>
-        <div id="af-roi-preview"></div>
+        <div class="af-sampel-box">
+          <div class="af-sampel-title">Sampel Terkirim <span class="muted-note" style="font-weight:600;">— isi jumlah per varian, HPP otomatis</span></div>
+          <div class="af-sampel-grid">
+            <div class="af-sampel-item"><label>Waraso 100 <span class="af-hpp-tag">HPP Rp36.000</span></label><input type="number" min="0" id="af-q-w100" class="af-qty" placeholder="0"></div>
+            <div class="af-sampel-item"><label>Waraso 200 <span class="af-hpp-tag">HPP Rp56.000</span></label><input type="number" min="0" id="af-q-w200" class="af-qty" placeholder="0"></div>
+            <div class="af-sampel-item"><label>Nextugo 30 <span class="af-hpp-tag">HPP Rp36.000</span></label><input type="number" min="0" id="af-q-n30" class="af-qty" placeholder="0"></div>
+            <div class="af-sampel-item"><label>Nextugo 60 <span class="af-hpp-tag">HPP Rp61.000</span></label><input type="number" min="0" id="af-q-n60" class="af-qty" placeholder="0"></div>
+          </div>
+          <input type="hidden" id="af-sampel">
+        </div>
+        <div class="af-footer">
+          <div class="af-summary" id="af-summary"></div>
+          <button class="btn btn-primary" onclick="saveAffEntry()">Simpan</button>
+        </div>
         <div id="af-sync-status" style="margin-top:6px;font-size:12.5px;"></div>
       </div>
 
@@ -653,7 +679,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         </div>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Tanggal</th><th>Toko</th><th>Breakdown GMV</th><th>Omzet Affiliate</th><th>Komisi</th><th>ROI</th><th>Sampel Terkirim</th><th></th></tr></thead>
+            <thead><tr><th>Tanggal</th><th>Toko</th><th>Breakdown GMV</th><th>Omzet Affiliate</th><th>Komisi</th><th>ROI</th><th>Sampel Terkirim</th><th>Total HPP Sampel</th><th></th></tr></thead>
             <tbody id="affEntryTableBody"></tbody>
           </table>
         </div>
@@ -736,7 +762,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           Sheet dengan nama yang benar akan <b>dibuat otomatis</b> saat data pertama kali tersimpan, tapi supaya rapi sejak awal, buat 6 sheet berikut manual: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending — nilai spending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
-          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel, gmvLive, gmvVideo, gmvProduk, gmvMedsos — data affiliate specialist harian; gmvLive/gmvVideo/gmvProduk dipakai toko TikTokShop, gmvLive/gmvVideo/gmvMedsos dipakai toko Shopee, omzet = total dari kolom breakdown yang relevan; kalau sheet Affiliate-mu masih format lama tanpa kolom breakdown, kolomnya akan otomatis ditambahkan saat pertama kali disinkron ulang),
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel, hppSampel, hppTotal, sampelW100, sampelW200, sampelN30, sampelN60, gmvLive, gmvVideo, gmvProduk, gmvMedsos — data affiliate specialist harian; gmvLive/gmvVideo/gmvProduk dipakai toko TikTokShop, gmvLive/gmvVideo/gmvMedsos dipakai toko Shopee, omzet = total dari kolom breakdown yang relevan; kalau sheet Affiliate-mu masih format lama tanpa kolom breakdown, kolomnya akan otomatis ditambahkan saat pertama kali disinkron ulang),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetAffiliate</code> (kolom: tokoId, bulan, targetomzetafiliasi, targetkomisi, targetsampel — target affiliate bulanan),
           dan <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">OKR</code> (kolom: periode, objId, objTitle, objOwner, krId, krText, krTarget, krCurrent, krUnit, krDirection, initId, initText, initDone, initDeadline, reflSoWhat, reflNowWhat — 1 baris per Initiative, jadi kolom-kolomnya "menyesuaikan" isi OKR: Objective dengan 3 Key Result & masing-masing 2 Initiative otomatis jadi 6 baris, dengan objTitle/krText diulang di tiap barisnya; kalau sheet OKR-mu masih format lama (cuma kolom periode+data), akan otomatis dimigrasikan ke format ini saat pertama kali disinkron ulang) — otomatis terisi setiap kamu menambah toko, input harian, input affiliate, atur target, atau mengubah OKR.
         </div>
@@ -1031,6 +1057,21 @@ function affStoreBreakdownMeta(storeId){
   return AFF_BREAKDOWN_META[s.platform] || null;
 }
 // Susun breakdown GMV satu entri jadi teks singkat untuk ditampilkan di tabel riwayat, sesuai kategori platform tokonya.
+// Total HPP sampel = jumlah sampel x HPP per sampel. Biaya affiliate = Komisi + Total HPP Sampel (dasar perhitungan ROI).
+// HPP produk per varian (ubah angka di sini kalau HPP berubah). Total HPP disimpan per entri saat input, jadi riwayat lama tidak ikut berubah.
+const AFF_SAMPEL_PRODUK = [
+  {key:'w100', short:'Waraso 100', hpp:36000},
+  {key:'w200', short:'Waraso 200', hpp:56000},
+  {key:'n30',  short:'Nextugo 30', hpp:36000},
+  {key:'n60',  short:'Nextugo 60', hpp:61000}
+];
+function affHppFromDetail(d){ d=d||{}; return AFF_SAMPEL_PRODUK.reduce((a,p)=>a+(d[p.key]||0)*p.hpp,0); }
+function affSampelLabel(e){
+  const d = e.sampelDetail||{};
+  return AFF_SAMPEL_PRODUK.filter(p=>d[p.key]>0).map(p=>p.short+' ×'+d[p.key]).join(' · ');
+}
+function affHpp(e){ if(e.hppTotal) return e.hppTotal; return (e.sampel||0) * (e.hppSampel||0); }
+function affBiaya(e){ return (e.komisi||0) + affHpp(e); }
 function affEntryBreakdownLabel(e){
   const s = stores.find(x=>x.id===e.storeId);
   const meta = s ? AFF_BREAKDOWN_META[s.platform] : null;
@@ -1250,7 +1291,7 @@ function kpiCardHTML(o){
 }
 function renderKPI(){
   const range = currentRangeOrNull();
-  const prevRange = previousPeriodRange(range);
+  const prevRange = affPreviousRange(range); // filter 1 bulan -> dibanding bulan sebelumnya (rentang tgl sama); lainnya -> periode sebelumnya durasi sama
   let totalOmzet=0, totalSpend=0, totalTarget=0, totalTargetSpending=0, targetRoasSum=0, targetRoasCount=0;
   let prevOmzet=0, prevSpend=0;
   stores.forEach(s=>{
@@ -1269,7 +1310,9 @@ function renderKPI(){
   const roasDeltaBadge = prevRange ? deltaBadgeHTML(roasAvg, prevRoasAvg) : '';
 
   const compareNote = document.getElementById('ovCompareNote');
-  if(compareNote) compareNote.textContent = prevRange ? `Dibandingkan periode sebelumnya (${fmtDate(prevRange.start)} - ${fmtDate(prevRange.end)}, durasi sama)` : '';
+  if(compareNote) compareNote.textContent = prevRange
+    ? `Naik/turun dibandingkan ${prevRange.monthly?'bulan sebelumnya':'periode sebelumnya, durasi sama'} (${fmtDate(prevRange.start)} - ${fmtDate(prevRange.end)})`
+    : 'Pilih rentang tanggal (mis. Bulan Ini) untuk melihat naik/turun vs bulan sebelumnya.';
 
   // Total Omzet vs target omzet
   const kekuranganOmzet = Math.max(totalTarget-totalOmzet, 0);
@@ -1325,7 +1368,7 @@ function renderKPI(){
 }
 function renderOverviewTable(){
   const range = currentRangeOrNull();
-  const prevRange = previousPeriodRange(range);
+  const prevRange = affPreviousRange(range);
   document.getElementById('overviewTableBody').innerHTML = stores.map(s=>{
     const t = totalsForStore(s.id, range);
     const pm = PLATFORM_META[s.platform];
@@ -2038,7 +2081,8 @@ function buildWaReportText(){
     const totalOmzet = filtered.reduce((s,x)=>s+(x.omzet||0),0);
     const totalKomisi = filtered.reduce((s,x)=>s+(x.komisi||0),0);
     const totalSampel = filtered.reduce((s,x)=>s+(x.sampel||0),0);
-    const roi = totalKomisi>0 ? (totalOmzet/totalKomisi) : 0;
+    const totalHpp = filtered.reduce((s,x)=>s+affHpp(x),0);
+    const roi = (totalKomisi+totalHpp)>0 ? (totalOmzet/(totalKomisi+totalHpp)) : 0;
     const lines = [];
     selectedStoreObjs.forEach(s=>{
       const list = filtered.filter(e=>e.storeId===s.id);
@@ -2046,14 +2090,15 @@ function buildWaReportText(){
       const omzet = list.reduce((a,x)=>a+(x.omzet||0),0);
       const komisi = list.reduce((a,x)=>a+(x.komisi||0),0);
       const sampel = list.reduce((a,x)=>a+(x.sampel||0),0);
-      const r = komisi>0 ? (omzet/komisi) : 0;
+      const hppS = list.reduce((a,x)=>a+affHpp(x),0);
+      const r = (komisi+hppS)>0 ? (omzet/(komisi+hppS)) : 0;
       const pm = PLATFORM_META[s.platform];
       const parts = [];
       cols.forEach(c=>{
         if(c.key==='omzet') parts.push('Omzet : '+rp(omzet));
         if(c.key==='komisi') parts.push('Komisi : '+rp(komisi));
         if(c.key==='roi') parts.push('ROI : '+(r>0?r.toFixed(2).replace('.',',')+'x':'-'));
-        if(c.key==='sampel') parts.push('Sampel : '+sampel+' pcs');
+        if(c.key==='sampel') parts.push('Sampel : '+sampel+' pcs (HPP '+rp(hppS)+')');
       });
       lines.push(`*${s.name}*\n${parts.join('\n')}`);
     });
@@ -2061,7 +2106,7 @@ function buildWaReportText(){
     if(cols.some(c=>c.key==='omzet')) msg += `Total Omzet Affiliate: ${rp(totalOmzet)}\n`;
     if(cols.some(c=>c.key==='komisi')) msg += `Total Komisi: ${rp(totalKomisi)}\n`;
     if(cols.some(c=>c.key==='roi')) msg += `ROI Rata-rata: ${roi.toFixed(2).replace('.',',')}x\n`;
-    if(cols.some(c=>c.key==='sampel')) msg += `Sampel Terkirim: ${totalSampel} pcs\n`;
+    if(cols.some(c=>c.key==='sampel')) msg += `Sampel Terkirim: ${totalSampel} pcs (Total HPP ${rp(totalHpp)})\n`;
     msg += `\n*Rincian per Toko:*\n${lines.join('\n\n') || '_Tidak ada data pada periode/toko yang dipilih._'}`;
   }
 
@@ -2263,13 +2308,49 @@ function populateAffStoreSelects(){
   filterSel.innerHTML = `<option value="">Semua Toko</option>` + opts;
   filterSel.value = stores.some(s=>s.id===keepFilter) ? keepFilter : '';
 }
+// Pembanding untuk badge naik/turun Affiliate: kalau filter = 1 bulan (tgl 1 s/d tgl X di bulan yang sama / sebulan penuh),
+// dibandingkan dengan bulan sebelumnya di rentang tanggal yang sama (1 s/d tgl X). Selain itu: periode sebelumnya dengan durasi sama.
+function affPreviousRange(range){
+  if(!range || !range.start || !range.end) return null;
+  const [sy,sm,sd] = range.start.split('-').map(Number);
+  const [ey,em,ed] = range.end.split('-').map(Number);
+  if(sd===1 && sy===ey && sm===em){
+    const pm = sm===1 ? 12 : sm-1, py = sm===1 ? sy-1 : sy;
+    const lastPrev = new Date(py, pm, 0).getDate();
+    const pad = n=>String(n).padStart(2,'0');
+    return {start:`${py}-${pad(pm)}-01`, end:`${py}-${pad(pm)}-${pad(Math.min(ed,lastPrev))}`, monthly:true};
+  }
+  const p = previousPeriodRange(range);
+  return p ? Object.assign({monthly:false}, p) : null;
+}
 function renderAffKPI(){
   const range = currentRangeOrNull();
   const filteredAffEntries = range ? affEntries.filter(e=> (!range.start||e.tanggal>=range.start) && (!range.end||e.tanggal<=range.end)) : affEntries;
   const totalOmzet = filteredAffEntries.reduce((s,x)=>s+(x.omzet||0),0);
   const totalKomisi = filteredAffEntries.reduce((s,x)=>s+(x.komisi||0),0);
   const totalSampel = filteredAffEntries.reduce((s,x)=>s+(x.sampel||0),0);
-  const roiAvg = totalKomisi>0 ? (totalOmzet/totalKomisi) : 0;
+  const totalHpp = filteredAffEntries.reduce((s,x)=>s+affHpp(x),0);
+  const totalBiaya = totalKomisi + totalHpp;
+  const roiAvg = totalBiaya>0 ? (totalOmzet/totalBiaya) : 0;
+  // Pembanding naik/turun vs periode/bulan sebelumnya
+  const prevRange = affPreviousRange(range);
+  let dOmzet='', dKomisi='', dRoi='', dSampel='';
+  const compareNote = document.getElementById('affCompareNote');
+  if(prevRange){
+    const pe = affEntries.filter(e=> e.tanggal>=prevRange.start && e.tanggal<=prevRange.end);
+    const pOmzet = pe.reduce((s,x)=>s+(x.omzet||0),0);
+    const pKomisi = pe.reduce((s,x)=>s+(x.komisi||0),0);
+    const pSampel = pe.reduce((s,x)=>s+(x.sampel||0),0);
+    const pBiaya = pKomisi + pe.reduce((s,x)=>s+affHpp(x),0);
+    const pRoi = pBiaya>0 ? pOmzet/pBiaya : 0;
+    dOmzet = deltaBadgeHTML(totalOmzet, pOmzet);
+    dKomisi = deltaBadgeHTML(totalKomisi, pKomisi, {invert:true});
+    dRoi = deltaBadgeHTML(roiAvg, pRoi);
+    dSampel = deltaBadgeHTML(totalSampel, pSampel);
+    if(compareNote) compareNote.textContent = `Naik/turun dibandingkan ${prevRange.monthly?'bulan sebelumnya':'periode sebelumnya'} (${fmtDate(prevRange.start)} - ${fmtDate(prevRange.end)})`;
+  } else if(compareNote){
+    compareNote.textContent = 'Pilih rentang tanggal (mis. Bulan Ini) untuk melihat naik/turun vs bulan sebelumnya.';
+  }
   // Rekap breakdown GMV lintas semua toko (dijumlah per kategori: Live, Video, Produk khusus TikTokShop, Media Sosial khusus Shopee)
   let bLive=0, bVideo=0, bProduk=0, bMedsos=0;
   filteredAffEntries.forEach(e=>{
@@ -2295,7 +2376,7 @@ function renderAffKPI(){
   const capaianOmzetPct = totalTargetOmzet>0 ? (totalOmzet/totalTargetOmzet*100) : null;
   const omzetTercapai = capaianOmzetPct!==null && capaianOmzetPct>=100;
   const omzetCard = kpiCardHTML({
-    dark:true, label:'Omzet Affiliate', value: rp(totalOmzet), ic:KPI_ICONS.omzet,
+    dark:true, deltaBadge:dOmzet, label:'Omzet Affiliate', value: rp(totalOmzet), ic:KPI_ICONS.omzet,
     hasTarget: totalTargetOmzet>0,
     badgeText: omzetTercapai?'Target Tercapai':'Menuju Target', warn:false,
     targetLine: `Target: ${rp(totalTargetOmzet)} (${capaianOmzetPct?capaianOmzetPct.toFixed(1):'0'}% tercapai)`,
@@ -2309,7 +2390,7 @@ function renderAffKPI(){
   const capaianKomisiPct = totalTargetKomisi>0 ? (totalKomisi/totalTargetKomisi*100) : null;
   const komisiTercapai = capaianKomisiPct!==null && capaianKomisiPct>=100;
   const komisiCard = kpiCardHTML({
-    dark:false, label:'Komisi', value: rp(totalKomisi), ic:icGift,
+    dark:false, deltaBadge:dKomisi, label:'Komisi', value: rp(totalKomisi), ic:icGift,
     hasTarget: totalTargetKomisi>0,
     badgeText: komisiTercapai?'Target Tercapai':'Menuju Target', warn:false,
     targetLine: `Target: ${rp(totalTargetKomisi)} (${capaianKomisiPct?capaianKomisiPct.toFixed(1):'0'}% tercapai)`,
@@ -2320,14 +2401,14 @@ function renderAffKPI(){
   });
 
   const roiCard = kpiCardHTML({
-    dark:false, label:'ROI Affiliate', value: roiAvg.toFixed(2)+'x', ic:KPI_ICONS.roas,
-    hasTarget:false, delta: roiAvg>=5 ? 'Sehat' : 'Perlu dievaluasi'
+    dark:false, deltaBadge:dRoi, label:'ROI Affiliate', value: roiAvg.toFixed(2)+'x', ic:KPI_ICONS.roas,
+    hasTarget:false, delta: (roiAvg>=5 ? 'Sehat' : 'Perlu dievaluasi')+' · Omzet ÷ (Komisi + HPP '+rpShort(totalHpp)+')'
   });
 
   const capaianSampelPct = totalTargetSampel>0 ? (totalSampel/totalTargetSampel*100) : null;
   const sampelTercapai = capaianSampelPct!==null && capaianSampelPct>=100;
   const sampelCard = kpiCardHTML({
-    dark:false, label:'Sampel Terkirim', value: totalSampel+' pcs', ic:icBox,
+    dark:false, deltaBadge:dSampel, label:'Sampel Terkirim', value: totalSampel+' pcs', ic:icBox,
     hasTarget: totalTargetSampel>0,
     badgeText: sampelTercapai?'Target Tercapai':'Menuju Target', warn:false,
     targetLine: `Target: ${totalTargetSampel} pcs (${capaianSampelPct?capaianSampelPct.toFixed(1):'0'}% tercapai)`,
@@ -2344,7 +2425,8 @@ function renderAffKPI(){
     const omzet = list.reduce((a,x)=>a+(x.omzet||0),0);
     const komisi = list.reduce((a,x)=>a+(x.komisi||0),0);
     const sampel = list.reduce((a,x)=>a+(x.sampel||0),0);
-    const roi = komisi>0 ? (omzet/komisi).toFixed(2)+'x' : '-';
+    const hpp = list.reduce((a,x)=>a+affHpp(x),0);
+    const roi = (komisi+hpp)>0 ? (omzet/(komisi+hpp)).toFixed(2)+'x' : '-';
     const pm = PLATFORM_META[s.platform];
     const tg = targetAffForAllTime(s);
     const capaian = tg.omzet>0 ? (omzet/tg.omzet*100) : null;
@@ -2363,11 +2445,12 @@ function renderAffKPI(){
       <td>${rp(komisi)}</td>
       <td>${roi}</td>
       <td>${sampel} pcs</td>
+      <td>${rp(hpp)}</td>
       <td>${tg.omzet? rp(tg.omzet) : '-'}</td>
       <td>${tg.omzet ? `<span class="status-tag ${tercapai?'tercapai':'kurang'}">${tercapai?'Tercapai':'Kurang '+(100-capaian).toFixed(0)+'%'}</span>` : '<span class="muted-note">Belum diatur</span>'}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="openTargetAffModal('${s.id}')">🎯 Target</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--muted);">Belum ada toko.</td></tr>`;
+  }).join('') || `<tr><td colspan="10" style="text-align:center;color:var(--muted);">Belum ada toko.</td></tr>`;
 }
 
 // Tampilkan/sembunyikan field breakdown GMV (Live/Video/Produk|Medsos) sesuai platform toko yang dipilih.
@@ -2411,11 +2494,25 @@ function recomputeAffOmzetFromBreakdown(){
   }
   updateAffRoiPreview();
 }
+function readAffSampelDetail(){
+  const d = {};
+  AFF_SAMPEL_PRODUK.forEach(p=>{ d[p.key] = Math.max(parseInt(document.getElementById('af-q-'+p.key).value)||0,0); });
+  return d;
+}
 function updateAffRoiPreview(){
   const o = rawNumber('af-omzet');
   const k = rawNumber('af-komisi');
-  const roi = k>0 ? (o/k).toFixed(2) : '-';
-  document.getElementById('af-roi-preview').innerHTML = `<span class="roas-preview">Perkiraan ROI: ${roi}${roi!=='-'?'x':''}</span>`;
+  const detail = readAffSampelDetail();
+  const n = AFF_SAMPEL_PRODUK.reduce((a,p)=>a+(detail[p.key]||0),0);
+  document.getElementById('af-sampel').value = n || '';
+  const totalHpp = affHppFromDetail(detail);
+  const biaya = k + totalHpp;
+  const roi = biaya>0 ? (o/biaya).toFixed(2)+'x' : '-';
+  document.getElementById('af-summary').innerHTML =
+    `<div class="af-stat"><small>Total Sampel</small><b>${n} pcs</b></div>`+
+    `<div class="af-stat"><small>Total HPP</small><b>${rp(totalHpp)}</b></div>`+
+    `<div class="af-stat"><small>Biaya (Komisi + HPP)</small><b>${rp(biaya)}</b></div>`+
+    `<div class="af-stat af-stat-roi"><small>Perkiraan ROI</small><b>${roi}</b></div>`;
 }
 function resetAffBreakdownInputs(){
   ['af-gmv-live','af-gmv-video','af-gmv-c3'].forEach(id=> document.getElementById(id).value='');
@@ -2427,6 +2524,7 @@ document.getElementById('af-filter-store').addEventListener('change', ()=>{ affE
 document.getElementById('af-store').addEventListener('change', updateAffFormMode);
 attachRibuanFormatting('af-komisi');
 document.getElementById('af-komisi').addEventListener('input', updateAffRoiPreview);
+document.querySelectorAll('.af-qty').forEach(el=> el.addEventListener('input', updateAffRoiPreview));
 attachRibuanFormatting('af-omzet');
 document.getElementById('af-omzet').addEventListener('input', updateAffRoiPreview);
 ['af-gmv-live','af-gmv-video','af-gmv-c3'].forEach(id=>{
@@ -2444,18 +2542,20 @@ async function saveAffEntry(){
   const gmvMedsos = (meta && meta.c3Key==='gmvMedsos') ? rawNumber('af-gmv-c3') : 0;
   const omzet = meta ? (gmvLive+gmvVideo+gmvProduk+gmvMedsos) : rawNumber('af-omzet');
   const komisi = rawNumber('af-komisi');
-  const sampel = parseInt(document.getElementById('af-sampel').value)||0;
+  const sampelDetail = readAffSampelDetail();
+  const sampel = AFF_SAMPEL_PRODUK.reduce((a,p)=>a+(sampelDetail[p.key]||0),0);
+  const hppTotal = affHppFromDetail(sampelDetail);
   if(!storeId){ document.getElementById('af-sync-status').innerHTML = '<span style="color:var(--red);">Pilih toko dulu ya.</span>'; return; }
   if(!tanggal){ document.getElementById('af-sync-status').innerHTML = '<span style="color:var(--red);">Pilih tanggal dulu ya.</span>'; return; }
   let e = affEntries.find(x=>x.tanggal===tanggal && x.storeId===storeId);
-  if(e){ e.omzet=omzet; e.komisi=komisi; e.sampel=sampel; e.gmvLive=gmvLive; e.gmvVideo=gmvVideo; e.gmvProduk=gmvProduk; e.gmvMedsos=gmvMedsos; }
-  else { e = {id:'af'+Date.now(), storeId, tanggal, omzet, komisi, sampel, gmvLive, gmvVideo, gmvProduk, gmvMedsos}; affEntries.push(e); }
+  if(e){ e.omzet=omzet; e.komisi=komisi; e.sampel=sampel; e.sampelDetail=sampelDetail; e.hppTotal=hppTotal; e.hppSampel=0; e.gmvLive=gmvLive; e.gmvVideo=gmvVideo; e.gmvProduk=gmvProduk; e.gmvMedsos=gmvMedsos; }
+  else { e = {id:'af'+Date.now(), storeId, tanggal, omzet, komisi, sampel, sampelDetail, hppTotal, gmvLive, gmvVideo, gmvProduk, gmvMedsos}; affEntries.push(e); }
   saveAffEntries();
   showSyncStatus('af-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
-  document.getElementById('af-omzet').value=''; document.getElementById('af-komisi').value=''; document.getElementById('af-sampel').value='';
+  document.getElementById('af-omzet').value=''; document.getElementById('af-komisi').value=''; document.getElementById('af-sampel').value=''; document.querySelectorAll('.af-qty').forEach(el=>el.value='');
   resetAffBreakdownInputs();
   document.getElementById('af-computed-total').textContent = '';
-  document.getElementById('af-roi-preview').innerHTML='';
+  updateAffRoiPreview();
   affEntryPage = 1;
   renderAffEntries(); renderAffKPI();
   if(getAppsScriptUrl()){
@@ -2487,7 +2587,7 @@ function renderAffEntries(){
   const pageItems = sorted.slice(start, start + AFF_ENTRY_PAGE_SIZE);
 
   document.getElementById('affEntryTableBody').innerHTML = pageItems.map(e=>{
-    const roi = e.komisi>0 ? (e.omzet/e.komisi).toFixed(2)+'x' : '-';
+    const roi = affBiaya(e)>0 ? (e.omzet/affBiaya(e)).toFixed(2)+'x' : '-';
     const s = stores.find(x=>x.id===e.storeId);
     const tokoLabel = s ? s.name : '<span class="muted-note">Toko tak dikenal</span>';
     return `<tr>
@@ -2498,9 +2598,10 @@ function renderAffEntries(){
       <td>${rp(e.komisi)}</td>
       <td>${roi}</td>
       <td>${e.sampel||0} pcs</td>
+      <td>${rp(affHpp(e))}${affSampelLabel(e)?`<div class="gmv-breakdown-cell">${affSampelLabel(e)}</div>`:''}</td>
       <td><button class="btn btn-danger-ghost btn-sm" onclick="deleteAffEntry('${e.id}', this)">Hapus</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Belum ada input.</td></tr>`;
+  }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--muted);">Belum ada input.</td></tr>`;
 
   document.getElementById('affEntryPageNote').textContent = `Halaman ${affEntryPage} dari ${totalPages}`;
   document.getElementById('btnAffEntryPrev').disabled = affEntryPage<=1;
@@ -2606,7 +2707,7 @@ function handlePing(){
 }
 
 function handleWrite(data){
-  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel','gmvLive','gmvVideo','gmvProduk','gmvMedsos'];
+  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel','hppSampel','hppTotal','sampelW100','sampelW200','sampelN30','sampelN60','gmvLive','gmvVideo','gmvProduk','gmvMedsos'];
   NUMERIC_KEYS.forEach(function(k){ if(data[k] !== undefined && data[k] !== null && data[k] !== '') data[k] = Number(data[k]) || 0; });
   data.hapus = (data.hapus === true || data.hapus === 'true');
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -2727,7 +2828,7 @@ function upsertAffiliate(ss, data){
 // Tambah kolom gmvLive/gmvVideo/gmvProduk/gmvMedsos ke sheet Affiliate lama yang belum punya breakdown GMV,
 // supaya data lama yang sudah ada tidak hilang/rusak saat dashboard di-update ke versi breakdown ini.
 function getAffiliateSheetMigrated(ss){
-  var fullHeaders = ['tanggal','tokoId','omzet','komisi','sampel','gmvLive','gmvVideo','gmvProduk','gmvMedsos'];
+  var fullHeaders = ['tanggal','tokoId','omzet','komisi','sampel','hppSampel','hppTotal','sampelW100','sampelW200','sampelN30','sampelN60','gmvLive','gmvVideo','gmvProduk','gmvMedsos'];
   var sh = getOrCreateSheet(ss, 'Affiliate', fullHeaders);
   var lastCol = sh.getLastColumn();
   var currentHeaders = lastCol>0 ? sh.getRange(1,1,1,lastCol).getValues()[0] : [];
@@ -2859,7 +2960,7 @@ function setSyncMsg(text, color){
 }
 function storeToRow(s){ return {id:s.id, platform:s.platform, nama:s.name, username:s.username, status:s.status, ppncpas:s.cpasPpnRate||0}; }
 function entryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, spending:e.spending}; }
-function affEntryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, komisi:e.komisi, sampel:e.sampel, gmvLive:e.gmvLive||0, gmvVideo:e.gmvVideo||0, gmvProduk:e.gmvProduk||0, gmvMedsos:e.gmvMedsos||0}; }
+function affEntryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, komisi:e.komisi, sampel:e.sampel, hppSampel:e.hppSampel||0, hppTotal:e.hppTotal||0, sampelW100:(e.sampelDetail||{}).w100||0, sampelW200:(e.sampelDetail||{}).w200||0, sampelN30:(e.sampelDetail||{}).n30||0, sampelN60:(e.sampelDetail||{}).n60||0, gmvLive:e.gmvLive||0, gmvVideo:e.gmvVideo||0, gmvProduk:e.gmvProduk||0, gmvMedsos:e.gmvMedsos||0}; }
 function targetRowsForStore(s){
   return Object.keys(s.targets||{}).map(ym=> ({tokoId:s.id, bulan:ym, targetomzet:s.targets[ym].omzet, targetspending:s.targets[ym].spending, targetroas:s.targets[ym].roas}));
 }
@@ -2972,7 +3073,7 @@ async function pullFromSheet(silent){
       saveEntries();
     }
     if(Array.isArray(json.affiliate)){
-      affEntries = json.affiliate.map((r,i)=>({ id:'af'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), omzet:parseFloat(r.omzet)||0, komisi:parseFloat(r.komisi)||0, sampel:parseInt(r.sampel)||0, gmvLive:parseFloat(r.gmvLive)||0, gmvVideo:parseFloat(r.gmvVideo)||0, gmvProduk:parseFloat(r.gmvProduk)||0, gmvMedsos:parseFloat(r.gmvMedsos)||0 }));
+      affEntries = json.affiliate.map((r,i)=>({ id:'af'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), omzet:parseFloat(r.omzet)||0, komisi:parseFloat(r.komisi)||0, sampel:parseInt(r.sampel)||0, hppSampel:parseFloat(r.hppSampel)||0, hppTotal:parseFloat(r.hppTotal)||0, sampelDetail:{w100:parseInt(r.sampelW100)||0, w200:parseInt(r.sampelW200)||0, n30:parseInt(r.sampelN30)||0, n60:parseInt(r.sampelN60)||0}, gmvLive:parseFloat(r.gmvLive)||0, gmvVideo:parseFloat(r.gmvVideo)||0, gmvProduk:parseFloat(r.gmvProduk)||0, gmvMedsos:parseFloat(r.gmvMedsos)||0 }));
       saveAffEntries();
     }
     if(Array.isArray(json.okr) && typeof okrApplyPulledRows === 'function'){
