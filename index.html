@@ -200,6 +200,40 @@ table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
 th{text-align:left;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:10px 12px;border-bottom:2px solid var(--line);white-space:nowrap;}
 td{padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap;}
 tbody tr:hover{background:var(--panel-2);}
+/* ===== Perwarnaan tabel: header berwarna, baris selang-seling, kolom angka punya warna sendiri ===== */
+th{background:#EAF6EE;color:var(--green-dark);border-bottom:2px solid #CFE8D8;}
+tbody tr:nth-child(even){background:#F4F9F6;}
+tbody tr:hover{background:#E6F4EB;}
+td.c-omzet{color:var(--green-dark);font-weight:700;}
+td.c-spend{color:#C2570C;font-weight:700;}
+td.c-komisi{color:var(--purple);font-weight:700;}
+td.c-sampel{color:var(--blue);font-weight:700;}
+td.c-hpp{color:#A8741A;font-weight:700;}
+td.c-target{color:var(--muted);}
+td.score-good{background:#DFF3E6;color:var(--green-dark);font-weight:800;}
+td.score-mid{background:#FFF4D6;color:#8A6400;font-weight:800;}
+td.score-bad{background:#FCEEEC;color:var(--red);font-weight:800;}
+/* ===== Interaktif: sort/cari tabel, baris bisa diklik, kartu bergerak halus ===== */
+th.th-sortable{cursor:pointer;user-select:none;}
+th.th-sortable:hover{background:#DDF0E4;}
+th.th-sortable::after{content:"↕";margin-left:5px;opacity:.35;font-size:10px;}
+th.th-sortable[data-sort="asc"]::after{content:"▲";opacity:1;}
+th.th-sortable[data-sort="desc"]::after{content:"▼";opacity:1;}
+tr.row-click{cursor:pointer;}
+tr.row-click:hover{box-shadow:inset 3px 0 0 var(--green);}
+.tbl-tools{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.tbl-tools input[type=search]{max-width:240px;padding:8px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);font-family:inherit;font-size:12.5px;}
+.tbl-tools .tbl-hint{font-size:11.5px;color:var(--muted);}
+.card.kpi{transition:transform .18s ease, box-shadow .18s ease;}
+.card.kpi:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(27,122,64,.14);}
+.trend-chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.trend-chip{border:1.5px solid var(--c);color:var(--c);background:#fff;border-radius:20px;padding:4px 12px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;opacity:.45;transition:all .15s;}
+.trend-chip.on{background:var(--c);color:#fff;opacity:1;}
+.trend-detail{display:none;margin-top:12px;border:1px solid var(--line);background:var(--panel-2);border-radius:12px;padding:12px 14px;}
+.trend-detail.show{display:block;}
+.trend-detail table{min-width:0;font-size:12.5px;}
+.trend-detail .td-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:800;font-size:13px;}
+.trend-detail .td-close{border:none;background:none;cursor:pointer;font-size:15px;color:var(--muted);}
 input[type=text],input[type=number],input[type=date],input[type=month],select{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);font-family:inherit;font-size:13px;color:var(--text);}
 input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 
@@ -443,13 +477,19 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       <div class="two-col" style="margin-top:16px;">
         <div class="card">
           <div class="panel-title">Omzet vs Spending per Platform</div>
-          <div class="panel-desc">Total dari seluruh data yang sudah diinput</div>
+          <div class="panel-desc">Arahkan kursor untuk lihat angka · <b>klik batang</b> untuk memfilter tabel Ringkasan per Toko</div>
           <div class="chart-wrap"><canvas id="omzetSpendChart"></canvas></div>
         </div>
         <div class="card">
-          <div class="panel-title">Tren ROAS Harian</div>
-          <div class="panel-desc">14 input terakhir, semua toko digabung</div>
+          <div class="panel-title">Tren Harian</div>
+          <div class="panel-desc">30 hari terakhir pada filter, semua toko digabung · <b>klik titik</b> untuk detail per toko di tanggal itu</div>
+          <div class="trend-chips" id="trendChips">
+            <button class="trend-chip on" data-k="omzet" style="--c:#2FA85A">Omzet</button>
+            <button class="trend-chip on" data-k="spending" style="--c:#F2B705">Spending</button>
+            <button class="trend-chip on" data-k="roas" style="--c:#7A56E0">ROAS</button>
+          </div>
           <div class="chart-wrap"><canvas id="roasTrendChart"></canvas></div>
+          <div class="trend-detail" id="trendDetail"></div>
         </div>
       </div>
       <div class="section-header"><h2>Ringkasan per Toko</h2><span class="muted-note">Klik "Performa & ROAS" untuk detail lengkap</span></div>
@@ -2614,37 +2654,119 @@ document.getElementById('btnAffEntryNext').addEventListener('click', ()=>{ affEn
 
 /* ================= CHARTS ================= */
 let omzetSpendChartRef=null, roasTrendChartRef=null;
+let platFilter=null;                       // platform yang sedang di-klik di grafik batang (mis. 'Shopee')
+let trendOn={omzet:true, spending:true, roas:true};
+let trendSelDate=null;                     // tanggal yang sedang dipilih di grafik tren
+const PLAT_LABELS=['Shopee','TikTokShop','Lazada'];
+function ovSearchInput(){ const tb=document.getElementById('overviewTableBody'); const w=tb&&tb.closest('.table-scroll'); const t=w&&w.previousElementSibling; return t&&t.querySelector?t.querySelector('input[type=search]'):null; }
 function buildOverviewCharts(){
   const range = currentRangeOrNull();
   const platforms=['shopee','tiktok','lazada'];
   const omzetData = platforms.map(pk=> stores.filter(s=>s.platform===pk).reduce((sum,s)=> sum+totalsForStore(s.id,range).omzet,0));
   const spendData = platforms.map(pk=> stores.filter(s=>s.platform===pk).reduce((sum,s)=> sum+totalsForStore(s.id,range).spending,0));
+  const dim = (hex,ctx)=> (!platFilter || PLAT_LABELS[ctx.dataIndex]===platFilter) ? hex : hex+'44';
 
   if(omzetSpendChartRef) omzetSpendChartRef.destroy();
   omzetSpendChartRef = new Chart(document.getElementById('omzetSpendChart'), {
     type:'bar',
-    data:{ labels:['Shopee','TikTokShop','Lazada'], datasets:[
-      {label:'Omzet', data:omzetData, backgroundColor:'#2FA85A', borderRadius:6, maxBarThickness:34},
-      {label:'Spending', data:spendData, backgroundColor:'#F2B705', borderRadius:6, maxBarThickness:34},
+    data:{ labels:PLAT_LABELS, datasets:[
+      {label:'Omzet', data:omzetData, backgroundColor:ctx=>dim('#2FA85A',ctx), borderRadius:6, maxBarThickness:34},
+      {label:'Spending', data:spendData, backgroundColor:ctx=>dim('#F2B705',ctx), borderRadius:6, maxBarThickness:34},
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'top', align:'end', labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11}} } },
+      onHover:(e,els)=>{ e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      onClick:(e,els,chart)=>{
+        const hit = chart.getElementsAtEventForMode(e,'nearest',{intersect:true},true);
+        if(!hit.length) return;
+        const label = PLAT_LABELS[hit[0].index];
+        platFilter = (platFilter===label) ? null : label;
+        const inp = ovSearchInput();
+        if(inp){ inp.value = platFilter||''; inp.dispatchEvent(new Event('input')); }
+        chart.update();
+        if(platFilter){ const tb=document.getElementById('overviewTableBody'); if(tb) tb.closest('.card').scrollIntoView({behavior:'smooth',block:'nearest'}); }
+      },
+      plugins:{ legend:{ position:'top', align:'end', labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11}} },
+        tooltip:{ callbacks:{
+          label:c=> c.dataset.label+': '+rp(c.parsed.y),
+          afterBody:items=>{ const i=items[0].dataIndex; const o=omzetData[i], s=spendData[i]; return 'ROAS: '+(s>0?(o/s).toFixed(2)+'x':'-'); }
+        } } },
       scales:{ y:{ grid:{color:'#EEF3EF'}, ticks:{ callback:v=> 'Rp'+(v/1000000).toFixed(0)+'jt', font:{size:10.5} } }, x:{ grid:{display:false} } }
     }
   });
 
+  // ---- Tren harian (digabung semua toko, per tanggal) ----
   const filteredEntries = range ? entries.filter(e=> (!range.start||e.tanggal>=range.start) && (!range.end||e.tanggal<=range.end)) : entries;
-  const sorted = [...filteredEntries].sort((a,b)=> a.tanggal.localeCompare(b.tanggal)).slice(-14);
-  const labels = sorted.map(e=> fmtDate(e.tanggal).slice(0,6));
-  const roasData = sorted.map(e=> e.spending>0 ? +(e.omzet/e.spending).toFixed(2) : 0);
+  const byDate = {};
+  filteredEntries.forEach(e=>{ const d = byDate[e.tanggal] = byDate[e.tanggal] || {omzet:0, spending:0}; d.omzet+=e.omzet||0; d.spending+=e.spending||0; });
+  const dates = Object.keys(byDate).sort().slice(-30);
+  const labels = dates.map(d=> fmtDate(d).slice(0,6));
+  const omzetS = dates.map(d=>byDate[d].omzet), spendS = dates.map(d=>byDate[d].spending);
+  const roasS = dates.map(d=> byDate[d].spending>0 ? +(byDate[d].omzet/byDate[d].spending).toFixed(2) : 0);
+  if(!dates.includes(trendSelDate)) trendSelDate=null;
+  const selIdx = ()=> dates.indexOf(trendSelDate);
+  const pr = ctx=> ctx.dataIndex===selIdx() ? 7 : 3;
   if(roasTrendChartRef) roasTrendChartRef.destroy();
   roasTrendChartRef = new Chart(document.getElementById('roasTrendChart'), {
     type:'line',
-    data:{ labels, datasets:[{ label:'ROAS', data:roasData, borderColor:'#2FA85A', backgroundColor:'rgba(47,168,90,.12)', fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#2FA85A' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ y:{ grid:{color:'#EEF3EF'}, ticks:{ callback:v=>v+'x' } }, x:{ grid:{display:false}, ticks:{font:{size:9.5}} } } }
+    data:{ labels, datasets:[
+      {label:'Omzet', data:omzetS, yAxisID:'y', borderColor:'#2FA85A', backgroundColor:'rgba(47,168,90,.10)', fill:true, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.omzet},
+      {label:'Spending', data:spendS, yAxisID:'y', borderColor:'#F2B705', backgroundColor:'rgba(242,183,5,.08)', fill:false, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.spending},
+      {label:'ROAS', data:roasS, yAxisID:'y1', borderColor:'#7A56E0', borderDash:[5,4], fill:false, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.roas},
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      onHover:(e,els)=>{ e.native.target.style.cursor = 'pointer'; },
+      onClick:(e,els,chart)=>{
+        const hit = chart.getElementsAtEventForMode(e,'index',{intersect:false},true);
+        if(!hit.length) return;
+        const d = dates[hit[0].index];
+        trendSelDate = (trendSelDate===d) ? null : d;
+        chart.update(); renderTrendDetail();
+      },
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ title:items=> fmtDate(dates[items[0].dataIndex]), label:c=> c.dataset.label+': '+(c.dataset.label==='ROAS' ? c.parsed.y.toFixed(2)+'x' : rp(c.parsed.y)) } } },
+      scales:{
+        y:{ position:'left', display:trendOn.omzet||trendOn.spending, grid:{color:'#EEF3EF'}, ticks:{ callback:v=> 'Rp'+(v/1000000).toFixed(0)+'jt', font:{size:10} } },
+        y1:{ position:'right', display:trendOn.roas, grid:{drawOnChartArea:false}, ticks:{ callback:v=>v+'x', font:{size:10} } },
+        x:{ grid:{display:false}, ticks:{font:{size:9.5}, maxRotation:0, autoSkip:true} } }
+    }
+  });
+  function renderTrendDetail(){
+    const box = document.getElementById('trendDetail');
+    if(!trendSelDate){ box.classList.remove('show'); box.innerHTML=''; return; }
+    const list = entries.filter(e=>e.tanggal===trendSelDate);
+    let tO=0,tS=0;
+    const rows = stores.map(s=>{
+      const l = list.filter(e=>e.storeId===s.id); if(!l.length) return '';
+      const o=l.reduce((a,x)=>a+(x.omzet||0),0), sp=l.reduce((a,x)=>a+(x.spending||0),0); tO+=o; tS+=sp;
+      return `<tr><td><b>${s.name}</b></td><td>${rp(o)}</td><td>${rp(sp)}</td><td>${sp>0?(o/sp).toFixed(2)+'x':'-'}</td></tr>`;
+    }).join('');
+    box.innerHTML = `<div class="td-head"><span>📅 ${fmtDate(trendSelDate)} — per toko</span><button class="td-close" title="Tutup" onclick="trendSelDate=null;roasTrendChartRef&&roasTrendChartRef.update();document.getElementById('trendDetail').classList.remove('show');">✕</button></div>
+      <div class="table-scroll"><table><thead><tr><th>Toko</th><th>Omzet</th><th>Spending</th><th>ROAS</th></tr></thead><tbody>${rows||'<tr><td colspan="4" style="text-align:center;color:var(--muted);">Tidak ada input.</td></tr>'}</tbody>
+      <tfoot><tr><td><b>Total</b></td><td><b>${rp(tO)}</b></td><td><b>${rp(tS)}</b></td><td><b>${tS>0?(tO/tS).toFixed(2)+'x':'-'}</b></td></tr></tfoot></table></div>`;
+    box.classList.add('show');
+  }
+  renderTrendDetail();
+  // tombol hidup/mati seri
+  document.querySelectorAll('#trendChips .trend-chip').forEach(btn=>{
+    btn.classList.toggle('on', trendOn[btn.dataset.k]);
+    btn.onclick = ()=>{
+      const k = btn.dataset.k; trendOn[k] = !trendOn[k]; btn.classList.toggle('on', trendOn[k]);
+      const ch = roasTrendChartRef, idx = {omzet:0,spending:1,roas:2}[k];
+      ch.data.datasets[idx].hidden = !trendOn[k];
+      ch.options.scales.y.display = trendOn.omzet||trendOn.spending;
+      ch.options.scales.y1.display = trendOn.roas;
+      ch.update();
+    };
   });
 }
+// Sinkronkan sorotan batang platform kalau kotak cari tabel diubah/dikosongkan manual
+document.addEventListener('input', e=>{
+  if(e.target===ovSearchInput() && omzetSpendChartRef){
+    const v=e.target.value.trim();
+    const m = PLAT_LABELS.find(l=>l.toLowerCase()===v.toLowerCase());
+    const nf = m||null; if(nf!==platFilter){ platFilter=nf; omzetSpendChartRef.update(); }
+  }
+});
 
 /* ================= INTEGRASI GOOGLE APPS SCRIPT ================= */
 const APPS_SCRIPT_CODE = `// ============================================================
@@ -3751,6 +3873,173 @@ document.getElementById('okrReflSaveBtn').addEventListener('click', okrSaveReflF
 
 okrRenderAll();
 
+</script>
+<script>
+/* Perwarnaan otomatis kolom tabel berdasarkan judul kolomnya (jalan lagi tiap tabel dirender ulang).
+   ROAS: >=4 hijau, >=3 kuning, <3 merah. ROI Affiliate: >=5 hijau, >=3 kuning, <3 merah. Ubah angka di SCORE_RULES kalau mau diganti. */
+(function(){
+  const SCORE_RULES = { roas:{good:4, mid:3}, roi:{good:5, mid:3} };
+  function colClass(h){
+    h = h.trim().toLowerCase();
+    if(h.indexOf('target')===0) return 'c-target';
+    if(h==='omzet' || h==='omzet affiliate') return 'c-omzet';
+    if(h==='spending') return 'c-spend';
+    if(h==='komisi') return 'c-komisi';
+    if(h==='sampel' || h==='sampel terkirim') return 'c-sampel';
+    if(h==='total hpp sampel') return 'c-hpp';
+    return '';
+  }
+  function colorize(){
+    document.querySelectorAll('table').forEach(tb=>{
+      const heads = Array.from(tb.querySelectorAll('thead th')).map(th=>th.textContent);
+      if(!heads.length) return;
+      tb.querySelectorAll('tbody tr').forEach(tr=>{
+        Array.from(tr.children).forEach((td,i)=>{
+          if(td.tagName!=='TD' || td.colSpan>1 || heads[i]===undefined) return;
+          const h = heads[i].trim().toLowerCase();
+          ['c-omzet','c-spend','c-komisi','c-sampel','c-hpp','c-target','score-good','score-mid','score-bad'].forEach(c=>td.classList.remove(c));
+          const rule = h==='roas' ? SCORE_RULES.roas : (h==='roi' ? SCORE_RULES.roi : null);
+          if(rule){
+            const m = td.textContent.trim().match(/^([\d.,]+)\s*x/i);
+            if(m){
+              const v = parseFloat(m[1].replace(',','.'));
+              if(v>0) td.classList.add(v>=rule.good ? 'score-good' : (v>=rule.mid ? 'score-mid' : 'score-bad'));
+            }
+          } else {
+            const c = colClass(heads[i]); if(c) td.classList.add(c);
+          }
+        });
+      });
+    });
+  }
+  let queued = false;
+  function schedule(){ if(queued) return; queued = true; requestAnimationFrame(()=>{ queued=false; colorize(); }); }
+  new MutationObserver(schedule).observe(document.body, {childList:true, subtree:true});
+  schedule();
+})();
+</script>
+<script>
+/* ===== Interaktif ringan: urut kolom + cari toko, klik baris -> detail toko, angka KPI berhitung naik ===== */
+(function(){
+  const TABLES = {
+    overviewTableBody:{search:true, click:true},
+    performaTableBody:{search:true, click:true},
+    affByStoreBody:{search:true, click:false}
+  };
+  const state = {}; // per tbody: {col, dir, q}
+  function parseNum(t){
+    const m = t.replace(/Rp\s*/i,'').trim().match(/^-?[\d.,]+/);
+    if(!m) return NaN;
+    let s = m[0];
+    if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,'');
+    else if(s.indexOf(',')>-1) s = s.replace(/\./g,'').replace(',','.');
+    return parseFloat(s);
+  }
+  function dataRows(tb){ return Array.from(tb.querySelectorAll(':scope > tr')).filter(tr=> !(tr.children.length===1 && tr.children[0].colSpan>1)); }
+  function applyView(tb){
+    const st = state[tb.id]; if(!st) return;
+    const rows = dataRows(tb);
+    const q = (st.q||'').trim().toLowerCase();
+    rows.forEach(tr=>{ tr.style.display = (!q || tr.textContent.toLowerCase().indexOf(q)>-1) ? '' : 'none'; });
+    if(st.col===null || st.col===undefined) return;
+    const vals = rows.map(tr=> (tr.children[st.col]||{textContent:''}).textContent);
+    const numeric = vals.filter(v=>!isNaN(parseNum(v))).length >= vals.length/2;
+    const sorted = rows.slice().sort((a,b)=>{
+      const ta=(a.children[st.col]||{}).textContent||'', tb2=(b.children[st.col]||{}).textContent||'';
+      let r;
+      if(numeric){
+        const na=parseNum(ta), nb=parseNum(tb2);
+        if(isNaN(na) && isNaN(nb)) r=0; else if(isNaN(na)) return 1; else if(isNaN(nb)) return -1; else r=na-nb;
+      } else r = ta.localeCompare(tb2,'id');
+      return st.dir==='asc' ? r : -r;
+    });
+    const same = sorted.every((tr,i)=> tr===rows[i]);
+    if(!same) sorted.forEach(tr=> tb.appendChild(tr));
+  }
+  function decorate(tb){
+    const cfg = TABLES[tb.id]; const table = tb.closest('table'); if(!table) return;
+    state[tb.id] = state[tb.id] || {col:null, dir:'asc', q:''};
+    // header bisa diklik untuk urut
+    Array.from(table.querySelectorAll('thead th')).forEach((th,i)=>{
+      if(!th.textContent.trim() || th.dataset.sortInit) return;
+      th.dataset.sortInit='1'; th.classList.add('th-sortable');
+      th.addEventListener('click', ()=>{
+        const st = state[tb.id];
+        if(st.col===i) st.dir = st.dir==='asc' ? 'desc' : 'asc'; else { st.col=i; st.dir='desc'; }
+        table.querySelectorAll('thead th').forEach((h,j)=>{ if(j===i) h.dataset.sort=st.dir; else delete h.dataset.sort; });
+        applyView(tb);
+      });
+    });
+    // kotak cari
+    const wrap = table.closest('.table-scroll');
+    if(cfg.search && wrap && !wrap.previousElementSibling?.classList?.contains('tbl-tools')){
+      const tools = document.createElement('div'); tools.className='tbl-tools';
+      tools.innerHTML = '<input type="search" placeholder="Cari toko / platform...">'+(cfg.click?'<span class="tbl-hint">Klik baris untuk lihat detail toko · klik judul kolom untuk mengurutkan</span>':'<span class="tbl-hint">Klik judul kolom untuk mengurutkan</span>');
+      wrap.parentNode.insertBefore(tools, wrap);
+      tools.querySelector('input').addEventListener('input', e=>{ state[tb.id].q = e.target.value; applyView(tb); });
+    }
+    // klik baris -> detail toko
+    if(cfg.click && !tb.dataset.clickInit){
+      tb.dataset.clickInit='1';
+      tb.addEventListener('click', e=>{
+        if(e.target.closest('button,a,input,select')) return;
+        const tr = e.target.closest('tr'); if(!tr || tr.children.length<2) return;
+        const name = tr.children[0].textContent.trim();
+        const s = (typeof stores!=='undefined') ? stores.find(x=>x.name===name) : null; if(!s) return;
+        if(tb.id==='overviewTableBody') document.querySelector('.navbtn[data-page="performa"]').click();
+        const sel = document.getElementById('storeDetailSelect');
+        if(sel){ sel.value = s.id; sel.dispatchEvent(new Event('change')); setTimeout(()=> sel.scrollIntoView({behavior:'smooth', block:'center'}), 80); }
+      });
+    }
+    // tandai baris bisa diklik
+    if(cfg.click) dataRows(tb).forEach(tr=>{ tr.classList.add('row-click'); tr.title='Klik untuk lihat detail toko'; });
+    applyView(tb);
+  }
+  const observers = new Set();
+  function init(){
+    Object.keys(TABLES).forEach(id=>{
+      const tb = document.getElementById(id); if(!tb || observers.has(id)) return;
+      observers.add(id);
+      new MutationObserver(()=> decorate(tb)).observe(tb,{childList:true});
+      decorate(tb);
+    });
+  }
+  init(); setTimeout(init, 500);
+
+  /* Angka KPI berhitung naik dari 0 saat kartu dirender (animasi singkat) */
+  const lastText = new WeakMap(); const animating = new WeakSet();
+  function animate(el){
+    const final = el.textContent;
+    const m = final.match(/^(\D*?)(-?[\d.,]+)(.*)$/);
+    if(!m){ lastText.set(el, final); return; }
+    const pre=m[1], numStr=m[2], suf=m[3];
+    let thousands = /^\d{1,3}(\.\d{3})+$/.test(numStr), decComma = !thousands && numStr.indexOf(',')>-1, dec = 0, target;
+    if(thousands) target = parseFloat(numStr.replace(/\./g,''));
+    else if(decComma){ dec = (numStr.split(',')[1]||'').length; target = parseFloat(numStr.replace(/\./g,'').replace(',','.')); }
+    else { dec = (numStr.split('.')[1]||'').length; target = parseFloat(numStr); }
+    if(isNaN(target) || target===0){ lastText.set(el, final); return; }
+    animating.add(el);
+    const t0 = performance.now(), dur = 650;
+    function fmt(v){
+      if(thousands) return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+      const s = v.toFixed(dec); return decComma ? s.replace('.',',') : s;
+    }
+    function step(now){
+      const p = Math.min((now-t0)/dur,1), e = 1-Math.pow(1-p,3);
+      el.textContent = p<1 ? pre+fmt(target*e)+suf : final;
+      if(p<1) requestAnimationFrame(step); else { animating.delete(el); lastText.set(el, final); }
+    }
+    requestAnimationFrame(step);
+  }
+  let q=false;
+  new MutationObserver(()=>{ if(q) return; q=true; requestAnimationFrame(()=>{ q=false;
+    document.querySelectorAll('.card.kpi .value').forEach(el=>{
+      if(animating.has(el)) return;
+      if(lastText.get(el)===el.textContent) return;
+      animate(el);
+    });
+  }); }).observe(document.body,{childList:true, subtree:true, characterData:true});
+})();
 </script>
 </body>
 </html>
