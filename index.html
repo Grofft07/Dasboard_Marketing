@@ -206,6 +206,21 @@ td .mini-delta{margin-left:6px;}
 .store-stats span{font-size:11.8px;color:var(--muted);line-height:1.35;display:block;}
 .store-card-foot{display:flex;align-items:center;gap:8px;margin-top:auto;}
 .store-card-foot .btn-main{flex:1;}
+/* ===== Kartu toko versi ringkas ===== */
+.sc-mini{display:grid;grid-template-columns:78px repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px;}
+.sc-mini>div{padding:10px 10px;border-top:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-mini>.sc-h{background:var(--panel-2);border-top:none;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:8px 10px;}
+.sc-mini>.sc-rl{font-size:11.5px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;justify-content:center;line-height:1.3;}
+.sc-mini>.sc-rl small{font-size:10.5px;font-weight:600;color:var(--muted-2);}
+.sc-mini>.sc-rl.tg{color:var(--green-dark);}
+.sc-mini>.sc-v{font-weight:800;text-align:right;}
+.sc-mini>.sc-v.empty{color:var(--muted-2);font-weight:600;}
+.sc-mini>.sc-v.tg{background:#F1F9F4;color:var(--green-dark);}
+.sc-mini>.sc-rl.tg{background:#F1F9F4;}
+.sc-mini>.sc-h:nth-child(n+2){text-align:right;}
+.store-note{font-size:11.5px;color:var(--muted);margin-top:-4px;}
+.store-card-foot .btn-icon{padding:8px 12px;}
+
 
 /* Table */
 .table-scroll{overflow-x:auto;}
@@ -1028,9 +1043,9 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       <button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="copyPrevTarget()">Salin dari bulan lalu</button>
     </div>
     <div class="tg-grid">
-      <div class="field"><label>Target Omzet (Rp)</label><input type="text" id="tg-omzet" placeholder="0" inputmode="numeric"><small id="tg-omzet-hint"></small></div>
       <div class="field"><label>Target Spending (Rp)</label><input type="text" id="tg-spending" placeholder="0" inputmode="numeric"><small>Sebelum PPN 11%</small></div>
       <div class="field"><label>Target ROAS (x)</label><input type="number" step="0.1" id="tg-roas" placeholder="Contoh: 5"></div>
+      <div class="field"><label>Target Omzet (Rp) — otomatis</label><input type="text" id="tg-omzet" class="input-readonly" readonly tabindex="-1" placeholder="Terhitung otomatis"><small id="tg-omzet-hint"></small></div>
     </div>
     <div class="tg-foot">
       <div id="tg-ppn-preview"></div>
@@ -1632,6 +1647,17 @@ function renderOverviewTable(){
 }
 
 /* ================= TOKO & TARGET ================= */
+function rpShort2(n){
+  n = Math.round(n||0);
+  if(n>=1000000000) return 'Rp'+(Math.round(n/1e7)/100).toLocaleString('id-ID')+' M';
+  if(n>=1000000) return 'Rp'+(Math.round(n/1e4)/100).toLocaleString('id-ID')+' jt';
+  if(n>=1000) return 'Rp'+Math.round(n/1000).toLocaleString('id-ID')+' rb';
+  return 'Rp'+n;
+}
+function tgCell(raw, text, isTarget, title){
+  const empty = !raw;
+  return '<div class="sc-v'+(isTarget?' tg':'')+(empty?' empty':'')+'"'+(title?' title="'+title+'"':'')+'>'+(empty?'–':text)+'</div>';
+}
 let storeFilter='semua';
 function renderStores(){
   populateAffStoreSelects();
@@ -1658,26 +1684,17 @@ function renderStores(){
           <span class="status-tag ${s.status}">${s.status==='aktif'?'Aktif':'Nonaktif'}</span>
         </div>
       </div>
-      <div class="sc-block target">
-        <div class="sc-title">🎯 Target <em>${fmtMonthLabel(nowYm)}</em></div>
-        <div class="sc-grid">
-          ${cell('Omzet', tgNow.omzet? rp(tgNow.omzet):'')}
-          ${cell('Spending', tgNow.spending? rp(tgNow.spending):'')}
-          ${cell('ROAS', tgRoas)}
-        </div>
+      <div class="sc-mini">
+        <div class="sc-h"></div><div class="sc-h">Omzet</div><div class="sc-h">Spending</div><div class="sc-h">ROAS</div>
+        <div class="sc-rl tg">🎯 Target<small>${fmtMonthLabel(nowYm)}</small></div>
+        ${tgCell(tgNow.omzet, rpShort2(tgNow.omzet), true)}${tgCell(tgNow.spending, rpShort2(tgNow.spending), true)}${tgCell(tgNow.roas, tgRoas, true)}
+        <div class="sc-rl">Tercatat<small>semua periode</small></div>
+        ${tgCell(1, rpShort2(t.omzet), false, rp(t.omzet))}${tgCell(1, rpShort2(t.spending), false, rp(t.spending))}${tgCell(1, t.roas.toFixed(2).replace('.',',')+'x', false)}
       </div>
-      <div class="sc-block">
-        <div class="sc-title">Total tercatat <em>semua periode</em></div>
-        <div class="sc-grid">
-          ${cell('Omzet', rp(t.omzet))}
-          ${cell('Spending', rp(t.spending))}
-          ${cell('ROAS', t.roas.toFixed(2).replace('.',',')+'x')}
-        </div>
-      </div>
-      ${(nTarget || s.cpasPpnRate) ? `<div class="store-meta">${nTarget?`<span>${nTarget} bulan punya target</span>`:''}${s.cpasPpnRate?`<span>PPN CPAS ${s.cpasPpnRate}%</span>`:''}</div>` : ''}
+      ${(nTarget || s.cpasPpnRate) ? `<div class="store-note">${[nTarget?nTarget+' bulan punya target':'', s.cpasPpnRate?'PPN CPAS '+s.cpasPpnRate+'%':''].filter(Boolean).join(' · ')}</div>` : ''}
       <div class="store-card-foot">
         <button class="btn btn-ghost btn-sm btn-main" onclick="openTargetModal('${s.id}')">🎯 Target Bulanan</button>
-        <button class="btn btn-ghost btn-sm" onclick="editStore('${s.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editStore('${s.id}')">Edit</button>
         <button class="btn btn-danger-ghost btn-sm" onclick="deleteStore('${s.id}', this)">Hapus</button>
       </div>
     </div>`;
@@ -1776,11 +1793,9 @@ function fillMonthTargetInputs(storeId){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tg-month').value;
   const existing = s.targets && s.targets[ym];
-  document.getElementById('tg-omzet').value = existing? formatRibuan(existing.omzet||'') : '';
   document.getElementById('tg-spending').value = existing? (existing.spending? formatRibuan(Math.round(existing.spending/(1+PPN_RATE))) : '') : '';
   document.getElementById('tg-roas').value = existing? (existing.roas||'') : '';
-  document.getElementById('tg-omzet').dataset.auto=''; document.getElementById('tg-omzet-hint').textContent='';
-  updateTgPpnPreview();
+  updateTgPpnPreview(); autoCalcTgOmzet();
   tgSetStatus('tg-status', !!existing, existing? '✓ Sudah diatur' : 'Belum ada target');
   tgHighlightRow('targetListBody', ym);
 }
@@ -1788,35 +1803,28 @@ function copyPrevTarget(){
   const s = stores.find(x=>x.id===document.getElementById('tg-store-id').value); if(!s) return;
   const prev = s.targets && s.targets[tgPrevYm(document.getElementById('tg-month').value)];
   if(!prev){ tgSetStatus('tg-status', false, 'Bulan lalu belum ada target'); return; }
-  document.getElementById('tg-omzet').value = formatRibuan(prev.omzet||'');
   document.getElementById('tg-spending').value = prev.spending ? formatRibuan(Math.round(prev.spending/(1+PPN_RATE))) : '';
   document.getElementById('tg-roas').value = prev.roas||'';
-  document.getElementById('tg-omzet').dataset.auto=''; document.getElementById('tg-omzet-hint').textContent='';
-  updateTgPpnPreview();
+  updateTgPpnPreview(); autoCalcTgOmzet();
   tgSetStatus('tg-status', false, 'Disalin — klik Simpan');
 }
 function updateTgPpnPreview(){
   const raw = rawNumber('tg-spending');
   document.getElementById('tg-ppn-preview').innerHTML = raw>0 ? `<span class="roas-preview">Termasuk PPN 11%: <b>${rp(Math.round(raw*(1+PPN_RATE)))}</b> (akan disimpan)</span>` : '';
 }
-attachRibuanFormatting('tg-omzet');
 attachRibuanFormatting('tg-spending');
 document.getElementById('tg-spending').addEventListener('input', updateTgPpnPreview);
-// Omzet otomatis = Spending (sudah + PPN) × ROAS, selama omzet belum diketik manual.
+// Omzet SELALU otomatis = Spending (sudah + PPN 11%) x ROAS. Kolom omzet read-only.
 function autoCalcTgOmzet(){
   const om = document.getElementById('tg-omzet'), hint = document.getElementById('tg-omzet-hint');
   const spend = rawNumber('tg-spending'), roas = parseFloat(document.getElementById('tg-roas').value)||0;
-  if(om.value && om.dataset.auto!=='1'){ return; }
   if(spend>0 && roas>0){
-    om.value = formatRibuan(Math.round(spend*(1+PPN_RATE)*roas)); om.dataset.auto='1';
-    hint.textContent = 'Otomatis: Spending + PPN × ROAS (bisa diubah manual)';
-  } else if(om.dataset.auto==='1'){
-    om.value=''; om.dataset.auto=''; hint.textContent='';
-  }
+    om.value = formatRibuan(Math.round(spend*(1+PPN_RATE)*roas));
+    hint.textContent = 'Spending + PPN 11% × ROAS';
+  } else { om.value=''; hint.textContent=''; }
 }
 document.getElementById('tg-spending').addEventListener('input', autoCalcTgOmzet);
 document.getElementById('tg-roas').addEventListener('input', autoCalcTgOmzet);
-document.getElementById('tg-omzet').addEventListener('input', ()=>{ const o=document.getElementById('tg-omzet'); o.dataset.auto=''; document.getElementById('tg-omzet-hint').textContent=''; });
 
 document.getElementById('tg-month').addEventListener('change', ()=> fillMonthTargetInputs(document.getElementById('tg-store-id').value));
 function renderTargetList(storeId){
@@ -1847,10 +1855,11 @@ function saveMonthTarget(){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tg-month').value;
   if(!ym){ alert('Pilih bulan dulu ya.'); return; }
-  const omzet = rawNumber('tg-omzet');
   const spendRaw = rawNumber('tg-spending');
   const spending = Math.round(spendRaw * (1+PPN_RATE));
   const roas = parseFloat(document.getElementById('tg-roas').value)||0;
+  const omzet = Math.round(spending * roas);
+  if(!(spendRaw>0) || !(roas>0)){ alert('Isi Target Spending dan Target ROAS dulu ya.'); return; }
   if(!s.targets) s.targets={};
   s.targets[ym] = {omzet, spending, roas};
   saveStores();
