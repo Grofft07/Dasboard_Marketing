@@ -494,6 +494,32 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 .okr-init-deadline.done{background:var(--good-bg);color:var(--green-dark);}
 .okr-deadline-banner{display:none;align-items:center;gap:10px;background:var(--bad-bg);border:1px solid rgba(228,72,58,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:12.5px;color:var(--red);line-height:1.5;}
 .okr-deadline-banner b{font-weight:800;}
+.rem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(360px,100%),1fr));gap:16px;margin-bottom:18px;}
+.rem-card{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c,#999);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.rem-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.rem-head b{font-size:15px;}
+.rem-tag{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;color:#fff;background:var(--c,#999);white-space:nowrap;}
+.rem-sec{font-size:12.5px;line-height:1.6;margin-top:10px;}
+.rem-sec .t{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:2px;}
+.rem-foot{display:flex;justify-content:flex-end;margin-top:12px;}
+.rem-btn{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid;cursor:pointer;white-space:nowrap;}
+.rem-btn.red{background:#FDEAEA;color:#D64545;border-color:#F3B9B9;}
+.rem-btn.amber{background:#FFF4D6;color:#B7791F;border-color:#EBD08A;}
+.rem-btn.green{background:#E6F6EC;color:#1E8A4C;border-color:#BFE3CC;}
+.rem-btn:hover{filter:brightness(.97);}
+.rem-btn b{background:currentColor;border-radius:999px;min-width:18px;padding:0 6px;font-size:11px;line-height:18px;text-align:center;}
+.rem-btn b span{color:#fff;}
+.rem-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.rem-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;}
+.rem-stat b{display:block;font-size:15px;font-weight:800;}
+.rem-stat small{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;}
+.rem-bar{height:8px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);position:relative;margin:14px 0 5px;}
+.rem-bar i{display:block;height:100%;border-radius:999px;background:var(--c);}
+.rem-bar u{position:absolute;top:-4px;width:2px;height:14px;background:var(--text);text-decoration:none;}
+.rem-barcap{font-size:11px;color:var(--muted);}
+.rem-sec{border-top:1px solid var(--line);padding-top:10px;}
+.rem-sec ul{margin:5px 0 0;padding-left:17px;}
+.rem-sec li{margin:4px 0;}
 </style>
 </head>
 <body>
@@ -558,6 +584,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
               </div>
             </div>
           </div>
+          <button class="rem-btn green" id="btnPicRem" onclick="openPicReminder()">📉 Reminder Target <b id="picRemCountWrap" style="display:none"><span id="picRemCount"></span></b></button>
           <button class="btn btn-wa" id="btnWaReportOverview">📊 Buat Report WA</button>
           <button class="btn btn-primary" onclick="document.querySelector('.navbtn[data-page=input]').click()">＋ Input Hari Ini</button>
         </div>
@@ -580,6 +607,15 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           </div>
           <div class="chart-wrap"><canvas id="roasTrendChart"></canvas></div>
           <div class="trend-detail" id="trendDetail"></div>
+        </div>
+      </div>
+      <div class="section-header"><h2>Ringkasan per PIC</h2><span class="muted-note">Target PIC = jumlah target toko yang dipegang · ROAS = total omzet ÷ total spending</span></div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>PIC</th><th>Toko</th><th>Omzet</th><th>Spending</th><th>ROAS</th><th>Target Omzet</th><th>Capaian</th><th></th></tr></thead>
+            <tbody id="picSummaryBody"></tbody>
+          </table>
         </div>
       </div>
       <div class="section-header"><h2>Ringkasan per Toko</h2><span class="muted-note">Klik "Performa & ROAS" untuk detail lengkap</span></div>
@@ -606,6 +642,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           <div class="tabbtn" data-filter="tiktok">TikTokShop</div>
           <div class="tabbtn" data-filter="lazada">Lazada</div>
         </div>
+        <select id="storePicFilter" onchange="setStorePicFilter(this.value)" style="max-width:200px;margin-left:10px;"></select>
         <div class="muted-note" id="storeCountNote"></div>
       </div>
       <div class="store-grid" id="storeGrid"></div>
@@ -752,6 +789,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
               </div>
             </div>
           </div>
+          <button class="rem-btn green" id="btnAffRem" onclick="openAffReminder()">📉 Reminder Target <b id="affRemCountWrap" style="display:none"><span id="affRemCount"></span></b></button>
           <button class="btn btn-wa" id="btnWaReportAffiliate">📊 Buat Report WA</button>
         </div>
       </div>
@@ -759,6 +797,15 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       <div class="grid grid-4" id="affKpiRow"></div>
       <div class="muted-note" id="affCompareNote" style="margin-top:8px;"></div>
 
+      <div class="section-header" style="margin-top:26px;"><h2>Ringkasan per Affiliate Specialist</h2><span class="muted-note">Target = jumlah target toko yang dipegang · ROI = Omzet ÷ (Komisi + HPP Sampel)</span></div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Specialist</th><th>Toko</th><th>Omzet Affiliate</th><th>Komisi</th><th>ROI</th><th>Sampel</th><th>Target Omzet</th><th>Capaian</th><th></th></tr></thead>
+            <tbody id="affPicSummaryBody"></tbody>
+          </table>
+        </div>
+      </div>
       <div class="section-header" style="margin-top:26px;"><h2>Omzet Affiliate per Toko</h2></div>
       <div class="card">
         <div class="table-scroll">
@@ -992,7 +1039,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         </div>
         <div class="muted-note" style="margin-top:16px;line-height:1.7;">
           Buka Google Sheet → <b>Extensions → Apps Script</b> → tempel kode dari tombol "Lihat Kode Apps Script" → <b>Deploy → New deployment → Web app</b> (Execute as: <b>Me</b>, Who has access: <b>Anyone</b>) → salin URL ke kolom di atas.
-          Sheet dengan nama yang benar akan <b>dibuat otomatis</b> saat data pertama kali tersimpan, tapi supaya rapi sejak awal, buat 6 sheet berikut manual: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%),
+          Sheet dengan nama yang benar akan <b>dibuat otomatis</b> saat data pertama kali tersimpan, tapi supaya rapi sejak awal, buat 6 sheet berikut manual: <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Toko</code> (kolom: id, platform, nama, username, status, ppncpas, pic, pichist, affpic, affpichist (affpic = nama Affiliate Specialist toko itu, affpichist = riwayat pergantiannya, diisi otomatis) — ppncpas diisi angka persen PPN CPAS toko itu, mis. 4 untuk 4%; pic = nama pemegang akun; pichist = riwayat pergantian PIC, diisi otomatis oleh dashboard),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Input</code> (kolom: tanggal, tokoId, omzet, spending — nilai spending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel, hppSampel, hppTotal, sampelW100, sampelW200, sampelN30, sampelN60, gmvLive, gmvVideo, gmvProduk, gmvMedsos — data affiliate specialist harian; gmvLive/gmvVideo/gmvProduk dipakai toko TikTokShop, gmvLive/gmvVideo/gmvMedsos dipakai toko Shopee, omzet = total dari kolom breakdown yang relevan; kalau sheet Affiliate-mu masih format lama tanpa kolom breakdown, kolomnya akan otomatis ditambahkan saat pertama kali disinkron ulang),
@@ -1005,6 +1052,24 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
   </div>
 </div>
 
+<!-- MODAL REMINDER TARGET PIC -->
+<div class="overlay" id="picRemOverlay">
+  <div class="modal" style="max-width:920px;width:94vw;max-height:88vh;overflow:auto;">
+    <h3 id="picRemTitle">Reminder Target per PIC</h3>
+    <div class="modal-sub" id="picRemNote"></div>
+    <div class="rem-grid" id="picRemGrid"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closePicReminder()">Tutup</button></div>
+  </div>
+</div>
+<!-- MODAL REMINDER AFFILIATE -->
+<div class="overlay" id="affRemOverlay">
+  <div class="modal" style="max-width:920px;width:94vw;max-height:88vh;overflow:auto;">
+    <h3 id="affRemTitle">Reminder Target Affiliate Specialist</h3>
+    <div class="modal-sub" id="affRemNote"></div>
+    <div class="rem-grid" id="affRemGrid"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeAffReminder()">Tutup</button></div>
+  </div>
+</div>
 <!-- MODAL TAMBAH TOKO -->
 <div class="overlay" id="storeOverlay">
   <div class="modal">
@@ -1018,6 +1083,17 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="field"><label>Username / ID Toko</label><input type="text" id="f-username" placeholder="Contoh: @kiossepatunusantara"></div>
     <div class="field"><label>Status</label>
       <select id="f-status"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select>
+    </div>
+    <div class="field"><label>PIC / Pemegang Akun</label>
+      <input type="text" id="f-pic" list="picList" placeholder="Contoh: Budi">
+      <datalist id="picList"></datalist>
+    </div>
+    <div class="field"><label>Affiliate Specialist</label>
+      <input type="text" id="f-aff-pic" list="affPicList" placeholder="Contoh: Sari (kosongkan kalau tidak ada)">
+      <datalist id="affPicList"></datalist>
+    </div>
+    <div class="field"><label>Pergantian PIC / Specialist berlaku mulai bulan</label>
+      <input type="month" id="f-pic-from"><small>Hanya dipakai kalau PIC diganti. Bulan sebelumnya tetap tercatat atas PIC lama.</small>
     </div>
     <div class="field"><label>PPN CPAS Toko Ini (%) <span style="color:var(--muted);font-weight:400;">— budget Marketplace tetap PPN 11%</span></label>
       <input type="number" id="f-cpas-ppn" placeholder="Contoh: 4 (isi 0 kalau toko ini tidak pakai CPAS)" step="0.1" min="0">
@@ -1043,7 +1119,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       <button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="copyPrevTarget()">Salin dari bulan lalu</button>
     </div>
     <div class="tg-grid">
-      <div class="field"><label>Target Spending (Rp)</label><input type="text" id="tg-spending" placeholder="0" inputmode="numeric"><small>Sebelum PPN 11%</small></div>
+      <div class="field"><label>Target Spending (Rp)</label><input type="text" id="tg-spending" placeholder="0" inputmode="numeric"><select id="tg-ppn-mode" style="margin-top:6px;font-size:12px;padding:6px 8px;"><option value="exc">Angka ini sebelum PPN 11%</option><option value="inc">Angka ini sudah termasuk PPN 11%</option></select></div>
       <div class="field"><label>Target ROAS (x)</label><input type="number" step="0.1" id="tg-roas" placeholder="Contoh: 5"></div>
       <div class="field"><label>Target Omzet (Rp) — otomatis</label><input type="text" id="tg-omzet" class="input-readonly" readonly tabindex="-1" placeholder="Terhitung otomatis"><small id="tg-omzet-hint"></small></div>
     </div>
@@ -1338,7 +1414,7 @@ function loadData(key, seed){
   localStorage.setItem(key, JSON.stringify(seed)); return seed;
 }
 let stores = loadData('kh_stores_v2', seedStores);
-stores.forEach(s=>{ if(!s.targets || typeof s.targets!=='object') s.targets={}; if(!s.affTargets || typeof s.affTargets!=='object') s.affTargets={}; if(typeof s.cpasPpnRate!=='number') s.cpasPpnRate=0; });
+stores.forEach(s=>{ if(!s.targets || typeof s.targets!=='object') s.targets={}; if(!s.affTargets || typeof s.affTargets!=='object') s.affTargets={}; if(typeof s.cpasPpnRate!=='number') s.cpasPpnRate=0; if(typeof s.pic!=='string') s.pic=''; if(!s.picHist||typeof s.picHist!=='object') s.picHist={}; if(typeof s.affPic!=='string') s.affPic=''; if(!s.affPicHist||typeof s.affPicHist!=='object') s.affPicHist={}; });
 let entries = loadData('kh_entries_v2', seedEntries.map((e,i)=>({id:'e'+i, ...e})));
 function saveStores(){ localStorage.setItem('kh_stores_v2', JSON.stringify(stores)); }
 function saveEntries(){ localStorage.setItem('kh_entries_v2', JSON.stringify(entries)); }
@@ -1618,7 +1694,253 @@ function renderKPI(){
 
   document.getElementById('kpiRow').innerHTML = omzetCard + spendingCard + roasCard + tokoCard;
 }
+/* ================= REMINDER TARGET PER PIC (otomatis dari hasil aktual) ================= */
+function monthDays(ym){ const [y,m]=ym.split('-').map(Number); return new Date(y,m,0).getDate(); }
+function renderPicReminder(){
+  const ym=curYm(), D=monthDays(ym), a=ym+'-01', b=ym+'-'+String(D).padStart(2,'0');
+  let last=0; entries.forEach(e=>{ if(e.tanggal>=a && e.tanggal<=b) last=Math.max(last,+e.tanggal.slice(8,10)); });
+  const d=Math.min(D, Math.max(last, new Date().getDate()-1, 1)), rem=D-d;
+  const map={}; const get=n=>map[n]||(map[n]={name:n,omzet:0,spending:0,tOmzet:0,tSpend:0,stores:[]});
+  stores.forEach(s=>{
+    const g=get(picFor(s,ym)), t=monthTarget(s,ym), tot=totalsForStore(s.id,{start:a,end:b});
+    g.omzet+=tot.omzet; g.spending+=tot.spending; g.tOmzet+=t.omzet; g.tSpend+=t.spending;
+    g.stores.push({name:s.name, omzet:tot.omzet, gap:t.omzet*d/D-tot.omzet, tOmzet:t.omzet});
+  });
+  const f2=n=>n.toFixed(2).replace('.',','), pc=n=>Math.round(n)+'%', S=rpShort2;
+  const list=Object.values(map).filter(g=>g.tOmzet>0).map(g=>{
+    const exp=g.tOmzet*d/D, pace=exp>0?g.omzet/exp*100:0, cap=g.omzet/g.tOmzet*100;
+    const proj=g.omzet/d*D, projPct=proj/g.tOmzet*100;
+    const roas=g.spending>0?g.omzet/g.spending:0, tRoas=g.tSpend>0?g.tOmzet/g.tSpend:0;
+    const spPace=g.tSpend>0?g.spending/(g.tSpend*d/D)*100:100;
+    const needOm=Math.max(g.tOmzet-g.omzet,0), remSpend=Math.max(g.tSpend-g.spending,0);
+    const needDay=rem>0?needOm/rem:0, curDay=g.omzet/d, needRoas=remSpend>0?needOm/remSpend:null;
+    const roasLow=tRoas>0 && roas<tRoas*0.95, spendLow=spPace<85;
+    const lvl = cap>=100?['Tercapai','#2FA85A']: pace>=100?['On track','#2FA85A']: pace>=90?['Waspada','#E0A400']: ['Tertinggal','#D64545'];
+    const behind = lvl[0]==='Waspada'||lvl[0]==='Tertinggal';
+    const weak=g.stores.filter(x=>x.gap>0).sort((x,y)=>y.gap-x.gap).slice(0,2);
+    const kondisi=[
+      `Hari ke-${d} dari ${D}: seharusnya ±${pc(d/D*100)}, kecepatan kamu ${pc(pace)} dari yang dibutuhkan.`,
+      `ROAS ${f2(roas)}x (target ${f2(tRoas)}x) · spending ${pc(spPace)} dari rencana.`];
+    if(behind){
+      kondisi.push('<b>Penyebab:</b> '+(roasLow&&spendLow ? 'ROAS di bawah target dan serapan budget juga kurang.'
+        : roasLow ? `efisiensi iklan — ROAS di bawah target padahal spending sudah ${pc(spPace)} dari rencana.`
+        : spendLow ? `serapan budget — spending baru ${pc(spPace)} dari rencana, ROAS sudah ${roas>=tRoas?'memenuhi':'mendekati'} target.`
+        : 'ROAS dan spending mendekati rencana, selisih tipis; pastikan input harian sudah lengkap.'));
+      if(weak.length) kondisi.push('Toko paling tertinggal: '+weak.map(x=>`${x.name} (kurang ${S(x.gap)})`).join(', ')+'.');
+    }
+    const akibat = lvl[0]==='Tercapai' ? ['Target bulan ini sudah terlampaui.']
+      : proj>=g.tOmzet ? [`Proyeksi akhir bulan ${S(proj)} (${pc(projPct)} target).`,'Aman selama tren dijaga.']
+      : [`Proyeksi akhir bulan ${S(proj)} (${pc(projPct)} target).`, `Kurang ${S(g.tOmzet-proj)} dari target${g.stores.length>1?`, menekan capaian ${g.stores.length} toko yang dipegang`:''}.`];
+    let harapan;
+    if(lvl[0]==='Tercapai') harapan=['Pertahankan performa.','Siapkan usulan target bulan depan.'];
+    else if(rem<=0) harapan=['Periode sudah berakhir.','Evaluasi penyebab kekurangan dan siapkan rencana bulan depan.'];
+    else {
+      harapan=[ needDay<=curDay
+        ? `Pertahankan minimal ${S(needDay)}/hari selama ${rem} hari (sekarang ${S(curDay)}/hari, sudah di atas kebutuhan).`
+        : `Butuh ${S(needDay)}/hari selama ${rem} hari (sekarang ${S(curDay)}/hari${curDay>0?', perlu naik '+pc((needDay/curDay-1)*100):''}).`];
+      if(roasLow && needRoas){ harapan.push(`Dengan sisa budget ${S(remSpend)}, ROAS perlu ≥ ${f2(needRoas)}x.`); if(needRoas>tRoas*1.15) harapan.push('Angka ini cukup tinggi — pertimbangkan juga tambahan budget.'); }
+      if(spendLow && remSpend>0) harapan.push(`Naikkan spending ke ±${S(remSpend/rem)}/hari, jaga ROAS ≥ ${f2(tRoas)}x.`);
+      if(projPct<70 && lvl[0]==='Tertinggal') harapan.push('Selisih besar — bahas dengan atasan: tambah budget atau revisi target.');
+    }
+    return {g,pace,cap,roas,tRoas,d,D,exp:d/D*100,lvl,kondisi,akibat,harapan};
+  }).sort((x,y)=>x.pace-y.pace);
+  document.getElementById('picRemNote').textContent = fmtMonthLabel(ym)+' · data sampai tanggal '+d+' · dibuat otomatis dari hasil aktual';
+  window._picRem=list;
+  const nBad=list.filter(r=>r.lvl[0]==='Tertinggal'||r.lvl[0]==='Waspada').length;
+  const btn=document.getElementById('btnPicRem');
+  if(btn){
+    btn.className='rem-btn '+(list.some(r=>r.lvl[0]==='Tertinggal')?'red':nBad?'amber':'green');
+    document.getElementById('picRemCount').textContent=nBad; document.getElementById('picRemCountWrap').style.display=nBad?'':'none';
+  }
+  drawPicRemGrid();
+}
+function remCls(r){ return r.lvl[0]==='Tertinggal'?'red':r.lvl[0]==='Waspada'?'amber':'green'; }
+function remIcon(r){ return r.lvl[0]==='Tertinggal'?'📉':r.lvl[0]==='Waspada'?'🔔':'✓'; }
+function remCardHTML(r,i,copyFn){
+  const ul=a=>'<ul>'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+  const f2=n=>n.toFixed(2).replace('.',',');
+  const stats=r.stats||[{b:Math.round(r.cap)+'%',s:'Capaian'},{b:rpShort2(r.g.omzet),s:'dari '+rpShort2(r.g.tOmzet)},{b:f2(r.roas)+'x',s:'target '+f2(r.tRoas)+'x'}];
+  return `<div class="rem-card" style="--c:${r.lvl[1]}">
+    <div class="rem-head"><b>${r.g.name}</b><span class="rem-tag">${r.lvl[0]}</span></div>
+    <div class="rem-stats">${stats.map(x=>`<div class="rem-stat"><b>${x.b}</b><small>${x.s}</small></div>`).join('')}</div>
+    <div class="rem-bar"><i style="width:${Math.min(r.cap,100)}%"></i><u style="left:${Math.min(r.exp,100)}%"></u></div>
+    <div class="rem-barcap">Garis hitam = posisi yang seharusnya di hari ke-${r.d} (±${Math.round(r.exp)}%)</div>
+    <div class="rem-sec"><span class="t">Kondisi</span>${ul(r.kondisi)}</div>
+    <div class="rem-sec"><span class="t">Akibat</span>${ul(r.akibat)}</div>
+    <div class="rem-sec"><span class="t">Harapan</span>${ul(r.harapan)}</div>
+    <div class="rem-foot"><button class="btn btn-ghost btn-sm" onclick="${copyFn}(${i},this)">Salin teks</button></div>
+  </div>`;
+}
+function drawPicRemGrid(only){
+  const list=window._picRem||[];
+  document.getElementById('picRemGrid').innerHTML = list.map((r,i)=> (only!==undefined && only!==i) ? '' : remCardHTML(r,i,'copyPicReminder')).join('') || '<div class="muted-note">Belum ada PIC dengan target bulan ini. Isi PIC di menu Toko &amp; Target dan atur target bulanan.</div>';
+}
+function openPicReminder(i){
+  drawPicRemGrid(i);
+  document.getElementById('picRemTitle').textContent = i===undefined ? 'Reminder Target per PIC' : 'Reminder Target — '+window._picRem[i].g.name;
+  document.getElementById('picRemOverlay').classList.add('open');
+}
+function closePicReminder(){ document.getElementById('picRemOverlay').classList.remove('open'); }
+function picRemText(r){
+  const sec=(t,a)=>'*'+t+'*\n'+a.map(x=>'• '+x.replace(/<[^>]+>/g,'')).join('\n');
+  return `*${r.label||'Reminder Target'} — ${r.g.name}* (${r.lvl[0]})\nCapaian ${Math.round(r.cap)}% · ${rpShort2(r.g.omzet)} dari ${rpShort2(r.g.tOmzet)}\n\n${sec('Kondisi',r.kondisi)}\n\n${sec('Akibat',r.akibat)}\n\n${sec('Harapan',r.harapan)}`;
+}
+function copyPicReminder(i,btn){
+  navigator.clipboard.writeText(picRemText(window._picRem[i])).then(()=>{ btn.textContent='Tersalin ✓'; setTimeout(()=>btn.textContent='Salin teks',1500); });
+}
+/* ================= AFFILIATE SPECIALIST: PIC per toko + REMINDER TARGET ================= */
+function affPicFor(s, ym){
+  const h=s.affPicHist||{}; let r=null;
+  Object.keys(h).sort().forEach(k=>{ if(k<=ym) r=h[k]; });
+  if(r===null) r=s.affPic||'';
+  return r||NO_PIC;
+}
+function allAffPics(){ const set=new Set(); stores.forEach(s=>{ if(s.affPic) set.add(s.affPic); Object.values(s.affPicHist||{}).forEach(v=>{ if(v) set.add(v); }); }); return [...set].sort(); }
+function renderAffPicSummary(){
+  const range=currentRangeOrNull(), months=monthsInRange(range), map={};
+  const get=n=>map[n]||(map[n]={name:n,omzet:0,komisi:0,hpp:0,sampel:0,tOmzet:0,stores:new Set()});
+  affEntries.forEach(e=>{
+    if(range){ if(range.start && e.tanggal<range.start) return; if(range.end && e.tanggal>range.end) return; }
+    const s=stores.find(x=>x.id===e.storeId); if(!s) return;
+    const g=get(affPicFor(s,e.tanggal.slice(0,7))); g.omzet+=e.omzet||0; g.komisi+=e.komisi||0; g.sampel+=e.sampel||0; g.hpp+=affHpp(e); g.stores.add(s.name);
+  });
+  stores.forEach(s=>{
+    (months||Object.keys(s.affTargets||{})).forEach(ym=>{ const t=monthTargetAff(s,ym); if(t.omzet){ const g=get(affPicFor(s,ym)); g.tOmzet+=t.omzet; g.stores.add(s.name); } });
+    if(s.status==='aktif' && affPicFor(s,curYm())!==NO_PIC) get(affPicFor(s,curYm())).stores.add(s.name);
+  });
+  const rows=Object.values(map).filter(g=>g.name!==NO_PIC||g.omzet>0||g.tOmzet>0).sort((a,b)=>b.omzet-a.omzet);
+  document.getElementById('affPicSummaryBody').innerHTML = rows.map(g=>{
+    const roi=(g.komisi+g.hpp)>0?g.omzet/(g.komisi+g.hpp):0, cap=g.tOmzet>0?g.omzet/g.tOmzet*100:null, names=[...g.stores];
+    const ri=(window._affRem||[]).findIndex(x=>x.g.name===g.name), r=ri>=0?window._affRem[ri]:null;
+    return `<tr><td><b>${g.name}</b></td>
+      <td title="${names.join(', ')}">${names.length} toko<div class="muted-note">${names.slice(0,3).join(', ')}${names.length>3?' +'+(names.length-3):''}</div></td>
+      <td>${rp(g.omzet)}</td><td>${rp(g.komisi)}</td><td>${roi?roi.toFixed(2)+'x':'-'}</td><td>${g.sampel} pcs</td>
+      <td>${g.tOmzet?rp(g.tOmzet):'-'}</td>
+      <td>${cap===null?'<span class="muted-note">Belum diatur</span>':`<span class="status-tag ${cap>=100?'tercapai':'kurang'}">${cap.toFixed(0)}%</span>`}</td>
+      <td>${r?`<button class="rem-btn ${remCls(r)}" onclick="openAffReminder(${ri})">${remIcon(r)} Reminder Target</button>`:''}</td></tr>`;
+  }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--muted);">Belum ada data. Isi Affiliate Specialist di menu Toko &amp; Target.</td></tr>`;
+}
+function renderAffReminder(){
+  const ym=curYm(), D=monthDays(ym), a=ym+'-01', b=ym+'-'+String(D).padStart(2,'0');
+  let last=0; affEntries.forEach(e=>{ if(e.tanggal>=a && e.tanggal<=b) last=Math.max(last,+e.tanggal.slice(8,10)); });
+  const d=Math.min(D, Math.max(last, new Date().getDate()-1, 1)), rem=D-d;
+  const map={}; const get=n=>map[n]||(map[n]={name:n,omzet:0,komisi:0,hpp:0,sampel:0,tOmzet:0,tKomisi:0,tSampel:0,stores:[]});
+  stores.forEach(s=>{
+    const g=get(affPicFor(s,ym)), t=monthTargetAff(s,ym), l=affEntries.filter(e=>e.storeId===s.id && e.tanggal>=a && e.tanggal<=b);
+    const om=l.reduce((x,y)=>x+(y.omzet||0),0);
+    g.omzet+=om; g.komisi+=l.reduce((x,y)=>x+(y.komisi||0),0); g.sampel+=l.reduce((x,y)=>x+(y.sampel||0),0); g.hpp+=l.reduce((x,y)=>x+affHpp(y),0);
+    g.tOmzet+=t.omzet; g.tKomisi+=t.komisi; g.tSampel+=t.sampel;
+    g.stores.push({name:s.name, gap:t.omzet*d/D-om});
+  });
+  const f2=n=>n.toFixed(2).replace('.',','), pc=n=>Math.round(n)+'%', S=rpShort2;
+  const list=Object.values(map).filter(g=>g.tOmzet>0).map(g=>{
+    const exp=g.tOmzet*d/D, pace=exp>0?g.omzet/exp*100:0, cap=g.omzet/g.tOmzet*100;
+    const proj=g.omzet/d*D, projPct=proj/g.tOmzet*100;
+    const roi=(g.komisi+g.hpp)>0?g.omzet/(g.komisi+g.hpp):0;
+    const eff=g.komisi>0?g.omzet/g.komisi:0, tEff=g.tKomisi>0?g.tOmzet/g.tKomisi:0, effLow=tEff>0&&g.komisi>0&&eff<tEff*0.95;
+    const sPace=g.tSampel>0?g.sampel/(g.tSampel*d/D)*100:100, sampelLow=g.tSampel>0&&sPace<85;
+    const needOm=Math.max(g.tOmzet-g.omzet,0), remKomisi=Math.max(g.tKomisi-g.komisi,0), remSampel=Math.max(g.tSampel-g.sampel,0);
+    const needDay=rem>0?needOm/rem:0, curDay=g.omzet/d;
+    const lvl = cap>=100?['Tercapai','#2FA85A']: pace>=100?['On track','#2FA85A']: pace>=90?['Waspada','#E0A400']: ['Tertinggal','#D64545'];
+    const behind = lvl[0]==='Waspada'||lvl[0]==='Tertinggal';
+    const weak=g.stores.filter(x=>x.gap>0).sort((x,y)=>y.gap-x.gap).slice(0,2);
+    const kondisi=[
+      `Hari ke-${d} dari ${D}: seharusnya ±${pc(d/D*100)}, kecepatan kamu ${pc(pace)} dari yang dibutuhkan.`,
+      `ROI ${roi?f2(roi)+'x':'-'} · komisi ${S(g.komisi)}${g.tKomisi?` (${pc(g.komisi/g.tKomisi*100)} dari budget ${S(g.tKomisi)})`:''}.`];
+    if(g.tSampel) kondisi.push(`Sampel ${g.sampel} dari ${g.tSampel} pcs (${pc(sPace)} dari rencana sampai hari ini).`);
+    if(behind){
+      kondisi.push('<b>Penyebab:</b> '+(sampelLow&&effLow ? 'sampel yang terkirim kurang dan omzet per komisi di bawah rencana.'
+        : sampelLow ? `pengiriman sampel — baru ${pc(sPace)} dari rencana, jadi kreator aktif/pipeline kurang.`
+        : effLow ? `efisiensi komisi — omzet per Rp komisi ${f2(eff)}x, di bawah rencana ${f2(tEff)}x.`
+        : 'sampel dan komisi sudah sesuai rencana; kemungkinan konversi kreator kurang — cek kreator aktif dan kelengkapan input harian.'));
+      if(weak.length) kondisi.push('Toko paling tertinggal: '+weak.map(x=>`${x.name} (kurang ${S(x.gap)})`).join(', ')+'.');
+    }
+    const akibat = lvl[0]==='Tercapai' ? ['Target omzet affiliate bulan ini sudah terlampaui.']
+      : proj>=g.tOmzet ? [`Proyeksi akhir bulan ${S(proj)} (${pc(projPct)} target).`,'Aman selama tren dijaga.']
+      : [`Proyeksi akhir bulan ${S(proj)} (${pc(projPct)} target).`, `Kurang ${S(g.tOmzet-proj)} dari target${g.stores.length>1?`, menekan capaian ${g.stores.length} toko yang dipegang`:''}.`];
+    let harapan;
+    if(lvl[0]==='Tercapai') harapan=['Pertahankan performa kreator.','Siapkan usulan target bulan depan.'];
+    else if(rem<=0) harapan=['Periode sudah berakhir.','Evaluasi penyebab kekurangan dan siapkan rencana bulan depan.'];
+    else {
+      harapan=[ needDay<=curDay
+        ? `Pertahankan minimal ${S(needDay)}/hari selama ${rem} hari (sekarang ${S(curDay)}/hari, sudah di atas kebutuhan).`
+        : `Butuh ${S(needDay)}/hari selama ${rem} hari (sekarang ${S(curDay)}/hari${curDay>0?', perlu naik '+pc((needDay/curDay-1)*100):''}).`];
+      if(sampelLow && remSampel>0) harapan.push(`Kirim ±${Math.ceil(remSampel)} sampel lagi (≈ ${Math.ceil(remSampel/rem)} pcs/hari) ke kreator yang berpotensi.`);
+      if(effLow){
+        if(remKomisi>0) harapan.push(`Dengan sisa budget komisi ${S(remKomisi)}, omzet per Rp komisi perlu ≥ ${f2(needOm/remKomisi)}x.`);
+        else if(g.tKomisi>0) harapan.push('Budget komisi sudah terpakai habis — butuh efisiensi lebih tinggi atau revisi target komisi.');
+      }
+      if(projPct<70 && lvl[0]==='Tertinggal') harapan.push('Selisih besar — bahas dengan atasan: tambah budget atau revisi target.');
+    }
+    return {g,pace,cap,d,D,exp:d/D*100,lvl,kondisi,akibat,harapan,label:'Reminder Affiliate',
+      stats:[{b:Math.round(cap)+'%',s:'Capaian'},{b:S(g.omzet),s:'dari '+S(g.tOmzet)},{b:g.tSampel?g.sampel+'/'+g.tSampel:g.sampel+' pcs',s:'Sampel'}]};
+  }).sort((x,y)=>x.pace-y.pace);
+  document.getElementById('affRemNote').textContent = fmtMonthLabel(ym)+' · data sampai tanggal '+d+' · dibuat otomatis dari hasil aktual';
+  window._affRem=list;
+  const nBad=list.filter(r=>r.lvl[0]==='Tertinggal'||r.lvl[0]==='Waspada').length, btn=document.getElementById('btnAffRem');
+  if(btn){
+    btn.className='rem-btn '+(list.some(r=>r.lvl[0]==='Tertinggal')?'red':nBad?'amber':'green');
+    document.getElementById('affRemCount').textContent=nBad; document.getElementById('affRemCountWrap').style.display=nBad?'':'none';
+  }
+  drawAffRemGrid();
+}
+function drawAffRemGrid(only){
+  const list=window._affRem||[];
+  document.getElementById('affRemGrid').innerHTML = list.map((r,i)=> (only!==undefined && only!==i) ? '' : remCardHTML(r,i,'copyAffReminder')).join('') || '<div class="muted-note">Belum ada Affiliate Specialist dengan target bulan ini. Isi Affiliate Specialist di menu Toko &amp; Target dan atur target affiliate bulanan.</div>';
+}
+function openAffReminder(i){
+  drawAffRemGrid(i);
+  document.getElementById('affRemTitle').textContent = i===undefined ? 'Reminder Target Affiliate Specialist' : 'Reminder Affiliate — '+window._affRem[i].g.name;
+  document.getElementById('affRemOverlay').classList.add('open');
+}
+function closeAffReminder(){ document.getElementById('affRemOverlay').classList.remove('open'); }
+function copyAffReminder(i,btn){
+  navigator.clipboard.writeText(picRemText(window._affRem[i])).then(()=>{ btn.textContent='Tersalin ✓'; setTimeout(()=>btn.textContent='Salin teks',1500); });
+}
+/* ================= PIC (PEMEGANG AKUN) ================= */
+let storePicFilter='';
+function setStorePicFilter(v){ storePicFilter=v; renderStores(); }
+const NO_PIC='(Belum ada PIC)';
+function curYm(){ const n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+// PIC toko pada bulan ym: riwayat terakhir yang berlaku <= ym; kalau tidak ada riwayat, pakai PIC saat ini.
+function picFor(s, ym){
+  const h=s.picHist||{}; let r=null;
+  Object.keys(h).sort().forEach(k=>{ if(k<=ym) r=h[k]; });
+  if(r===null) r=s.pic||'';
+  return r||NO_PIC;
+}
+function picHistToStr(h){ return Object.keys(h||{}).sort().map(k=>k+'='+h[k]).join('|'); }
+function picHistFromStr(str){ const o={}; String(str||'').split('|').forEach(p=>{ const i=p.indexOf('='); if(i>0) o[p.slice(0,i)]=p.slice(i+1); }); return o; }
+function allPics(){ const set=new Set(); stores.forEach(s=>{ if(s.pic) set.add(s.pic); Object.values(s.picHist||{}).forEach(v=>{ if(v) set.add(v); }); }); return [...set].sort(); }
+function picSummary(range){
+  const months=monthsInRange(range), map={};
+  const get=n=>map[n]||(map[n]={name:n,omzet:0,spending:0,tOmzet:0,stores:new Set()});
+  entries.forEach(e=>{
+    if(range){ if(range.start && e.tanggal<range.start) return; if(range.end && e.tanggal>range.end) return; }
+    const s=stores.find(x=>x.id===e.storeId); if(!s) return;
+    const g=get(picFor(s,e.tanggal.slice(0,7))); g.omzet+=e.omzet||0; g.spending+=e.spending||0; g.stores.add(s.name);
+  });
+  stores.forEach(s=>{
+    (months||Object.keys(s.targets||{})).forEach(ym=>{ const t=monthTarget(s,ym); if(t.omzet){ const g=get(picFor(s,ym)); g.tOmzet+=t.omzet; g.stores.add(s.name); } });
+    if(s.status==='aktif') get(picFor(s,curYm())).stores.add(s.name);
+  });
+  return Object.values(map).sort((a,b)=>b.omzet-a.omzet);
+}
+function renderPicSummary(){
+  const rows=picSummary(currentRangeOrNull());
+  document.getElementById('picSummaryBody').innerHTML = rows.map(g=>{
+    const roas=g.spending>0?g.omzet/g.spending:0, cap=g.tOmzet>0?g.omzet/g.tOmzet*100:null;
+    const names=[...g.stores];
+    return `<tr><td><b>${g.name}</b></td>
+      <td title="${names.join(', ')}">${names.length} toko<div class="muted-note">${names.slice(0,3).join(', ')}${names.length>3?' +'+(names.length-3):''}</div></td>
+      <td>${rp(g.omzet)}</td><td>${rp(g.spending)}</td><td>${roas.toFixed(2)}x</td>
+      <td>${g.tOmzet?rp(g.tOmzet):'-'}</td>
+      <td>${cap===null?'<span class="muted-note">Belum diatur</span>':`<span class="status-tag ${cap>=100?'tercapai':'kurang'}">${cap.toFixed(0)}%</span>`}</td>
+      <td>${(()=>{ const ri=(window._picRem||[]).findIndex(x=>x.g.name===g.name); if(ri<0) return ''; const r=window._picRem[ri]; return `<button class="rem-btn ${remCls(r)}" onclick="openPicReminder(${ri})">${remIcon(r)} Reminder Target</button>`; })()}</td></tr>`;
+  }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Belum ada data PIC. Isi PIC di menu Toko &amp; Target.</td></tr>`;
+}
 function renderOverviewTable(){
+  renderPicReminder(); renderPicSummary();
   const range = currentRangeOrNull();
   const prevRange = affPreviousRange(range);
   document.getElementById('overviewTableBody').innerHTML = stores.map(s=>{
@@ -1635,7 +1957,7 @@ function renderOverviewTable(){
       roasDelta = deltaBadgeHTML(t.roas, pt.roas);
     }
     return `<tr>
-      <td><b>${s.name}</b></td>
+      <td><b>${s.name}</b><div class="muted-note">PIC: ${picFor(s,curYm())}</div></td>
       <td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td>
       <td>${rp(t.omzet)}${omzetDelta}</td>
       <td>${rp(t.spending)}${spendDelta}</td>
@@ -1661,7 +1983,11 @@ function tgCell(raw, text, isTarget, title){
 let storeFilter='semua';
 function renderStores(){
   populateAffStoreSelects();
-  const list = stores.filter(s=> storeFilter==='semua' || s.platform===storeFilter);
+  const pf=document.getElementById('storePicFilter'), pics=allPics();
+  pf.innerHTML='<option value="">Semua PIC</option>'+pics.concat(stores.some(s=>picFor(s,curYm())===NO_PIC)?[NO_PIC]:[]).map(n=>`<option value="${n}"${n===storePicFilter?' selected':''}>${n}</option>`).join('');
+  document.getElementById('picList').innerHTML=pics.map(n=>`<option value="${n}">`).join('');
+  document.getElementById('affPicList').innerHTML=allAffPics().map(n=>`<option value="${n}">`).join('');
+  const list = stores.filter(s=> (storeFilter==='semua' || s.platform===storeFilter) && (!storePicFilter || picFor(s,curYm())===storePicFilter));
   document.getElementById('storeCountNote').textContent = list.length+' dari '+stores.length+' toko ditampilkan';
   document.getElementById('storeGrid').innerHTML = list.map(s=>{
     const pm=PLATFORM_META[s.platform];
@@ -1691,7 +2017,7 @@ function renderStores(){
         <div class="sc-rl">Tercatat<small>semua periode</small></div>
         ${tgCell(1, rpShort2(t.omzet), false, rp(t.omzet))}${tgCell(1, rpShort2(t.spending), false, rp(t.spending))}${tgCell(1, t.roas.toFixed(2).replace('.',',')+'x', false)}
       </div>
-      ${(nTarget || s.cpasPpnRate) ? `<div class="store-note">${[nTarget?nTarget+' bulan punya target':'', s.cpasPpnRate?'PPN CPAS '+s.cpasPpnRate+'%':''].filter(Boolean).join(' · ')}</div>` : ''}
+      ${(nTarget || s.cpasPpnRate || s.pic) ? `<div class="store-note">${[s.pic?'PIC: '+picFor(s,curYm()):'',nTarget?nTarget+' bulan punya target':'', s.cpasPpnRate?'PPN CPAS '+s.cpasPpnRate+'%':''].filter(Boolean).join(' · ')}</div>` : ''}
       <div class="store-card-foot">
         <button class="btn btn-ghost btn-sm btn-main" onclick="openTargetModal('${s.id}')">🎯 Target Bulanan</button>
         <button class="btn btn-ghost btn-sm btn-icon" onclick="editStore('${s.id}')">Edit</button>
@@ -1713,6 +2039,7 @@ function openStoreModal(){
   document.getElementById('f-name').value=''; document.getElementById('f-username').value='';
   document.getElementById('f-platform').value='shopee'; document.getElementById('f-status').value='aktif';
   document.getElementById('f-cpas-ppn').value='0';
+  document.getElementById('f-pic').value=''; document.getElementById('f-aff-pic').value=''; document.getElementById('f-pic-from').value=curYm();
   document.getElementById('storeOverlay').classList.add('open');
 }
 function closeStoreModal(){ document.getElementById('storeOverlay').classList.remove('open'); }
@@ -1724,6 +2051,7 @@ function editStore(id){
   document.getElementById('f-username').value=s.username;
   document.getElementById('f-status').value=s.status;
   document.getElementById('f-cpas-ppn').value = (s.cpasPpnRate!=null? s.cpasPpnRate : 0);
+  document.getElementById('f-pic').value=picFor(s,curYm())===NO_PIC?'':picFor(s,curYm()); document.getElementById('f-aff-pic').value=affPicFor(s,curYm())===NO_PIC?'':affPicFor(s,curYm()); document.getElementById('f-pic-from').value=curYm();
   document.getElementById('storeOverlay').classList.add('open');
 }
 function saveStoreForm(){
@@ -1736,9 +2064,27 @@ function saveStoreForm(){
     status: document.getElementById('f-status').value,
     cpasPpnRate: parseFloat(document.getElementById('f-cpas-ppn').value)||0,
   };
+  const newPic = document.getElementById('f-pic').value.replace(/[|=]/g,'').trim();
+  const picFrom = document.getElementById('f-pic-from').value || curYm();
   let s;
-  if(id){ s = stores.find(x=>x.id===id); Object.assign(s, payload); }
-  else { s = {id:'s'+Date.now(), ...payload, targets:{}, affTargets:{}}; stores.push(s); }
+  if(id){
+    s = stores.find(x=>x.id===id); Object.assign(s, payload);
+    const cur = picFor(s, curYm())===NO_PIC ? '' : picFor(s, curYm());
+    if(cur!==newPic){
+      // Ganti PIC: simpan riwayat supaya bulan sebelumnya tetap atas nama PIC lama.
+      if(s.pic && !Object.keys(s.picHist).length) s.picHist['0000-00']=s.pic;
+      if(Object.keys(s.picHist).length) s.picHist[picFrom]=newPic;
+      s.pic=newPic;
+    }
+  }
+  else { s = {id:'s'+Date.now(), ...payload, pic:newPic, picHist:{}, affPic:'', affPicHist:{}, targets:{}, affTargets:{}}; stores.push(s); }
+  const newAff = document.getElementById('f-aff-pic').value.replace(/[|=]/g,'').trim();
+  const curAff = affPicFor(s, curYm())===NO_PIC ? '' : affPicFor(s, curYm());
+  if(curAff!==newAff){
+    if(s.affPic && !Object.keys(s.affPicHist).length) s.affPicHist['0000-00']=s.affPic;
+    if(Object.keys(s.affPicHist).length) s.affPicHist[picFrom]=newAff;
+    s.affPic=newAff;
+  }
   saveStores(); closeStoreModal();
   pushOneToSheet('toko', storeToRow(s));
   renderStores(); renderKPI(); renderOverviewTable(); renderPerforma(); buildOverviewCharts();
@@ -1789,11 +2135,17 @@ function openTargetModal(storeId){
   document.getElementById('targetOverlay').classList.add('open');
 }
 function closeTargetModal(){ document.getElementById('targetOverlay').classList.remove('open'); }
+let tgIncPpn = localStorage.getItem('kh_tg_ppn_mode')==='inc';
+document.getElementById('tg-ppn-mode').value = tgIncPpn?'inc':'exc';
+// Total spending target SUDAH + PPN, apa pun mode input-nya.
+function tgSpendWithPpn(){ const raw=rawNumber('tg-spending'); return Math.round(tgIncPpn? raw : raw*(1+PPN_RATE)); }
+// Tampilkan nominal tersimpan (sudah + PPN) sesuai mode input.
+function tgShowSpend(saved){ return saved ? formatRibuan(Math.round(tgIncPpn? saved : saved/(1+PPN_RATE))) : ''; }
 function fillMonthTargetInputs(storeId){
   const s = stores.find(x=>x.id===storeId); if(!s) return;
   const ym = document.getElementById('tg-month').value;
   const existing = s.targets && s.targets[ym];
-  document.getElementById('tg-spending').value = existing? (existing.spending? formatRibuan(Math.round(existing.spending/(1+PPN_RATE))) : '') : '';
+  document.getElementById('tg-spending').value = existing? tgShowSpend(existing.spending) : '';
   document.getElementById('tg-roas').value = existing? (existing.roas||'') : '';
   updateTgPpnPreview(); autoCalcTgOmzet();
   tgSetStatus('tg-status', !!existing, existing? '✓ Sudah diatur' : 'Belum ada target');
@@ -1803,23 +2155,31 @@ function copyPrevTarget(){
   const s = stores.find(x=>x.id===document.getElementById('tg-store-id').value); if(!s) return;
   const prev = s.targets && s.targets[tgPrevYm(document.getElementById('tg-month').value)];
   if(!prev){ tgSetStatus('tg-status', false, 'Bulan lalu belum ada target'); return; }
-  document.getElementById('tg-spending').value = prev.spending ? formatRibuan(Math.round(prev.spending/(1+PPN_RATE))) : '';
+  document.getElementById('tg-spending').value = tgShowSpend(prev.spending);
   document.getElementById('tg-roas').value = prev.roas||'';
   updateTgPpnPreview(); autoCalcTgOmzet();
   tgSetStatus('tg-status', false, 'Disalin — klik Simpan');
 }
 function updateTgPpnPreview(){
-  const raw = rawNumber('tg-spending');
-  document.getElementById('tg-ppn-preview').innerHTML = raw>0 ? `<span class="roas-preview">Termasuk PPN 11%: <b>${rp(Math.round(raw*(1+PPN_RATE)))}</b> (akan disimpan)</span>` : '';
+  const raw = rawNumber('tg-spending'), tot = tgSpendWithPpn();
+  document.getElementById('tg-ppn-preview').innerHTML = raw>0 ? (tgIncPpn
+    ? `<span class="roas-preview">Sebelum PPN: <b>${rp(Math.round(raw/(1+PPN_RATE)))}</b> · Total + PPN 11%: <b>${rp(tot)}</b> (akan disimpan)</span>`
+    : `<span class="roas-preview">Termasuk PPN 11%: <b>${rp(tot)}</b> (akan disimpan)</span>`) : '';
 }
+document.getElementById('tg-ppn-mode').addEventListener('change', function(){
+  const before = tgSpendWithPpn(); tgIncPpn = this.value==='inc';
+  localStorage.setItem('kh_tg_ppn_mode', this.value);
+  document.getElementById('tg-spending').value = before ? formatRibuan(Math.round(tgIncPpn? before : before/(1+PPN_RATE))) : '';
+  updateTgPpnPreview(); autoCalcTgOmzet();
+});
 attachRibuanFormatting('tg-spending');
 document.getElementById('tg-spending').addEventListener('input', updateTgPpnPreview);
 // Omzet SELALU otomatis = Spending (sudah + PPN 11%) x ROAS. Kolom omzet read-only.
 function autoCalcTgOmzet(){
   const om = document.getElementById('tg-omzet'), hint = document.getElementById('tg-omzet-hint');
-  const spend = rawNumber('tg-spending'), roas = parseFloat(document.getElementById('tg-roas').value)||0;
+  const spend = tgSpendWithPpn(), roas = parseFloat(document.getElementById('tg-roas').value)||0;
   if(spend>0 && roas>0){
-    om.value = formatRibuan(Math.round(spend*(1+PPN_RATE)*roas));
+    om.value = formatRibuan(Math.round(spend*roas));
     hint.textContent = 'Spending + PPN 11% × ROAS';
   } else { om.value=''; hint.textContent=''; }
 }
@@ -1856,7 +2216,7 @@ function saveMonthTarget(){
   const ym = document.getElementById('tg-month').value;
   if(!ym){ alert('Pilih bulan dulu ya.'); return; }
   const spendRaw = rawNumber('tg-spending');
-  const spending = Math.round(spendRaw * (1+PPN_RATE));
+  const spending = tgSpendWithPpn();
   const roas = parseFloat(document.getElementById('tg-roas').value)||0;
   const omzet = Math.round(spending * roas);
   if(!(spendRaw>0) || !(roas>0)){ alert('Isi Target Spending dan Target ROAS dulu ya.'); return; }
@@ -2918,6 +3278,7 @@ function affPreviousRange(range){
   return p ? Object.assign({monthly:false}, p) : null;
 }
 function renderAffKPI(){
+  renderAffReminder(); renderAffPicSummary();
   const range = currentRangeOrNull();
   const filteredAffEntries = range ? affEntries.filter(e=> (!range.start||e.tanggal>=range.start) && (!range.end||e.tanggal<=range.end)) : affEntries;
   const totalOmzet = filteredAffEntries.reduce((s,x)=>s+(x.omzet||0),0);
@@ -3419,17 +3780,19 @@ function getOrCreateSheet(ss, name, headers){
 // Sheet "Toko": upsert berdasarkan kolom id. data.hapus=true untuk menghapus baris.
 // Kolom ke-6 "ppncpas" = persentase PPN khusus untuk budget CPAS toko ini (beda dari PPN 11% budget Marketplace biasa).
 function upsertToko(ss, data){
-  var sh = getOrCreateSheet(ss, 'Toko', ['id','platform','nama','username','status','ppncpas']);
+  var sh = getOrCreateSheet(ss, 'Toko', ['id','platform','nama','username','status','ppncpas','pic','pichist','affpic','affpichist']);
+  if(sh.getRange(1,7).getValue()!=='pic') sh.getRange(1,7,1,2).setValues([['pic','pichist']]);
+  if(sh.getRange(1,9).getValue()!=='affpic') sh.getRange(1,9,1,2).setValues([['affpic','affpichist']]);
   var rows = sh.getDataRange().getValues();
   for(var i=1;i<rows.length;i++){
     if(String(rows[i][0]).trim() === String(data.id).trim()){
       if(data.hapus){ sh.deleteRow(i+1); return; }
-      sh.getRange(i+1,1,1,6).setValues([[data.id,data.platform,data.nama,data.username,data.status,data.ppncpas||0]]);
+      sh.getRange(i+1,1,1,10).setValues([[data.id,data.platform,data.nama,data.username,data.status,data.ppncpas||0,data.pic||'',data.pichist||'',data.affpic||'',data.affpichist||'']]);
       return;
     }
   }
   if(data.hapus) return;
-  sh.appendRow([data.id,data.platform,data.nama,data.username,data.status,data.ppncpas||0]);
+  sh.appendRow([data.id,data.platform,data.nama,data.username,data.status,data.ppncpas||0,data.pic||'',data.pichist||'',data.affpic||'',data.affpichist||'']);
 }
 
 // Sheet "Target": upsert berdasarkan (tokoId + bulan) — 1 baris per toko per bulan.
@@ -3634,7 +3997,7 @@ function setSyncMsg(text, color){
   const el = document.getElementById('sheetSyncMsg'); if(!el) return;
   el.textContent = text; el.style.color = color || 'var(--muted)';
 }
-function storeToRow(s){ return {id:s.id, platform:s.platform, nama:s.name, username:s.username, status:s.status, ppncpas:s.cpasPpnRate||0}; }
+function storeToRow(s){ return {id:s.id, platform:s.platform, nama:s.name, username:s.username, status:s.status, ppncpas:s.cpasPpnRate||0, pic:s.pic||'', pichist:picHistToStr(s.picHist), affpic:s.affPic||'', affpichist:picHistToStr(s.affPicHist)}; }
 function entryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, spending:e.spending}; }
 function affEntryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.omzet, komisi:e.komisi, sampel:e.sampel, hppSampel:e.hppSampel||0, hppTotal:e.hppTotal||0, sampelW100:(e.sampelDetail||{}).w100||0, sampelW200:(e.sampelDetail||{}).w200||0, sampelN30:(e.sampelDetail||{}).n30||0, sampelN60:(e.sampelDetail||{}).n60||0, gmvLive:e.gmvLive||0, gmvVideo:e.gmvVideo||0, gmvProduk:e.gmvProduk||0, gmvMedsos:e.gmvMedsos||0}; }
 function targetRowsForStore(s){
@@ -3726,6 +4089,7 @@ async function pullFromSheet(silent){
         id:String(r.id), platform:String(r.platform||'shopee').toLowerCase(), name:r.nama||'(Tanpa nama)',
         username:r.username||'', status:String(r.status||'aktif').toLowerCase(),
         cpasPpnRate: parseFloat(r.ppncpas)||0,
+        pic:String(r.pic||'').trim(), picHist:picHistFromStr(r.pichist), affPic:String(r.affpic||'').trim(), affPicHist:picHistFromStr(r.affpichist),
         targets:{}, affTargets:{}
       }));
       if(Array.isArray(json.target)){
