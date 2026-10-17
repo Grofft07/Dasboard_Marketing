@@ -520,6 +520,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 .rem-sec{border-top:1px solid var(--line);padding-top:10px;}
 .rem-sec ul{margin:5px 0 0;padding-left:17px;}
 .rem-sec li{margin:4px 0;}
+.hl-pane{display:none;}
+.hl-pane.active{display:block;}
 </style>
 </head>
 <body>
@@ -537,6 +539,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="navbtn" data-page="input"><span class="ic">＋</span> Input Harian</div>
     <div class="navbtn" data-page="performa"><span class="ic">📊</span> Performa &amp; ROAS</div>
     <div class="navbtn" data-page="affiliate"><span class="ic">🤝</span> Affiliate Specialist</div>
+    <div class="navbtn" data-page="hostlive"><span class="ic">🎙️</span> Host Live &amp; Talent</div>
     <div class="navbtn" data-page="laporan"><span class="ic">📝</span> Laporan</div>
     <div class="navbtn" data-page="integrasi"><span class="ic">🔗</span> Integrasi Sheet</div>
     <div class="sidebar-foot">
@@ -870,6 +873,144 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       </div>
     </div>
 
+    <!-- ============ HOST LIVE & TALENT ============ -->
+    <div class="page" id="page-hostlive">
+      <div class="topbar">
+        <div><h1>Host Live &amp; Talent</h1><div class="sub">Host Live: report sesi live (jam, GMV, penonton, komentar) · Talent: take konten harian untuk kebutuhan tim creative</div></div>
+        <div class="top-actions">
+          <div class="dr-wrap" id="hlWrap">
+            <button class="dr-trigger" id="hlTrigger"><span class="dr-ic">📅</span><span id="hlLabel">Semua Data</span><span class="dr-dot"></span></button>
+            <div class="dr-panel" id="hlPanel">
+              <div class="dr-body">
+                <div class="dr-presets" id="hlPresets"></div>
+                <div class="dr-calendars">
+                  <div class="dr-cal-nav">
+                    <button class="dr-nav-btn" id="hlPrev">←</button>
+                    <div class="dr-cal-titles"><span id="hlTitleLeft"></span><span id="hlTitleRight"></span></div>
+                    <button class="dr-nav-btn" id="hlNext">→</button>
+                  </div>
+                  <div class="dr-cal-grids"><div class="dr-cal" id="hlCalLeft"></div><div class="dr-cal" id="hlCalRight"></div></div>
+                </div>
+              </div>
+              <div class="dr-footer">
+                <button class="btn btn-ghost btn-sm" id="hlCancel">Batal</button>
+                <button class="btn btn-primary btn-sm" id="hlApply">Terapkan</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-wa" id="btnWaReportHostlive">📊 Buat Report WA</button>
+        </div>
+      </div>
+      <div class="tabbar" id="hlTabs" style="margin-bottom:18px;">
+        <div class="tabbtn active" data-hltab="host">🎙️ Host Live</div>
+        <div class="tabbtn" data-hltab="talent">🎬 Talent</div>
+      </div>
+      <div class="muted-note" id="hlCompareNote" style="margin:-6px 0 12px;"></div>
+
+      <!-- ===== HOST LIVE ===== -->
+      <div class="hl-pane active" id="hlPane-host">
+        <div class="grid grid-4" id="hlKpiRow"></div>
+
+        <div class="section-header" style="margin-top:26px;"><h2>Ringkasan per Host</h2><span class="muted-note">Klik judul kolom untuk mengurutkan</span></div>
+        <div class="card" style="margin-bottom:18px;"><div class="table-scroll"><table>
+          <thead><tr><th>Host</th><th>Sesi</th><th>Durasi Live</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th></tr></thead>
+          <tbody id="hlPersonBody"></tbody></table></div></div>
+
+        <div class="section-header"><h2>Ringkasan per Toko</h2></div>
+        <div class="card"><div class="table-scroll"><table>
+          <thead><tr><th>Toko</th><th>Platform</th><th>Sesi</th><th>Durasi Live</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
+          <tbody id="hlStoreBody"></tbody></table></div></div>
+
+        <div class="section-header" style="margin-top:26px;"><h2>Input Report Live</h2></div>
+        <div class="card">
+          <div class="panel-desc">Satu baris per sesi live. Kalau toko + tanggal + host + jam mulai sama sudah pernah diisi, data lama otomatis ditimpa. Live lewat tengah malam (mis. 22:00 sampai 02:00) dihitung otomatis.</div>
+          <div class="quick-form quick-form-aff" style="margin-top:14px;">
+            <div><label>Toko</label><select id="hl-store"></select></div>
+            <div><label>Tanggal</label><input type="date" id="hl-date"></div>
+            <div><label>Nama Host</label><input type="text" id="hl-host" list="hlHostList" placeholder="Contoh: Sari"><datalist id="hlHostList"></datalist></div>
+            <div><label>Jam Mulai (WIB, 24 jam)</label><input type="text" id="hl-start" inputmode="numeric" maxlength="5" placeholder="19:00" autocomplete="off"></div>
+            <div><label>Jam Selesai (WIB, 24 jam)</label><input type="text" id="hl-end" inputmode="numeric" maxlength="5" placeholder="23:00" autocomplete="off"></div>
+            <div><label>GMV (Rp)</label><input type="text" id="hl-gmv" placeholder="Contoh: 5.000.000"></div>
+            <div><label>Penonton</label><input type="number" id="hl-penonton" min="0" placeholder="0"></div>
+            <div><label>Komentar</label><input type="number" id="hl-komentar" min="0" placeholder="0"></div>
+          </div>
+          <div class="af-footer">
+            <div class="af-summary" id="hl-summary"></div>
+            <button class="btn btn-primary" onclick="saveHlEntry()">Simpan</button>
+          </div>
+          <div id="hl-sync-status" style="margin-top:6px;font-size:12.5px;"></div>
+        </div>
+
+        <div class="section-header"><h2>Riwayat Report Live</h2><span class="muted-note" id="hlEntryCountNote"></span></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+            <label style="font-size:12.5px;font-weight:700;color:var(--muted);">Filter Toko:</label>
+            <select id="hl-filter-store" style="max-width:260px;"></select>
+          </div>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Tanggal</th><th>Toko</th><th>Host</th><th>Jam Live (WIB)</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th></th></tr></thead>
+            <tbody id="hlEntryBody"></tbody></table></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:8px;">
+            <span class="muted-note" id="hlEntryPageNote"></span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost btn-sm" id="btnHlPrev">← Sebelumnya</button>
+              <button class="btn btn-ghost btn-sm" id="btnHlNext">Berikutnya →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TALENT ===== -->
+      <div class="hl-pane" id="hlPane-talent">
+        <div class="grid grid-4" id="tlKpiRow"></div>
+
+        <div class="section-header" style="margin-top:26px;"><h2>Ringkasan per Talent</h2><span class="muted-note">Target = jumlah take konten per hari yang dibutuhkan tim creative</span></div>
+        <div class="card" style="margin-bottom:18px;"><div class="table-scroll"><table>
+          <thead><tr><th>Talent</th><th>Hari Input</th><th>Take</th><th>Target Take</th><th>Capaian</th><th>Rata-rata Take / Hari</th></tr></thead>
+          <tbody id="tlPersonBody"></tbody></table></div></div>
+
+        <div class="section-header"><h2>Rekap Harian (Semua Talent)</h2><span class="muted-note">Total take per tanggal vs total target — untuk dicek tim creative</span></div>
+        <div class="card"><div class="table-scroll"><table>
+          <thead><tr><th>Tanggal</th><th>Talent</th><th>Take</th><th>Target Take</th><th>Capaian</th><th>Selisih</th></tr></thead>
+          <tbody id="tlDayBody"></tbody></table></div></div>
+
+        <div class="section-header" style="margin-top:26px;"><h2>Input Take Harian</h2></div>
+        <div class="card">
+          <div class="panel-desc">Tidak terkait toko. Isi jumlah take konten yang berhasil dibuat talent pada tanggal itu dan target take hari itu. Kalau tanggal + talent sama sudah pernah diisi, data lama ditimpa.</div>
+          <div class="quick-form quick-form-aff" style="margin-top:14px;">
+            <div><label>Tanggal</label><input type="date" id="tl-date"></div>
+            <div><label>Nama Talent</label><input type="text" id="tl-name" list="tlNameList" placeholder="Contoh: Dina"><datalist id="tlNameList"></datalist></div>
+            <div><label>Jumlah Take</label><input type="number" id="tl-take" min="0" placeholder="0"></div>
+            <div><label>Target Take Hari Ini</label><input type="number" id="tl-target" min="0" placeholder="Contoh: 10"></div>
+            <div style="flex:2 1 260px;"><label>Catatan (opsional)</label><input type="text" id="tl-note" placeholder="Contoh: produk Waraso 100, 3 variasi hook"></div>
+          </div>
+          <div class="af-footer">
+            <div class="af-summary" id="tl-summary"></div>
+            <button class="btn btn-primary" onclick="saveTlEntry()">Simpan</button>
+          </div>
+          <div id="tl-sync-status" style="margin-top:6px;font-size:12.5px;"></div>
+        </div>
+
+        <div class="section-header"><h2>Riwayat Input Talent</h2><span class="muted-note" id="tlEntryCountNote"></span></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+            <label style="font-size:12.5px;font-weight:700;color:var(--muted);">Filter Talent:</label>
+            <select id="tl-filter" style="max-width:260px;"></select>
+          </div>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Tanggal</th><th>Talent</th><th>Take</th><th>Target Take</th><th>Capaian</th><th>Catatan</th><th></th></tr></thead>
+            <tbody id="tlEntryBody"></tbody></table></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:8px;">
+            <span class="muted-note" id="tlEntryPageNote"></span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost btn-sm" id="btnTlPrev">← Sebelumnya</button>
+              <button class="btn btn-ghost btn-sm" id="btnTlNext">Berikutnya →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ============ INTEGRASI SHEET ============ -->
     <!-- ============ LAPORAN ============ -->
     <div class="page" id="page-laporan">
@@ -1044,6 +1185,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Target</code> (kolom: tokoId, bulan, targetomzet, targetspending, targetroas — target bulanan toko, format bulan "2026-08", targetspending sudah termasuk PPN 11%),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel, hppSampel, hppTotal, sampelW100, sampelW200, sampelN30, sampelN60, gmvLive, gmvVideo, gmvProduk, gmvMedsos — data affiliate specialist harian; gmvLive/gmvVideo/gmvProduk dipakai toko TikTokShop, gmvLive/gmvVideo/gmvMedsos dipakai toko Shopee, omzet = total dari kolom breakdown yang relevan; kalau sheet Affiliate-mu masih format lama tanpa kolom breakdown, kolomnya akan otomatis ditambahkan saat pertama kali disinkron ulang),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetAffiliate</code> (kolom: tokoId, bulan, targetomzetafiliasi, targetkomisi, targetsampel — target affiliate bulanan),
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">HostLive</code> (kolom: tanggal, tokoId, host, jamMulai, jamSelesai, durasi, gmv, penonton, komentar — report sesi live host, 1 baris per sesi),
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Talent</code> (kolom: tanggal, talent, take, target, catatan — take konten harian talent untuk tim creative, tidak terkait toko),
           dan <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">OKR</code> (kolom: periode, objId, objTitle, objOwner, krId, krText, krTarget, krCurrent, krUnit, krDirection, initId, initText, initDone, initDeadline, reflSoWhat, reflNowWhat — 1 baris per Initiative, jadi kolom-kolomnya "menyesuaikan" isi OKR: Objective dengan 3 Key Result & masing-masing 2 Initiative otomatis jadi 6 baris, dengan objTitle/krText diulang di tiap barisnya; kalau sheet OKR-mu masih format lama (cuma kolom periode+data), akan otomatis dimigrasikan ke format ini saat pertama kali disinkron ulang) — otomatis terisi setiap kamu menambah toko, input harian, input affiliate, atur target, atau mengubah OKR.
         </div>
       </div>
@@ -1292,6 +1435,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="wa-type-toggle">
       <button type="button" class="wa-type-btn active" id="waTypeMarketplace">📣 Report Marketplace</button>
       <button type="button" class="wa-type-btn" id="waTypeAffiliate">🤝 Report Affiliate</button>
+      <button type="button" class="wa-type-btn" id="waTypeHostlive">🎙️ Report Host Live</button>
+      <button type="button" class="wa-type-btn" id="waTypeTalent">🎬 Report Talent</button>
     </div>
 
     <label class="wa-section-label">Tanggal Report</label>
@@ -1305,7 +1450,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     </div>
     <div class="muted-note" id="waDateNote">Report ini akan pakai filter periode yang lagi aktif di halaman Overview (Hari Ini/Bulan Ini/dll).</div>
 
-    <label class="wa-section-label">Pilih Toko</label>
+    <label class="wa-section-label" id="waStoreLabel">Pilih Toko</label>
     <div class="wa-chip-grid" id="waStoreChips"></div>
 
     <label class="wa-section-label">Kolom Report</label>
@@ -2895,6 +3040,7 @@ let waReportType = 'marketplace'; // 'marketplace' | 'affiliate'
 let waDateMode = 'follow'; // 'follow' | 'custom'
 let waSelectedStores = new Set();
 let waSelectedColumns = new Set();
+let waSelectedTalents = new Set();
 
 const WA_COLUMNS_MARKETPLACE = [
   {key:'omzet', label:'Omzet'},
@@ -2909,14 +3055,30 @@ const WA_COLUMNS_AFFILIATE = [
   {key:'roi', label:'ROI'},
   {key:'sampel', label:'Sampel'},
 ];
-function waColumnsForType(){ return waReportType==='affiliate' ? WA_COLUMNS_AFFILIATE : WA_COLUMNS_MARKETPLACE; }
-function waRelevantStores(){ return waReportType==='affiliate' ? stores.filter(s=> affEntries.some(e=>e.storeId===s.id)) : stores; }
+const WA_COLUMNS_HOSTLIVE = [
+  {key:'jam', label:'Jam Live (mulai - selesai)'},
+  {key:'gmv', label:'GMV'},
+  {key:'penonton', label:'Penonton'},
+  {key:'komentar', label:'Komentar'},
+];
+const WA_COLUMNS_TALENT = [
+  {key:'take', label:'Take'},
+  {key:'target', label:'Target Take'},
+  {key:'capaian', label:'Capaian'},
+  {key:'rata', label:'Rata-rata Take/Hari'},
+];
+function waColumnsForType(){ return waReportType==='affiliate' ? WA_COLUMNS_AFFILIATE : waReportType==='hostlive' ? WA_COLUMNS_HOSTLIVE : waReportType==='talent' ? WA_COLUMNS_TALENT : WA_COLUMNS_MARKETPLACE; }
+function waTalentNames(){ return Array.from(new Set(tlEntries.map(e=>e.talent).filter(Boolean))).sort(); }
+function waRelevantStores(){ return waReportType==='affiliate' ? stores.filter(s=> affEntries.some(e=>e.storeId===s.id)) : waReportType==='hostlive' ? stores.filter(s=> hlEntries.some(e=>e.storeId===s.id)) : waReportType==='talent' ? [] : stores; }
 
 function openWaReportModal(type){
   waReportType = type;
   document.getElementById('waTypeMarketplace').classList.toggle('active', type==='marketplace');
   document.getElementById('waTypeAffiliate').classList.toggle('active', type==='affiliate');
+  document.getElementById('waTypeHostlive').classList.toggle('active', type==='hostlive');
+  document.getElementById('waTypeTalent').classList.toggle('active', type==='talent');
   waSelectedStores = new Set(waRelevantStores().map(s=>s.id));
+  waSelectedTalents = new Set(waTalentNames());
   waSelectedColumns = new Set(waColumnsForType().map(c=>c.key));
   waDateMode = 'follow';
   document.getElementById('waModeFollow').classList.add('active');
@@ -2937,6 +3099,13 @@ function renderWaModal(){
     const pm = PLATFORM_META[s.platform];
     return `<button type="button" class="wa-chip ${active?'active':''}" data-store="${s.id}">${active?'✓ ':''}${pm.icon} ${s.name}</button>`;
   }).join('') || `<span class="muted-note">Belum ada toko dengan data untuk jenis laporan ini.</span>`;
+  document.getElementById('waStoreLabel').textContent = waReportType==='talent' ? 'Pilih Talent' : 'Pilih Toko';
+  if(waReportType==='talent'){
+    document.getElementById('waStoreChips').innerHTML = waTalentNames().map(n=>{
+      const a = waSelectedTalents.has(n), q = n.replace(/"/g,'&quot;');
+      return `<button type="button" class="wa-chip ${a?'active':''}" data-talent="${q}">${a?'✓ ':''}${n}</button>`;
+    }).join('') || `<span class="muted-note">Belum ada data talent.</span>`;
+  }
 
   document.getElementById('waColumnChips').innerHTML = waColumnsForType().map(c=>{
     const active = waSelectedColumns.has(c.key);
@@ -2959,6 +3128,18 @@ document.getElementById('waColumnChips').addEventListener('click', e=>{
 });
 document.getElementById('waTypeMarketplace').addEventListener('click', ()=> openWaReportModal('marketplace'));
 document.getElementById('waTypeAffiliate').addEventListener('click', ()=> openWaReportModal('affiliate'));
+document.getElementById('waTypeHostlive').addEventListener('click', ()=> openWaReportModal('hostlive'));
+document.getElementById('waTypeTalent').addEventListener('click', ()=> openWaReportModal('talent'));
+document.getElementById('waStoreChips').addEventListener('click', e=>{
+  const btn = e.target.closest('.wa-chip[data-talent]'); if(!btn) return;
+  const n = btn.dataset.talent;
+  if(waSelectedTalents.has(n)) waSelectedTalents.delete(n); else waSelectedTalents.add(n);
+  renderWaModal();
+});
+document.getElementById('btnWaReportHostlive').addEventListener('click', ()=>{
+  const t = document.querySelector('#hlTabs .tabbtn.active');
+  openWaReportModal(t && t.dataset.hltab==='talent' ? 'talent' : 'hostlive');
+});
 document.getElementById('waModeFollow').addEventListener('click', ()=>{
   waDateMode='follow';
   document.getElementById('waModeFollow').classList.add('active');
@@ -3030,6 +3211,45 @@ function buildWaReportText(){
     if(cols.some(c=>c.key==='roas')) msg += `ROAS Rata-rata: ${roasAll.toFixed(2).replace('.',',')}x\n`;
     if(cols.some(c=>c.key==='capaian') && capaianAll!==null) msg += `Capaian Target: ${capaianAll.toFixed(0)}% (Target ${rp(totalTarget)})\n`;
     msg += `\n*Rincian per Toko:*\n${lines.join('\n\n') || '_Tidak ada toko dipilih._'}`;
+  } else if(waReportType==='hostlive'){
+    const has = k=> cols.some(c=>c.key===k);
+    const list = hlFilter(hlEntries, range).filter(e=>waSelectedStores.has(e.storeId)).sort((a,b)=>(a.tanggal+(a.jamMulai||'')).localeCompare(b.tanggal+(b.jamMulai||'')));
+    const A = hlAgg(list), MAX = 40;
+    msg += `*LAPORAN HOST LIVE*\nPeriode : ${waRangeLabel(range)}\n\n`;
+    msg += `Total Sesi Live: ${A.sesi}\n`;
+    if(has('jam')) msg += `Total Durasi Live: ${hlFmtJam(A.jam)}\n`;
+    if(has('gmv')){ msg += `Total GMV Live: ${rp(A.gmv)}\n`; if(has('jam')) msg += `GMV per Jam: ${rp(A.gmvJam)}\n`; }
+    if(has('penonton')) msg += `Total Penonton: ${A.penonton.toLocaleString('id-ID')}\n`;
+    if(has('komentar')) msg += `Total Komentar: ${A.komentar.toLocaleString('id-ID')}\n`;
+    const lines = list.slice(0,MAX).map(e=>{
+      const st = stores.find(x=>x.id===e.storeId), parts = [];
+      if(has('jam')) parts.push(`Jam : ${e.jamMulai||'-'} - ${e.jamSelesai||'-'} WIB (${hlFmtJam(e.durasi)})`);
+      if(has('gmv')) parts.push('GMV : '+rp(e.gmv));
+      if(has('penonton')) parts.push('Penonton : '+(e.penonton||0).toLocaleString('id-ID'));
+      if(has('komentar')) parts.push('Komentar : '+(e.komentar||0).toLocaleString('id-ID'));
+      return `*${e.host||'-'}* — ${st?st.name:'-'} (${drFmt(e.tanggal)})\n${parts.join('\n')}`;
+    });
+    msg += `\n*Rincian per Sesi:*\n${lines.join('\n\n') || '_Tidak ada sesi pada periode/toko yang dipilih._'}`;
+    if(list.length>MAX) msg += `\n\n_...dan ${list.length-MAX} sesi lainnya_`;
+  } else if(waReportType==='talent'){
+    const has = k=> cols.some(c=>c.key===k);
+    const list = hlFilter(tlEntries, range).filter(e=>waSelectedTalents.has(e.talent));
+    const A = tlAgg(list);
+    msg += `*LAPORAN TALENT — TAKE KONTEN*\nPeriode : ${waRangeLabel(range)}\n\n`;
+    if(has('take')) msg += `Total Take: ${A.take}\n`;
+    if(has('target')) msg += `Target Take: ${A.target||'-'}\n`;
+    if(has('capaian') && A.cap!==null) msg += `Capaian Target: ${A.cap.toFixed(0)}% (${A.take>=A.target?'lebih '+(A.take-A.target):'kurang '+(A.target-A.take)} take)\n`;
+    if(has('rata')) msg += `Rata-rata Take/Hari: ${(Math.round(A.avg*10)/10).toString().replace('.',',')} (${A.hari} hari)\n`;
+    const map = {}; list.forEach(e=>{ (map[e.talent]=map[e.talent]||[]).push(e); });
+    const lines = Object.keys(map).map(n=>Object.assign({name:n}, tlAgg(map[n]))).sort((a,b)=>b.take-a.take).map(g=>{
+      const parts = [];
+      if(has('take')) parts.push('Take : '+g.take);
+      if(has('target')) parts.push('Target : '+(g.target||'-'));
+      if(has('capaian')) parts.push('Capaian : '+(g.cap!==null?g.cap.toFixed(0)+'%':'-'));
+      if(has('rata')) parts.push('Rata-rata/Hari : '+(Math.round(g.avg*10)/10).toString().replace('.',',')+' ('+g.hari+' hari)');
+      return `*${g.name}*\n${parts.join('\n')}`;
+    });
+    msg += `\n*Rincian per Talent:*\n${lines.join('\n\n') || '_Tidak ada data pada periode/talent yang dipilih._'}`;
   } else {
     const filtered = affEntries.filter(e=> waSelectedStores.has(e.storeId) && (!range || (e.tanggal>=range.start && e.tanggal<=range.end)));
     const totalOmzet = filtered.reduce((s,x)=>s+(x.omzet||0),0);
@@ -3252,6 +3472,7 @@ function createDateRangePicker(prefix, onApply){
 
 /* ================= AFFILIATE SPECIALIST (TOTAL HARIAN) ================= */
 function populateAffStoreSelects(){
+  try{ populateHlStores(); }catch(e){ /* data Host Live belum siap saat load awal; diisi ulang di renderHostLive() */ }
   const opts = stores.map(s=>`<option value="${s.id}">${PLATFORM_META[s.platform].name} — ${s.name}</option>`).join('');
   const sel = document.getElementById('af-store');
   const keepVal = sel.value;
@@ -3567,6 +3788,218 @@ function renderAffEntries(){
 document.getElementById('btnAffEntryPrev').addEventListener('click', ()=>{ affEntryPage--; renderAffEntries(); });
 document.getElementById('btnAffEntryNext').addEventListener('click', ()=>{ affEntryPage++; renderAffEntries(); });
 
+/* ================= HOST LIVE & TALENT ================= */
+const HL_KEY = 'kh_hostlive_v2', TL_KEY = 'kh_talent_v1', TL_DEF_KEY = 'kh_tl_target_default';
+function hlLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } }
+let hlEntries = hlLoad(HL_KEY), tlEntries = hlLoad(TL_KEY);
+function saveHlEntries(){ localStorage.setItem(HL_KEY, JSON.stringify(hlEntries)); }
+function saveTlEntries(){ localStorage.setItem(TL_KEY, JSON.stringify(tlEntries)); }
+function hlFilter(list, range){ return range ? list.filter(e=> (!range.start||e.tanggal>=range.start) && (!range.end||e.tanggal<=range.end)) : list; }
+function hlToMin(t){ const m=String(t||'').match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1])*60+(+m[2]) : null; }
+function hlDurasi(a,b){ let x=hlToMin(a), y=hlToMin(b); if(x===null||y===null) return 0; if(y<=x) y+=1440; return (y-x)/60; }
+function hlFmtJam(n){ return (Math.round((n||0)*10)/10).toLocaleString('id-ID')+' jam'; }
+function hlPctTxt(a,b){ return b>0 ? (a/b*100).toFixed(1).replace('.',',')+'%' : '-'; }
+function hlAgg(list){
+  const o = {sesi:list.length, gmv:0, jam:0, penonton:0, komentar:0};
+  list.forEach(e=>{ o.gmv+=e.gmv||0; o.jam+=e.durasi||0; o.penonton+=e.penonton||0; o.komentar+=e.komentar||0; });
+  o.gmvJam = o.jam>0 ? o.gmv/o.jam : 0;
+  return o;
+}
+function tlAgg(list){
+  const o = {take:0, target:0, hari:new Set(list.map(e=>e.tanggal)).size};
+  list.forEach(e=>{ o.take+=e.take||0; o.target+=e.target||0; });
+  o.cap = o.target>0 ? o.take/o.target*100 : null;
+  o.avg = o.hari>0 ? o.take/o.hari : 0;
+  return o;
+}
+const hlEmpty = (n,m)=> `<tr><td colspan="${n}" style="text-align:center;color:var(--muted);">${m}</td></tr>`;
+function setHlTab(t){
+  document.querySelectorAll('#hlTabs .tabbtn').forEach(x=>x.classList.toggle('active', x.dataset.hltab===t));
+  document.querySelectorAll('.hl-pane').forEach(p=>p.classList.toggle('active', p.id==='hlPane-'+t));
+}
+document.querySelectorAll('#hlTabs .tabbtn').forEach(x=>x.addEventListener('click', ()=>setHlTab(x.dataset.hltab)));
+
+function populateHlStores(){
+  const sel = document.getElementById('hl-store'); if(!sel) return;
+  const opts = stores.map(s=>`<option value="${s.id}">${PLATFORM_META[s.platform].name} — ${s.name}</option>`).join('');
+  const keep = sel.value; sel.innerHTML = opts || '<option value="">Belum ada toko</option>';
+  if(stores.some(s=>s.id===keep)) sel.value = keep;
+  const f = document.getElementById('hl-filter-store'), keepF = f.value;
+  f.innerHTML = '<option value="">Semua Toko</option>'+opts; f.value = stores.some(s=>s.id===keepF) ? keepF : '';
+  document.getElementById('hlHostList').innerHTML = Array.from(new Set(hlEntries.map(e=>e.host).filter(Boolean))).sort().map(n=>`<option value="${n}">`).join('');
+  const names = Array.from(new Set(tlEntries.map(e=>e.talent).filter(Boolean))).sort();
+  document.getElementById('tlNameList').innerHTML = names.map(n=>`<option value="${n}">`).join('');
+  const tf = document.getElementById('tl-filter'), keepT = tf.value;
+  tf.innerHTML = '<option value="">Semua Talent</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join(''); tf.value = names.includes(keepT) ? keepT : '';
+}
+
+/* ---------- HOST LIVE ---------- */
+function renderHlKPI(){
+  const range = currentRangeOrNull(), cur = hlFilter(hlEntries, range), A = hlAgg(cur);
+  const prevRange = affPreviousRange(range);
+  const P = prevRange ? hlAgg(hlFilter(hlEntries, prevRange)) : null;
+  const d = (k)=> P ? deltaBadgeHTML(A[k], P[k]) : '';
+  const note = document.getElementById('hlCompareNote');
+  note.textContent = prevRange ? `Naik/turun dibandingkan ${prevRange.monthly?'bulan sebelumnya':'periode sebelumnya'} (${fmtDate(prevRange.start)} - ${fmtDate(prevRange.end)})` : 'Pilih rentang tanggal (mis. Bulan Ini) untuk melihat naik/turun vs bulan sebelumnya.';
+  const ic = {
+    clock:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    eye:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    chat:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12Z"/></svg>'};
+  document.getElementById('hlKpiRow').innerHTML =
+    kpiCardHTML({dark:true, label:'GMV Live', value:rp(A.gmv), ic:KPI_ICONS.omzet, hasTarget:false, delta:A.sesi+' sesi · GMV/jam '+rp(A.gmvJam), deltaBadge:d('gmv')}) +
+    kpiCardHTML({label:'Total Durasi Live', value:hlFmtJam(A.jam), ic:ic.clock, hasTarget:false, delta:'Rata-rata '+hlFmtJam(A.sesi?A.jam/A.sesi:0)+' / sesi', deltaBadge:d('jam')}) +
+    kpiCardHTML({label:'Total Penonton', value:A.penonton.toLocaleString('id-ID'), ic:ic.eye, hasTarget:false, delta:'Rata-rata '+Math.round(A.sesi?A.penonton/A.sesi:0).toLocaleString('id-ID')+' / sesi', deltaBadge:d('penonton')}) +
+    kpiCardHTML({label:'Total Komentar', value:A.komentar.toLocaleString('id-ID'), ic:ic.chat, hasTarget:false, delta:'Komentar / penonton '+hlPctTxt(A.komentar,A.penonton), deltaBadge:d('komentar')});
+
+  const map = {}; cur.forEach(e=>{ const k=e.host||'(Tanpa nama)'; (map[k]=map[k]||{host:k,list:[]}).list.push(e); });
+  const people = Object.values(map).map(g=>Object.assign(g, hlAgg(g.list))).sort((a,b)=>b.gmv-a.gmv);
+  document.getElementById('hlPersonBody').innerHTML = people.map(g=>`<tr><td><b>${g.host}</b></td><td>${g.sesi}</td><td>${hlFmtJam(g.jam)}</td><td>${rp(g.gmv)}</td><td>${g.penonton.toLocaleString('id-ID')}</td><td>${g.komentar.toLocaleString('id-ID')}</td><td>${hlPctTxt(g.komentar,g.penonton)}</td><td>${rp(g.gmvJam)}</td></tr>`).join('') || hlEmpty(8,'Belum ada data pada periode ini.');
+  document.getElementById('hlStoreBody').innerHTML = stores.map(s=>{
+    const l = cur.filter(e=>e.storeId===s.id); if(!l.length) return '';
+    const g = hlAgg(l), pm = PLATFORM_META[s.platform];
+    return `<tr><td><b>${s.name}</b></td><td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td><td>${g.sesi}</td><td>${hlFmtJam(g.jam)}</td><td>${rp(g.gmv)}</td><td>${g.penonton.toLocaleString('id-ID')}</td><td>${g.komentar.toLocaleString('id-ID')}</td><td>${rp(g.gmvJam)}</td></tr>`;
+  }).join('') || hlEmpty(8,'Belum ada data pada periode ini.');
+}
+const HL_PAGE_SIZE = 20; let hlPage = 1;
+function renderHlEntries(){
+  const fs = document.getElementById('hl-filter-store').value;
+  const sorted = (fs ? hlEntries.filter(e=>e.storeId===fs) : hlEntries.slice()).sort((a,b)=> (b.tanggal+(b.jamMulai||'')).localeCompare(a.tanggal+(a.jamMulai||'')));
+  document.getElementById('hlEntryCountNote').textContent = sorted.length+' sesi tercatat';
+  const pages = Math.max(1, Math.ceil(sorted.length/HL_PAGE_SIZE)); hlPage = Math.min(Math.max(hlPage,1), pages);
+  document.getElementById('hlEntryBody').innerHTML = sorted.slice((hlPage-1)*HL_PAGE_SIZE, hlPage*HL_PAGE_SIZE).map(e=>{
+    const s = stores.find(x=>x.id===e.storeId);
+    return `<tr><td>${fmtDate(e.tanggal)}</td><td>${s?s.name:'<span class="muted-note">Toko tak dikenal</span>'}</td><td>${e.host||'-'}</td><td>${e.jamMulai||'-'} - ${e.jamSelesai||'-'}</td><td>${hlFmtJam(e.durasi)}</td><td>${rp(e.gmv)}</td><td>${(e.penonton||0).toLocaleString('id-ID')}</td><td>${(e.komentar||0).toLocaleString('id-ID')}</td><td><button class="btn btn-danger-ghost btn-sm" onclick="deleteHlEntry('${e.id}', this)">Hapus</button></td></tr>`;
+  }).join('') || hlEmpty(9,'Belum ada input.');
+  document.getElementById('hlEntryPageNote').textContent = `Halaman ${hlPage} dari ${pages}`;
+  const pv=document.getElementById('btnHlPrev'), nx=document.getElementById('btnHlNext');
+  pv.disabled = hlPage<=1; nx.disabled = hlPage>=pages; pv.style.opacity = hlPage<=1?.5:1; nx.style.opacity = hlPage>=pages?.5:1;
+}
+function hlEntryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, host:e.host, jamMulai:e.jamMulai||'', jamSelesai:e.jamSelesai||'', durasi:e.durasi||0, gmv:e.gmv||0, penonton:e.penonton||0, komentar:e.komentar||0}; }
+function updateHlSummary(){
+  const dur = hlDurasi(document.getElementById('hl-start').value, document.getElementById('hl-end').value);
+  const g = rawNumber('hl-gmv'), pn = parseInt(document.getElementById('hl-penonton').value)||0, km = parseInt(document.getElementById('hl-komentar').value)||0;
+  document.getElementById('hl-summary').innerHTML =
+    `<div class="af-stat"><small>Durasi Live</small><b>${dur>0?hlFmtJam(dur):'-'}</b></div>`+
+    `<div class="af-stat"><small>GMV / Jam</small><b>${dur>0?rp(g/dur):'-'}</b></div>`+
+    `<div class="af-stat af-stat-roi"><small>Komentar / Penonton</small><b>${hlPctTxt(km,pn)}</b></div>`;
+}
+async function saveHlEntry(){
+  const st = document.getElementById('hl-sync-status');
+  const storeId = document.getElementById('hl-store').value, tanggal = document.getElementById('hl-date').value;
+  const host = document.getElementById('hl-host').value.replace(/[|]/g,'').trim();
+  const jamMulai = document.getElementById('hl-start').value, jamSelesai = document.getElementById('hl-end').value;
+  const err = m=>{ st.innerHTML = '<span style="color:var(--red);">'+m+'</span>'; };
+  if(!storeId) return err('Pilih toko dulu ya.');
+  if(!tanggal) return err('Pilih tanggal dulu ya.');
+  if(!host) return err('Isi nama host dulu ya.');
+  if(!jamMulai || !jamSelesai) return err('Isi jam mulai dan jam selesai live dulu ya.');
+  if(!HL_TIME_RE.test(jamMulai) || !HL_TIME_RE.test(jamSelesai)) return err('Format jam harus 24 jam, contoh 19:00 atau 02:30.');
+  const data = {jamSelesai, durasi:hlDurasi(jamMulai,jamSelesai), gmv:rawNumber('hl-gmv'), penonton:parseInt(document.getElementById('hl-penonton').value)||0, komentar:parseInt(document.getElementById('hl-komentar').value)||0};
+  let e = hlEntries.find(x=>x.storeId===storeId && x.tanggal===tanggal && x.host===host && x.jamMulai===jamMulai);
+  if(e) Object.assign(e, data); else { e = Object.assign({id:'hl'+Date.now(), storeId, tanggal, host, jamMulai}, data); hlEntries.push(e); }
+  saveHlEntries();
+  showSyncStatus('hl-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
+  ['hl-start','hl-end','hl-gmv','hl-penonton','hl-komentar'].forEach(id=>document.getElementById(id).value='');
+  updateHlSummary(); hlPage=1; renderHostLive();
+  if(getAppsScriptUrl()){ const r = await pushOneToSheet('hostlive', hlEntryToRow(e)); showSyncStatus('hl-sync-status', r.status==='ok'?'ok':'fail', r.message); }
+}
+async function deleteHlEntry(id, btn){
+  const e = hlEntries.find(x=>x.id===id); if(!e) return;
+  if(btn && !armConfirm(btn)) return;
+  hlEntries = hlEntries.filter(x=>x.id!==id); saveHlEntries(); renderHostLive();
+  if(getAppsScriptUrl()) await pushOneToSheet('hostlive', Object.assign(hlEntryToRow(e), {hapus:true}));
+}
+
+/* ---------- TALENT ---------- */
+function tlCapCell(take, target){
+  if(!(target>0)) return '<span class="muted-note">Belum diatur</span>';
+  const p = take/target*100;
+  return `<span class="status-tag ${p>=100?'tercapai':'kurang'}">${p.toFixed(0)}%</span>`;
+}
+function renderTlKPI(){
+  const range = currentRangeOrNull(), cur = hlFilter(tlEntries, range), A = tlAgg(cur);
+  const prevRange = affPreviousRange(range);
+  const P = prevRange ? tlAgg(hlFilter(tlEntries, prevRange)) : null;
+  const talents = new Set(cur.map(e=>e.talent)).size;
+  const kurang = Math.max(A.target-A.take,0), capOk = A.cap!==null && A.cap>=100;
+  const icFilm = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>';
+  const icUser = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+  document.getElementById('tlKpiRow').innerHTML =
+    kpiCardHTML({dark:true, label:'Total Take Konten', value:A.take.toLocaleString('id-ID')+' take', ic:icFilm, hasTarget:A.target>0,
+      targetLine:`Target: ${A.target.toLocaleString('id-ID')} take (${A.cap!==null?A.cap.toFixed(1):'0'}% tercapai)`, barPct:A.cap!==null?Math.min(A.cap,100):0,
+      remainLabel:capOk?'Melebihi target':'Sisa menuju target', remainValue:capOk?'+'+(A.take-A.target).toLocaleString('id-ID')+' take lebih':kurang.toLocaleString('id-ID')+' take lagi',
+      delta:'Akumulasi pada periode', deltaBadge:P?deltaBadgeHTML(A.take,P.take):''}) +
+    kpiCardHTML({label:'Target Take', value:A.target.toLocaleString('id-ID')+' take', ic:KPI_ICONS.roas, hasTarget:false, delta:A.hari+' hari tercatat', deltaBadge:P?deltaBadgeHTML(A.target,P.target):''}) +
+    kpiCardHTML({label:'Rata-rata Take / Hari', value:(Math.round(A.avg*10)/10).toLocaleString('id-ID'), ic:icFilm, hasTarget:false, delta:'Semua talent digabung per hari', deltaBadge:P?deltaBadgeHTML(A.avg,P.avg):''}) +
+    kpiCardHTML({label:'Talent Aktif', value:String(talents), ic:icUser, hasTarget:false, delta:'Talent yang input pada periode'});
+
+  const map = {}; cur.forEach(e=>{ (map[e.talent]=map[e.talent]||[]).push(e); });
+  const rows = Object.keys(map).map(n=>Object.assign({name:n}, tlAgg(map[n]))).sort((a,b)=>b.take-a.take);
+  document.getElementById('tlPersonBody').innerHTML = rows.map(g=>`<tr><td><b>${g.name}</b></td><td>${g.hari}</td><td>${g.take}</td><td>${g.target||'-'}</td><td>${tlCapCell(g.take,g.target)}</td><td>${(Math.round(g.avg*10)/10).toLocaleString('id-ID')}</td></tr>`).join('') || hlEmpty(6,'Belum ada data pada periode ini.');
+
+  const byD = {}; cur.forEach(e=>{ const o = byD[e.tanggal] = byD[e.tanggal]||{take:0,target:0,names:[]}; o.take+=e.take||0; o.target+=e.target||0; o.names.push(e.talent); });
+  const days = Object.keys(byD).sort().reverse().slice(0,31);
+  document.getElementById('tlDayBody').innerHTML = days.map(d=>{ const o=byD[d], sel=o.take-o.target;
+    return `<tr><td>${fmtDate(d)}</td><td>${o.names.length} talent<div class="muted-note">${o.names.slice(0,4).join(', ')}${o.names.length>4?' +'+(o.names.length-4):''}</div></td><td>${o.take}</td><td>${o.target||'-'}</td><td>${tlCapCell(o.take,o.target)}</td><td style="color:${o.target>0?(sel<0?'var(--red)':'var(--green-dark)'):'inherit'};font-weight:700;">${o.target>0?(sel<0?'kurang '+(-sel):'lebih '+sel):'-'}</td></tr>`; }).join('') || hlEmpty(6,'Belum ada data pada periode ini.');
+}
+const TL_PAGE_SIZE = 20; let tlPage = 1;
+function renderTlEntries(){
+  const f = document.getElementById('tl-filter').value;
+  const sorted = (f ? tlEntries.filter(e=>e.talent===f) : tlEntries.slice()).sort((a,b)=> b.tanggal.localeCompare(a.tanggal));
+  document.getElementById('tlEntryCountNote').textContent = sorted.length+' input tercatat';
+  const pages = Math.max(1, Math.ceil(sorted.length/TL_PAGE_SIZE)); tlPage = Math.min(Math.max(tlPage,1), pages);
+  document.getElementById('tlEntryBody').innerHTML = sorted.slice((tlPage-1)*TL_PAGE_SIZE, tlPage*TL_PAGE_SIZE).map(e=>`<tr><td>${fmtDate(e.tanggal)}</td><td>${e.talent}</td><td>${e.take||0}</td><td>${e.target||'-'}</td><td>${tlCapCell(e.take,e.target)}</td><td style="white-space:normal;min-width:160px;">${e.catatan||'<span class="muted-note">-</span>'}</td><td><button class="btn btn-danger-ghost btn-sm" onclick="deleteTlEntry('${e.id}', this)">Hapus</button></td></tr>`).join('') || hlEmpty(7,'Belum ada input.');
+  document.getElementById('tlEntryPageNote').textContent = `Halaman ${tlPage} dari ${pages}`;
+  const pv=document.getElementById('btnTlPrev'), nx=document.getElementById('btnTlNext');
+  pv.disabled = tlPage<=1; nx.disabled = tlPage>=pages; pv.style.opacity = tlPage<=1?.5:1; nx.style.opacity = tlPage>=pages?.5:1;
+}
+function tlEntryToRow(e){ return {tanggal:e.tanggal, talent:e.talent, take:e.take||0, target:e.target||0, catatan:e.catatan||''}; }
+function updateTlSummary(){
+  const t = parseInt(document.getElementById('tl-take').value)||0, g = parseInt(document.getElementById('tl-target').value)||0;
+  document.getElementById('tl-summary').innerHTML =
+    `<div class="af-stat"><small>Take</small><b>${t}</b></div><div class="af-stat"><small>Target</small><b>${g||'-'}</b></div>`+
+    `<div class="af-stat af-stat-roi"><small>Capaian</small><b>${g>0?(t/g*100).toFixed(0)+'%':'-'}</b></div>`;
+}
+async function saveTlEntry(){
+  const st = document.getElementById('tl-sync-status'), err = m=>{ st.innerHTML = '<span style="color:var(--red);">'+m+'</span>'; };
+  const tanggal = document.getElementById('tl-date').value, talent = document.getElementById('tl-name').value.replace(/[|]/g,'').trim();
+  if(!tanggal) return err('Pilih tanggal dulu ya.');
+  if(!talent) return err('Isi nama talent dulu ya.');
+  const data = {take:parseInt(document.getElementById('tl-take').value)||0, target:parseInt(document.getElementById('tl-target').value)||0, catatan:document.getElementById('tl-note').value.trim()};
+  if(data.target) localStorage.setItem(TL_DEF_KEY, String(data.target));
+  let e = tlEntries.find(x=>x.tanggal===tanggal && x.talent===talent);
+  if(e) Object.assign(e, data); else { e = Object.assign({id:'tl'+Date.now(), tanggal, talent}, data); tlEntries.push(e); }
+  saveTlEntries();
+  showSyncStatus('tl-sync-status', getAppsScriptUrl() ? 'checking' : 'nourl');
+  ['tl-name','tl-take','tl-note'].forEach(id=>document.getElementById(id).value='');
+  updateTlSummary(); tlPage=1; renderHostLive();
+  if(getAppsScriptUrl()){ const r = await pushOneToSheet('talent', tlEntryToRow(e)); showSyncStatus('tl-sync-status', r.status==='ok'?'ok':'fail', r.message); }
+}
+async function deleteTlEntry(id, btn){
+  const e = tlEntries.find(x=>x.id===id); if(!e) return;
+  if(btn && !armConfirm(btn)) return;
+  tlEntries = tlEntries.filter(x=>x.id!==id); saveTlEntries(); renderHostLive();
+  if(getAppsScriptUrl()) await pushOneToSheet('talent', Object.assign(tlEntryToRow(e), {hapus:true}));
+}
+
+function renderHostLive(){ populateHlStores(); renderHlKPI(); renderHlEntries(); renderTlKPI(); renderTlEntries(); }
+const HL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+['hl-start','hl-end'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input', ()=>{ const d=el.value.replace(/\D/g,'').slice(0,4); el.value = d.length>2 ? d.slice(0,2)+':'+d.slice(2) : d; }); });
+// tanggal default pakai tanggal lokal (WIB), bukan UTC
+document.getElementById('hl-date').value = drToISO(new Date());
+document.getElementById('tl-date').value = drToISO(new Date());
+document.getElementById('tl-target').value = localStorage.getItem(TL_DEF_KEY) || '';
+attachRibuanFormatting('hl-gmv');
+['hl-gmv','hl-start','hl-end','hl-penonton','hl-komentar'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input', updateHlSummary); el.addEventListener('change', updateHlSummary); });
+['tl-take','tl-target'].forEach(id=>document.getElementById(id).addEventListener('input', updateTlSummary));
+document.getElementById('hl-filter-store').addEventListener('change', ()=>{ hlPage=1; renderHlEntries(); });
+document.getElementById('tl-filter').addEventListener('change', ()=>{ tlPage=1; renderTlEntries(); });
+document.getElementById('btnHlPrev').addEventListener('click', ()=>{ hlPage--; renderHlEntries(); });
+document.getElementById('btnHlNext').addEventListener('click', ()=>{ hlPage++; renderHlEntries(); });
+document.getElementById('btnTlPrev').addEventListener('click', ()=>{ tlPage--; renderTlEntries(); });
+document.getElementById('btnTlNext').addEventListener('click', ()=>{ tlPage++; renderTlEntries(); });
+updateHlSummary(); updateTlSummary();
+
 /* ================= CHARTS ================= */
 let omzetSpendChartRef=null, roasTrendChartRef=null;
 let platFilter=null;                       // platform yang sedang di-klik di grafik batang (mis. 'Shopee')
@@ -3709,7 +4142,9 @@ function doGet(e){
       var affiliate = sheetToObjects(getAffiliateSheetMigrated(ss));
       var targetAffiliate = sheetToObjects(ss.getSheetByName('TargetAffiliate'));
       var okr = sheetToObjects(getOkrSheetMigrated(ss));
-      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate, okr: okr};
+      var hostlive = sheetToObjects(ss.getSheetByName('HostLive'));
+      var talent = sheetToObjects(ss.getSheetByName('Talent'));
+      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate, okr: okr, hostlive: hostlive, talent: talent};
     }catch(err){
       result = {status:'error', message:'Gagal membaca spreadsheet: '+err.message};
     }
@@ -3734,7 +4169,7 @@ function doPost(e){
 function handlePing(){
   try{
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR'];
+    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR','HostLive','Talent'];
     var existing = ss.getSheets().map(function(s){ return s.getName(); });
     var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
     return {status:'ok', spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
@@ -3744,7 +4179,7 @@ function handlePing(){
 }
 
 function handleWrite(data){
-  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel','hppSampel','hppTotal','sampelW100','sampelW200','sampelN30','sampelN60','gmvLive','gmvVideo','gmvProduk','gmvMedsos'];
+  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel','hppSampel','hppTotal','sampelW100','sampelW200','sampelN30','sampelN60','gmvLive','gmvVideo','gmvProduk','gmvMedsos','durasi','gmv','penonton','komentar','take','target'];
   NUMERIC_KEYS.forEach(function(k){ if(data[k] !== undefined && data[k] !== null && data[k] !== '') data[k] = Number(data[k]) || 0; });
   data.hapus = (data.hapus === true || data.hapus === 'true');
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -3757,6 +4192,8 @@ function handleWrite(data){
     else if(data.type === 'affiliate') upsertAffiliate(ss, data);
     else if(data.type === 'targetAffiliate') upsertTargetAffiliate(ss, data);
     else if(data.type === 'okr') upsertOkr(ss, data);
+    else if(data.type === 'hostlive') upsertHostLive(ss, data);
+    else if(data.type === 'talent') upsertTalent(ss, data);
     else return {status:'error', message:'Tipe data tidak dikenal: '+data.type};
   } catch(err){
     return {status:'error', message: 'Gagal menyimpan ke sheet "'+data.type+'": '+err.message};
@@ -3891,6 +4328,40 @@ function upsertTargetAffiliate(ss, data){
   }
   if(data.hapus) return;
   sh.appendRow([data.tokoId,data.bulan,data.targetomzetafiliasi,data.targetkomisi,data.targetsampel]);
+}
+
+// Sheet "HostLive": upsert berdasarkan (tokoId + tanggal + host + jamMulai) — 1 baris per sesi live.
+// Kolom jamMulai/jamSelesai diformat teks supaya "19:00" tidak diubah Google Sheets jadi nilai waktu.
+function upsertHostLive(ss, data){
+  var sh = getOrCreateSheet(ss, 'HostLive', ['tanggal','tokoId','host','jamMulai','jamSelesai','durasi','gmv','penonton','komentar']);
+  sh.getRange(1,4,sh.getMaxRows(),2).setNumberFormat('@');
+  var vals = [[data.tanggal,data.tokoId,data.host,data.jamMulai||'',data.jamSelesai||'',data.durasi||0,data.gmv||0,data.penonton||0,data.komentar||0]];
+  var rows = sh.getDataRange().getValues();
+  for(var i=1;i<rows.length;i++){
+    if(String(rows[i][1]).trim() === String(data.tokoId).trim() && formatCellDate(rows[i][0]) === String(data.tanggal).trim() && String(rows[i][2]).trim() === String(data.host).trim() && String(rows[i][3]).trim() === String(data.jamMulai||'').trim()){
+      if(data.hapus){ sh.deleteRow(i+1); return; }
+      sh.getRange(i+1,1,1,9).setValues(vals);
+      return;
+    }
+  }
+  if(data.hapus) return;
+  sh.appendRow(vals[0]);
+}
+
+// Sheet "Talent": upsert berdasarkan (tanggal + talent) — 1 baris per talent per hari. Tidak terkait toko.
+function upsertTalent(ss, data){
+  var sh = getOrCreateSheet(ss, 'Talent', ['tanggal','talent','take','target','catatan']);
+  var vals = [[data.tanggal,data.talent,data.take||0,data.target||0,data.catatan||'']];
+  var rows = sh.getDataRange().getValues();
+  for(var i=1;i<rows.length;i++){
+    if(formatCellDate(rows[i][0]) === String(data.tanggal).trim() && String(rows[i][1]).trim() === String(data.talent).trim()){
+      if(data.hapus){ sh.deleteRow(i+1); return; }
+      sh.getRange(i+1,1,1,5).setValues(vals);
+      return;
+    }
+  }
+  if(data.hapus) return;
+  sh.appendRow(vals[0]);
 }
 
 // Sheet "OKR": 1 SHEET, banyak kolom, menyesuaikan isi OKR — 1 baris per Initiative
@@ -4068,6 +4539,8 @@ async function pushAllToSheet(){
     for(const e of entries){ await pushOneToSheet('input', entryToRow(e)); await sleep(250); }
     for(const s of stores) for(const row of targetRowsForStore(s)){ await pushOneToSheet('target', row); await sleep(250); }
     for(const e of affEntries){ await pushOneToSheet('affiliate', affEntryToRow(e)); await sleep(250); }
+    for(const e of hlEntries){ await pushOneToSheet('hostlive', hlEntryToRow(e)); await sleep(250); }
+    for(const e of tlEntries){ await pushOneToSheet('talent', tlEntryToRow(e)); await sleep(250); }
     for(const s of stores) for(const row of targetAffRowsForStore(s)){ await pushOneToSheet('targetAffiliate', row); await sleep(250); }
     if(typeof okrPushAllPeriods === 'function') await okrPushAllPeriods();
     setSyncMsg('Semua data (Toko, Input, Target, Affiliate, Target Affiliate & OKR) berhasil dikirim ke spreadsheet.', 'var(--green-dark)');
@@ -4116,11 +4589,19 @@ async function pullFromSheet(silent){
       affEntries = json.affiliate.map((r,i)=>({ id:'af'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), omzet:parseFloat(r.omzet)||0, komisi:parseFloat(r.komisi)||0, sampel:parseInt(r.sampel)||0, hppSampel:parseFloat(r.hppSampel)||0, hppTotal:parseFloat(r.hppTotal)||0, sampelDetail:{w100:parseInt(r.sampelW100)||0, w200:parseInt(r.sampelW200)||0, n30:parseInt(r.sampelN30)||0, n60:parseInt(r.sampelN60)||0}, gmvLive:parseFloat(r.gmvLive)||0, gmvVideo:parseFloat(r.gmvVideo)||0, gmvProduk:parseFloat(r.gmvProduk)||0, gmvMedsos:parseFloat(r.gmvMedsos)||0 }));
       saveAffEntries();
     }
+    if(Array.isArray(json.hostlive)){
+      hlEntries = json.hostlive.map((r,i)=>({ id:'hl'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), host:String(r.host||''), jamMulai:String(r.jamMulai||'').slice(0,5), jamSelesai:String(r.jamSelesai||'').slice(0,5), durasi:parseFloat(r.durasi)||0, gmv:parseFloat(r.gmv)||0, penonton:parseInt(r.penonton)||0, komentar:parseInt(r.komentar)||0 }));
+      saveHlEntries();
+    }
+    if(Array.isArray(json.talent)){
+      tlEntries = json.talent.map((r,i)=>({ id:'tl'+i, tanggal:String(r.tanggal).slice(0,10), talent:String(r.talent||''), take:parseInt(r.take)||0, target:parseInt(r.target)||0, catatan:String(r.catatan||'') }));
+      saveTlEntries();
+    }
     if(Array.isArray(json.okr) && typeof okrApplyPulledRows === 'function'){
       okrApplyPulledRows(json.okr);
       if(typeof okrRenderAll === 'function') okrRenderAll();
     }
-    renderStores(); renderKPI(); renderOverviewTable(); renderEntries(); renderPerforma(); renderAffKPI(); renderAffEntries(); buildOverviewCharts();
+    renderStores(); renderKPI(); renderOverviewTable(); renderEntries(); renderPerforma(); renderAffKPI(); renderAffEntries(); renderHostLive(); buildOverviewCharts();
     if(!silent) setSyncMsg('Data terbaru dari spreadsheet berhasil dimuat.', 'var(--green-dark)');
     return {ok:true};
   }catch(err){
@@ -4153,7 +4634,7 @@ async function testConnection(){
     if(missing.length){
       html += `<br><span style="color:var(--red);">⚠️ Sheet belum ada: ${missing.join(', ')} — akan dibuat otomatis saat pertama kali ada data yang tersimpan ke sana, atau bisa dibuat manual dulu.</span>`;
     } else {
-      html += `<br><span style="color:var(--green-dark);">✓ Keenam sheet (Toko, Input, Target, Affiliate, TargetAffiliate, OKR) sudah lengkap.</span>`;
+      html += `<br><span style="color:var(--green-dark);">✓ Kedelapan sheet (Toko, Input, Target, Affiliate, TargetAffiliate, OKR, HostLive, Talent) sudah lengkap.</span>`;
     }
     resultEl.innerHTML = html;
   }catch(err){
@@ -4201,6 +4682,7 @@ drInstances.push(createDateRangePicker('ov', ()=>{ renderKPI(); renderOverviewTa
 drInstances.push(createDateRangePicker('pf', ()=>{ renderPerforma(); }));
 drInstances.push(createDateRangePicker('af', ()=>{ renderAffKPI(); }));
 drInstances.push(createDateRangePicker('lp', ()=>{ renderLaporan(); }));
+drInstances.push(createDateRangePicker('hl', ()=>{ renderHostLive(); }));
 renderStores();
 renderKPI();
 renderOverviewTable();
@@ -4208,6 +4690,7 @@ renderEntries();
 renderPerforma();
 renderAffKPI();
 renderAffEntries();
+renderHostLive();
 buildOverviewCharts();
 if(getAppsScriptUrl()) pullFromSheet(true);
 
