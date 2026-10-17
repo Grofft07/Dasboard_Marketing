@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Marketplace — Performa Toko</title>
+<title>Dashboard Marketplace — Performa Toko (v35)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -4172,7 +4172,7 @@ function handlePing(){
     var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR','HostLive','Talent'];
     var existing = ss.getSheets().map(function(s){ return s.getName(); });
     var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
-    return {status:'ok', spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
+    return {status:'ok', version:'v35', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
   }catch(err){
     return {status:'error', message: 'Ping gagal: '+err.message};
   }
@@ -4533,18 +4533,30 @@ async function pushAllToSheet(){
   const url = getAppsScriptUrl();
   if(!url){ setSyncMsg('Isi URL Web App Apps Script terlebih dahulu.', 'var(--red)'); return; }
   setSyncMsg('Mengirim semua data ke spreadsheet...', 'var(--muted)');
+  const stat = {};
+  const send = async (type, row)=>{
+    const r = await pushOneToSheet(type, row);
+    const st = stat[type] || (stat[type] = {ok:0, fail:0, msg:''});
+    if(r && r.status==='ok') st.ok++; else { st.fail++; st.msg = (r && r.message) || 'gagal'; }
+    await sleep(250); // jeda kecil antar-request supaya tidak tabrakan di Apps Script
+  };
   try{
-    // Jeda kecil antar-request (250ms) biar gak numpuk/tabrakan ke Apps Script saat kirim banyak data sekaligus.
-    for(const s of stores){ await pushOneToSheet('toko', storeToRow(s)); await sleep(250); }
-    for(const e of entries){ await pushOneToSheet('input', entryToRow(e)); await sleep(250); }
-    for(const s of stores) for(const row of targetRowsForStore(s)){ await pushOneToSheet('target', row); await sleep(250); }
-    for(const e of affEntries){ await pushOneToSheet('affiliate', affEntryToRow(e)); await sleep(250); }
-    for(const e of hlEntries){ await pushOneToSheet('hostlive', hlEntryToRow(e)); await sleep(250); }
-    for(const e of tlEntries){ await pushOneToSheet('talent', tlEntryToRow(e)); await sleep(250); }
-    for(const s of stores) for(const row of targetAffRowsForStore(s)){ await pushOneToSheet('targetAffiliate', row); await sleep(250); }
+    for(const s of stores) await send('toko', storeToRow(s));
+    for(const e of entries) await send('input', entryToRow(e));
+    for(const s of stores) for(const row of targetRowsForStore(s)) await send('target', row);
+    for(const e of affEntries) await send('affiliate', affEntryToRow(e));
+    for(const e of hlEntries) await send('hostlive', hlEntryToRow(e));
+    for(const e of tlEntries) await send('talent', tlEntryToRow(e));
+    for(const s of stores) for(const row of targetAffRowsForStore(s)) await send('targetAffiliate', row);
     if(typeof okrPushAllPeriods === 'function') await okrPushAllPeriods();
-    setSyncMsg('Semua data (Toko, Input, Target, Affiliate, Target Affiliate & OKR) berhasil dikirim ke spreadsheet.', 'var(--green-dark)');
-  }catch(err){ setSyncMsg('Sebagian gagal terkirim. Cek URL Apps Script & koneksi internet.', 'var(--red)'); }
+  }catch(err){ setSyncMsg('Pengiriman terhenti: '+err.message, 'var(--red)'); return; }
+  const failed = Object.keys(stat).filter(k=>stat[k].fail>0);
+  const total = Object.keys(stat).reduce((a,k)=>a+stat[k].ok,0);
+  if(!failed.length){
+    setSyncMsg('Selesai: '+total+' baris data berhasil dikirim ke spreadsheet.', 'var(--green-dark)');
+  } else {
+    setSyncMsg('Sebagian GAGAL — '+failed.map(k=>k+': '+stat[k].fail+' gagal ('+stat[k].msg.replace(/^Gagal tersinkron:\s*/,'')+')').join(' | ')+'. '+total+' baris lain berhasil.', 'var(--red)');
+  }
 }
 async function pullFromSheet(silent){
   const url = getAppsScriptUrl();
@@ -4589,11 +4601,11 @@ async function pullFromSheet(silent){
       affEntries = json.affiliate.map((r,i)=>({ id:'af'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), omzet:parseFloat(r.omzet)||0, komisi:parseFloat(r.komisi)||0, sampel:parseInt(r.sampel)||0, hppSampel:parseFloat(r.hppSampel)||0, hppTotal:parseFloat(r.hppTotal)||0, sampelDetail:{w100:parseInt(r.sampelW100)||0, w200:parseInt(r.sampelW200)||0, n30:parseInt(r.sampelN30)||0, n60:parseInt(r.sampelN60)||0}, gmvLive:parseFloat(r.gmvLive)||0, gmvVideo:parseFloat(r.gmvVideo)||0, gmvProduk:parseFloat(r.gmvProduk)||0, gmvMedsos:parseFloat(r.gmvMedsos)||0 }));
       saveAffEntries();
     }
-    if(Array.isArray(json.hostlive)){
+    if(Array.isArray(json.hostlive) && (json.hostlive.length>0 || hlEntries.length===0)){
       hlEntries = json.hostlive.map((r,i)=>({ id:'hl'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), host:String(r.host||''), jamMulai:String(r.jamMulai||'').slice(0,5), jamSelesai:String(r.jamSelesai||'').slice(0,5), durasi:parseFloat(r.durasi)||0, gmv:parseFloat(r.gmv)||0, penonton:parseInt(r.penonton)||0, komentar:parseInt(r.komentar)||0 }));
       saveHlEntries();
     }
-    if(Array.isArray(json.talent)){
+    if(Array.isArray(json.talent) && (json.talent.length>0 || tlEntries.length===0)){
       tlEntries = json.talent.map((r,i)=>({ id:'tl'+i, tanggal:String(r.tanggal).slice(0,10), talent:String(r.talent||''), take:parseInt(r.take)||0, target:parseInt(r.target)||0, catatan:String(r.catatan||'') }));
       saveTlEntries();
     }
@@ -4635,6 +4647,12 @@ async function testConnection(){
       html += `<br><span style="color:var(--red);">⚠️ Sheet belum ada: ${missing.join(', ')} — akan dibuat otomatis saat pertama kali ada data yang tersimpan ke sana, atau bisa dibuat manual dulu.</span>`;
     } else {
       html += `<br><span style="color:var(--green-dark);">✓ Kedelapan sheet (Toko, Input, Target, Affiliate, TargetAffiliate, OKR, HostLive, Talent) sudah lengkap.</span>`;
+    }
+    const supportsHl = Array.isArray(body.supports) && body.supports.indexOf('hostlive') !== -1;
+    if(supportsHl){
+      html += `<br><span style="color:var(--green-dark);">✓ Versi script yang ter-deploy: ${body.version} (mendukung Host Live & Talent).</span>`;
+    } else {
+      html += `<br><span style="color:var(--red);">⚠️ Script yang ter-deploy masih VERSI LAMA (tidak punya penanda versi / tidak mendukung Host Live). Tempel ulang kode terbaru dari "Lihat Kode Apps Script", lalu Deploy → Manage deployments → Edit (pensil) → Version: New version → Deploy.</span>`;
     }
     resultEl.innerHTML = html;
   }catch(err){
