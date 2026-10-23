@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Marketplace — Performa Toko (v35)</title>
+<title>Dashboard Marketplace — Performa Toko (v36)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -4172,7 +4172,7 @@ function handlePing(){
     var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR','HostLive','Talent'];
     var existing = ss.getSheets().map(function(s){ return s.getName(); });
     var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
-    return {status:'ok', version:'v35', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
+    return {status:'ok', version:'v36', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
   }catch(err){
     return {status:'error', message: 'Ping gagal: '+err.message};
   }
@@ -4446,8 +4446,19 @@ function sheetToObjects(sheet){
   for(var i=1;i<values.length;i++){
     var row = values[i]; var obj = {}; var empty = true;
     for(var j=0;j<headers.length;j++){
-      obj[headers[j]] = row[j];
-      if(row[j]!==''&&row[j]!==null&&row[j]!==undefined) empty=false;
+      var cell = row[j];
+      // Google Sheets otomatis mengubah "19:00" jadi nilai waktu & "2026-10-19" jadi tanggal. Kalau dikirim apa adanya,
+      // JSON jadi string ISO UTC (mis. 1899-12-30T05:...Z) yang bikin jam/tanggal salah baca di dashboard.
+      // Jadi normalisasi di sini: waktu -> "HH:mm", tanggal -> "yyyy-MM-dd" (pakai zona waktu script).
+      if(Object.prototype.toString.call(cell) === '[object Date]'){
+        if(cell.getFullYear() < 1950){
+          cell = ('0'+cell.getHours()).slice(-2)+':'+('0'+cell.getMinutes()).slice(-2);
+        } else {
+          cell = cell.getFullYear()+'-'+('0'+(cell.getMonth()+1)).slice(-2)+'-'+('0'+cell.getDate()).slice(-2);
+        }
+      }
+      obj[headers[j]] = cell;
+      if(cell!==''&&cell!==null&&cell!==undefined) empty=false;
     }
     if(!empty) out.push(obj);
   }
@@ -4528,6 +4539,12 @@ function showSyncStatus(elId, state, message){
   else if(state==='nourl') el.innerHTML = `<span style="color:var(--muted);">Tersimpan di dashboard saja (URL Apps Script belum diisi di menu Integrasi Sheet).</span>`;
   else el.innerHTML = '';
 }
+function hlCleanTime(v){
+  const t = String(v==null?'':v).trim();
+  const m = t.match(/^(\d{1,2}):(\d{2})/); if(m) return ('0'+m[1]).slice(-2)+':'+m[2];
+  const d = new Date(t); if(!isNaN(d.getTime())) return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+  return '';
+}
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 async function pushAllToSheet(){
   const url = getAppsScriptUrl();
@@ -4602,7 +4619,7 @@ async function pullFromSheet(silent){
       saveAffEntries();
     }
     if(Array.isArray(json.hostlive) && (json.hostlive.length>0 || hlEntries.length===0)){
-      hlEntries = json.hostlive.map((r,i)=>({ id:'hl'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), host:String(r.host||''), jamMulai:String(r.jamMulai||'').slice(0,5), jamSelesai:String(r.jamSelesai||'').slice(0,5), durasi:parseFloat(r.durasi)||0, gmv:parseFloat(r.gmv)||0, penonton:parseInt(r.penonton)||0, komentar:parseInt(r.komentar)||0 }));
+      hlEntries = json.hostlive.map((r,i)=>({ id:'hl'+i, storeId:String(r.tokoId), tanggal:String(r.tanggal).slice(0,10), host:String(r.host||''), jamMulai:hlCleanTime(r.jamMulai), jamSelesai:hlCleanTime(r.jamSelesai), durasi:parseFloat(r.durasi)||0, gmv:parseFloat(r.gmv)||0, penonton:parseInt(r.penonton)||0, komentar:parseInt(r.komentar)||0 }));
       saveHlEntries();
     }
     if(Array.isArray(json.talent) && (json.talent.length>0 || tlEntries.length===0)){
