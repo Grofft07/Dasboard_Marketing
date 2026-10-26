@@ -742,6 +742,11 @@ input[type=text],input[type=number],input[type=date],input[type=month],input[typ
 .rem-btn b span{color:var(--panel);}
 .rem-card{border-radius:12px;}
 
+/* ---- Perbaikan tambahan ---- */
+.kpi .value{font-size:clamp(19px,1.7vw,25px);overflow-wrap:anywhere;}
+.lap-kpi-grid .card.kpi .value{font-size:clamp(18px,1.5vw,21px);}
+.store-avatar{box-shadow:0 0 0 1px var(--line);}
+
 /* ---- Cetak tetap putih ---- */
 @media print{
   :root,:root[data-theme="light"],:root:not([data-theme]){--bg:#fff;--panel:#fff;--text:#12161C;--muted:#5B6577;--line:#DCE7E1;}
