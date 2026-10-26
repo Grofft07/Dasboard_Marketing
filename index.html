@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Marketplace — Performa Toko (v36)</title>
+<title>Dashboard Marketplace — Performa Toko (v37 · Gaya Iklan)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
@@ -21,7 +21,7 @@
   --radius:16px; --shadow:0 2px 14px rgba(16,40,28,.05);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;letter-spacing:.01em;-webkit-font-smoothing:antialiased;}
+body{background:var(--bg);color:var(--text);font-family:'Roboto',sans-serif;font-size:14.5px;letter-spacing:.01em;-webkit-font-smoothing:antialiased;}
 ::-webkit-scrollbar{width:8px;height:8px;}
 ::-webkit-scrollbar-thumb{background:#CBD8D0;border-radius:4px;}
 .app{display:flex;min-height:100vh;}
@@ -522,17 +522,253 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 .rem-sec li{margin:4px 0;}
 .hl-pane{display:none;}
 .hl-pane.active{display:block;}
+
+/* =====================================================================
+   TEMA "GAYA DASHBOARD IKLAN" — override tampilan saja (font, warna, komponen).
+   Logika data / JS tidak diubah.
+   ===================================================================== */
+:root{
+  --bg:#0F1115; --panel:#171B22; --panel-2:#1D222B; --line:#2A3040;
+  --text:#E7E9EE; --muted:#8B93A7; --muted-2:#5C6678;
+  --green:#22C55E; --greendark:#15803D; --green-dark:#4ADE80; --green-light:rgba(34,197,94,.15);
+  --yellow:#F5C518; --red:#EF4444; --blue:#38BDF8; --purple:#A78BFA;
+  --good-bg:rgba(34,197,94,.15); --warn-bg:rgba(245,197,24,.15); --bad-bg:rgba(239,68,68,.15);
+  --warn-text:#F5C518; --c-spend:#FB923C; --c-hpp:#E0B04A;
+  --neutral-bg:rgba(255,255,255,.07);
+  --scrollbar:#2A3343; --td-border:#1D2531;
+  --chart-grid:#1D2531; --chart-tick:#5C6678;
+  --th-text:#0B0F14;
+  --report-preview-bg:#0B0F14; --report-preview-text:#A8E6C5;
+  --row-odd:rgba(255,255,255,.015); --row-hover:rgba(34,197,94,.06);
+  --overlay-bg:rgba(0,0,0,.6);
+  --shadow-card:none; --shadow:none;
+  --accent:var(--green); --accent-dim:var(--greendark);
+  --kpi-grad:linear-gradient(135deg,#0E3B26 0%,#1D9A5C 100%);
+  --kpi-grad-text:#F2FBF6; --kpi-grad-sub:rgba(242,251,246,.72);
+  --shopee-bg:rgba(238,77,45,.16); --tiktok:#E7E9EE; --tiktok-bg:rgba(255,255,255,.09);
+  --lazada:#8B93FF; --lazada-bg:rgba(139,147,255,.16);
+  --sidebar:var(--panel); --sidebar-2:var(--panel-2); --sidebar-line:var(--line); --sidebar-text:var(--muted);
+  --radius:10px;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#F4F8F6; --panel:#FFFFFF; --panel-2:#EEF6F1; --line:#DCE7E1;
+  --text:#12161C; --muted:#5B6577; --muted-2:#9AA3B2;
+  --green:#16A34A; --greendark:#166534; --green-dark:#166534; --green-light:rgba(22,163,74,.12);
+  --yellow:#B8860B; --red:#D7384F; --blue:#2B6FE0; --purple:#7A56E0;
+  --good-bg:rgba(22,163,74,.12); --warn-bg:rgba(184,134,11,.14); --bad-bg:rgba(215,56,79,.10);
+  --warn-text:#8A6400; --c-spend:#C2570C; --c-hpp:#A8741A;
+  --neutral-bg:#EEF1F4;
+  --scrollbar:#C7CEDA; --td-border:#E3E7EE;
+  --chart-grid:#E3E7EE; --chart-tick:#7A8494;
+  --th-text:#FFFFFF;
+  --row-odd:rgba(20,30,50,.02); --row-hover:rgba(22,163,74,.06);
+  --overlay-bg:rgba(20,26,38,.45);
+  --shadow-card:0 1px 2px rgba(20,30,50,.05); --shadow:0 1px 2px rgba(20,30,50,.05);
+  --shopee-bg:#FDEAE5; --tiktok:#111111; --tiktok-bg:#EFEFEF;
+  --lazada:#0F146D; --lazada-bg:#EAEBF7;
+  color-scheme:light;
+}
+
+/* ---- Font & dasar ---- */
+body{font-family:'Roboto',sans-serif;font-size:15px;line-height:1.6;letter-spacing:.01em;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;transition:background .2s ease,color .2s ease;}
+button,input,select,textarea{font-family:'Roboto',sans-serif;}
+::-webkit-scrollbar-thumb{background:var(--scrollbar);}
+
+/* ---- Tombol tema (gelap/terang) ---- */
+.theme-toggle{display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:3px;}
+.theme-toggle-btn{flex:1;display:flex;align-items:center;justify-content:center;height:28px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:14px;background:none;border:none;}
+.theme-toggle-btn.active{background:var(--green);color:#06150E;}
+.sidebar-foot .theme-toggle{margin-bottom:10px;}
+
+/* ---- Sidebar ---- */
+.sidebar{width:220px;background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;overflow-y:auto;}
+.brand{gap:10px;padding:6px 8px 22px 8px;}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);flex-shrink:0;}
+.brand span{font-weight:700;font-size:15px;letter-spacing:.3px;color:var(--text);}
+.nav-label{display:none;}
+.navbtn{gap:10px;padding:10px 12px;border-radius:8px;color:var(--muted);font-size:14px;font-weight:500;border:1px solid transparent;user-select:none;}
+.navbtn:hover{background:var(--panel-2);color:var(--text);}
+.navbtn.active{background:var(--accent-dim);color:#EAFFF2;border-color:var(--accent);}
+.navbtn.active::before{display:none;}
+.navbtn .ic{width:16px;font-size:14px;}
+.sidebar-foot{border-top:1px solid var(--line);}
+.btn-sidebar-refresh{background:var(--panel-2);color:var(--text);border:1px solid var(--line);}
+.btn-sidebar-refresh:hover{background:var(--panel-2);border-color:var(--green);}
+#globalRefreshNote{color:var(--muted);}
+.user-mini b{color:var(--text);}
+.user-mini span{color:var(--muted);}
+
+/* ---- Main & header halaman (gaya filterbar Iklan) ---- */
+.main{padding:24px 30px 50px 30px;max-width:1900px;margin:0;}
+.page.active{animation:fadeIn .25s ease;}
+.topbar{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;box-shadow:var(--shadow-card);}
+.topbar h1{font-size:20px;font-weight:700;}
+.topbar .sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+/* ---- Tombol ---- */
+.btn{border-radius:7px;padding:9px 15px;font-size:13.5px;font-weight:700;gap:6px;transition:opacity .15s,transform .1s;}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--green);color:#06201C;}
+.btn-primary:hover{background:var(--green);opacity:.88;}
+.btn-ghost{background:var(--panel-2);color:var(--text);border:1px solid var(--line);}
+.btn-ghost:hover{background:var(--panel-2);border-color:var(--green);}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:7px;}
+.btn-danger-ghost{background:var(--bad-bg);color:var(--red);border:1px solid color-mix(in srgb,var(--red) 35%,var(--line));}
+.btn-wa{color:#fff;}
+.btn-sidebar-refresh{padding:8px 12px;}
+
+/* ---- Date range picker (mirip daterange Iklan) ---- */
+.dr-trigger{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px 8px 14px;font-size:13px;font-weight:600;box-shadow:none;gap:9px;white-space:nowrap;}
+.dr-trigger:hover{background:var(--panel-2);border-color:var(--green);}
+.dr-dot{width:20px;height:20px;border-radius:50%;background:var(--green);margin-left:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dr-dot::after{content:'▾';font-size:10px;color:#06150E;line-height:1;}
+.dr-panel{background:var(--panel);border-radius:12px;box-shadow:0 18px 44px rgba(0,0,0,.35);}
+.dr-preset-btn{border-radius:7px;font-size:12.5px;font-weight:500;color:var(--muted);}
+.dr-preset-btn:hover{background:var(--panel-2);color:var(--text);}
+.dr-preset-btn.active{background:var(--accent-dim);color:#EAFFF2;font-weight:700;}
+.dr-nav-btn{background:none;border:none;color:var(--muted);border-radius:6px;}
+.dr-nav-btn:hover{background:var(--panel-2);color:var(--text);}
+.dr-cal-titles span{font-weight:700;font-size:13.5px;}
+.dr-day{border-radius:6px;font-size:12px;}
+.dr-day.dr-in-range{background:color-mix(in srgb,var(--green) 22%,var(--panel));border-radius:0;}
+.dr-day.dr-start,.dr-day.dr-end{background:var(--green);color:#06150E;font-weight:700;}
+.dr-day.dr-start{border-radius:6px 0 0 6px;}
+.dr-day.dr-end{border-radius:0 6px 6px 0;}
+.dr-day.dr-single{border-radius:6px;}
+.dr-footer{background:var(--panel-2);}
+
+/* ---- Judul seksi, kartu, grid ---- */
+.section-header{margin:30px 0 14px;}
+.section-header:first-of-type{margin-top:6px;}
+.section-header h2{font-size:19px;font-weight:700;}
+.muted-note{font-size:12.5px;line-height:1.55;}
+.grid{gap:14px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow-card);}
+.panel-title{font-size:14.5px;font-weight:700;}
+.panel-desc{font-size:12.5px;line-height:1.5;}
+.insight-box{border-radius:12px;}
+.crosscheck-item,.lap-box,.af-sampel-box,.trend-detail{border-radius:10px;}
+.mini-stat-card{border-radius:10px;}
+
+/* ---- Kartu KPI: semua gradien hijau seperti Iklan ---- */
+.card.kpi,.card.kpi.dark{background:var(--kpi-grad);border:none;color:var(--kpi-grad-text);overflow:hidden;}
+.kpi .label,.kpi.dark .label{color:var(--kpi-grad-sub);font-size:11.5px;font-weight:600;letter-spacing:.05em;}
+.kpi .value{font-size:25px;font-weight:700;line-height:1.25;color:var(--kpi-grad-text);}
+.lap-kpi-grid .card.kpi .value{font-size:21px;}
+.kpi .ic-badge{background:rgba(255,255,255,.18);color:var(--kpi-grad-text);}
+.kpi .delta.up,.kpi .mini-delta.up{background:rgba(255,255,255,.18);color:#EFFFF4;}
+.kpi .delta.down,.kpi .mini-delta.down{background:rgba(255,255,255,.28);color:#fff;}
+.kpi .kpi-status-badge,.kpi .kpi-status-badge.warn{background:rgba(255,255,255,.18);color:#fff;}
+.kpi .kpi-target-line,.kpi .kpi-remain-row,.kpi .kpi-extra-line{color:var(--kpi-grad-sub);}
+.kpi .kpi-remain-row b{color:#fff;}
+.kpi .kpi-progress-track{background:rgba(255,255,255,.22);}
+.kpi .kpi-progress-fill{background:#fff;}
+.kpi .kpi-progress-fill.warn{background:#FFB4A8;}
+.kpi .muted-note{color:var(--kpi-grad-sub);}
+.card.kpi:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.20);}
+.lap-acc{width:28px;}
+.lap-ins{background:var(--kpi-grad);border-radius:12px;box-shadow:none;}
+
+/* ---- Tab (gaya period-btns Iklan) ---- */
+.tabbar{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px;}
+.tabbtn{padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--muted);}
+.tabbtn.active{background:var(--green);color:#06150E;}
+.wa-type-btn,.wa-mode-btn,.wa-chip{border-radius:8px;}
+.wa-type-btn.active,.wa-mode-btn.active{background:var(--green);border-color:var(--green);color:#06150E;}
+.wa-chip.active{background:var(--greendark);border-color:var(--greendark);color:#EAFFF2;}
+
+/* ---- Pill, tag, status ---- */
+.plat-pill{border-radius:6px;}
+.status-tag{border-radius:6px;}
+.status-tag.nonaktif,.tg-status{background:var(--neutral-bg);color:var(--muted);}
+.status-tag.kurang,.kpi-status-badge.warn,.kpi .delta.down,.mini-delta.down{background:var(--bad-bg);color:var(--red);}
+.tg-status.ok{background:var(--green-light);color:var(--green-dark);}
+.kpi .kpi-status-badge.warn,.kpi .mini-delta.down,.kpi .delta.down{background:rgba(255,255,255,.28);color:#fff;}
+
+/* ---- Kartu toko ---- */
+.store-card{border-radius:12px;padding:18px 20px;}
+.sc-block{border-radius:10px;}
+.sc-block.target,.sc-mini>.sc-v.tg,.sc-mini>.sc-rl.tg{background:color-mix(in srgb,var(--green) 8%,var(--panel));}
+.sc-block.target{border-color:color-mix(in srgb,var(--green) 28%,var(--line));}
+.sc-mini{border-radius:10px;}
+
+/* ---- Tabel (header hijau gradien seperti Iklan) ---- */
+table{font-size:13.5px;}
+th{background:linear-gradient(180deg,var(--green),var(--greendark));color:var(--th-text);font-weight:700;font-size:11.5px;letter-spacing:.03em;padding:11px 12px;border-bottom:none;}
+th:first-child{border-radius:8px 0 0 0;}
+th:last-child{border-radius:0 8px 0 0;}
+td{padding:11px 12px;border-bottom:1px solid var(--td-border);line-height:1.5;}
+tbody tr:nth-child(even){background:transparent;}
+tbody tr:nth-child(odd){background:var(--row-odd);}
+tbody tr:hover{background:var(--row-hover);}
+th.th-sortable:hover{background:linear-gradient(180deg,var(--green),var(--greendark));filter:brightness(1.1);}
+td.c-spend{color:var(--c-spend);}
+td.c-hpp{color:var(--c-hpp);}
+td.score-good{background:var(--good-bg);color:var(--green-dark);}
+td.score-mid{background:var(--warn-bg);color:var(--warn-text);}
+td.score-bad{background:var(--bad-bg);color:var(--red);}
+#targetListBody tr.tg-active td,#targetAffListBody tr.tg-active td{background:var(--green-light);}
+.trend-detail th:first-child,.trend-detail th:last-child{border-radius:0;}
+
+/* ---- Input & form ---- */
+input[type=text],input[type=number],input[type=date],input[type=month],input[type=search],select,textarea{border-radius:7px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);}
+.tbl-tools input[type=search]{border-radius:7px;}
+.field label,.quick-form label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.tg-nav{background:var(--panel-2);border-radius:7px;}
+.trend-chip{background:var(--panel);}
+
+/* ---- Modal ---- */
+.overlay{background:var(--overlay-bg);backdrop-filter:blur(2px);}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+.modal h3{font-size:15.5px;font-weight:700;}
+.code-block{background:var(--report-preview-bg);color:var(--report-preview-text);border:1px solid var(--line);border-radius:10px;}
+
+/* ---- OKR: datar (tanpa efek tombol 3D) ---- */
+.okr-obj-card{border-radius:12px;box-shadow:var(--shadow-card);}
+.okr-icon-btn,.okr-kr-mini-btn,.okr-refl-btn{background:var(--panel-2);box-shadow:none;border-radius:8px;}
+.okr-icon-btn:hover,.okr-kr-mini-btn:hover,.okr-refl-btn:hover{box-shadow:none;transform:none;border-color:var(--green);}
+.okr-refl-btn:hover{border-color:var(--blue);}
+.okr-icon-btn:active,.okr-kr-mini-btn:active,.okr-refl-btn:active{transform:none;box-shadow:none;}
+.okr-icon-btn.danger:hover{border-color:var(--red);}
+.okr-score-chip{box-shadow:none;}
+.okr-score-chip.warn,.okr-init-deadline.soon{color:var(--warn-text);}
+.okr-deadline-banner{border:1px solid color-mix(in srgb,var(--red) 30%,var(--line));}
+
+/* ---- Reminder ---- */
+.rem-btn.red{background:var(--bad-bg);color:var(--red);border-color:color-mix(in srgb,var(--red) 40%,var(--line));}
+.rem-btn.amber{background:var(--warn-bg);color:var(--yellow);border-color:color-mix(in srgb,var(--yellow) 45%,var(--line));}
+.rem-btn.green{background:var(--good-bg);color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,var(--line));}
+.rem-btn b span{color:var(--panel);}
+.rem-card{border-radius:12px;}
+
+/* ---- Cetak tetap putih ---- */
+@media print{
+  :root,:root[data-theme="light"],:root:not([data-theme]){--bg:#fff;--panel:#fff;--text:#12161C;--muted:#5B6577;--line:#DCE7E1;}
+  .theme-toggle{display:none!important;}
+}
 </style>
+<script>
+/* Tema: sama seperti Dashboard Iklan (kunci 'dashTheme', default terang) */
+try{ if(localStorage.getItem("dashTheme")!=="dark"){ document.documentElement.setAttribute("data-theme","light"); } }
+catch(e){ document.documentElement.setAttribute("data-theme","light"); }
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function applyChartDefaults(){
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.font.family="'Roboto',sans-serif";
+  Chart.defaults.color=cssVar('--chart-tick');
+  Chart.defaults.borderColor=cssVar('--chart-grid');
+}
+applyChartDefaults();
+</script>
+
 </head>
 <body>
 <div class="app">
 
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="brand">
-      <div class="logo">🛍️</div>
-      <div><b>Dashboard Marketplace</b><span>Omzet · Spending · ROAS</span></div>
-    </div>
+    <div class="brand"><div class="dot"></div><span>DASHBOARD MARKETPLACE</span></div>
     <div class="nav-label">Menu</div>
     <div class="navbtn active" data-page="overview"><span class="ic">◧</span> Overview</div>
     <div class="navbtn" data-page="toko"><span class="ic">🏬</span> Toko &amp; Target</div>
@@ -543,6 +779,10 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
     <div class="navbtn" data-page="laporan"><span class="ic">📝</span> Laporan</div>
     <div class="navbtn" data-page="integrasi"><span class="ic">🔗</span> Integrasi Sheet</div>
     <div class="sidebar-foot">
+      <div class="theme-toggle" id="themeToggle" title="Mode tampilan">
+        <button class="theme-toggle-btn" id="btnThemeDark" type="button" title="Mode Gelap">🌙</button>
+        <button class="theme-toggle-btn" id="btnThemeLight" type="button" title="Mode Terang">☀️</button>
+      </div>
       <button class="btn btn-sm btn-sidebar-refresh" id="btnGlobalRefresh"><span class="ic-spin">🔄</span> Refresh Data</button>
       <div id="globalRefreshNote"></div>
       <div class="user-mini">
@@ -604,7 +844,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
           <div class="panel-title">Tren Harian</div>
           <div class="panel-desc">30 hari terakhir pada filter, semua toko digabung · <b>klik titik</b> untuk detail per toko di tanggal itu</div>
           <div class="trend-chips" id="trendChips">
-            <button class="trend-chip on" data-k="omzet" style="--c:#2FA85A">Omzet</button>
+            <button class="trend-chip on" data-k="omzet" style="--c:var(--green)">Omzet</button>
             <button class="trend-chip on" data-k="spending" style="--c:#F2B705">Spending</button>
             <button class="trend-chip on" data-k="roas" style="--c:#7A56E0">ROAS</button>
           </div>
@@ -1160,7 +1400,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
       <div class="card">
         <div class="panel-title">Integrasi Spreadsheet (Google Apps Script)</div>
         <div class="panel-desc">Data Toko, Input Harian &amp; OKR tersinkron otomatis ke Google Sheets, bisa diakses dari device manapun.</div>
-        <div style="background:var(--green-light);border:1px solid #CDEBD3;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.3px;color:#1B5E33;display:flex;gap:8px;">
+        <div style="background:var(--green-light);border:1px solid color-mix(in srgb,var(--green) 35%,var(--line));border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.3px;color:var(--green-dark);display:flex;gap:8px;">
           <span>ℹ️</span><span><b>Auto-Sync Aktif:</b> setiap dashboard dibuka, data terbaru otomatis ditarik dari spreadsheet (asal URL sudah diisi).</span>
         </div>
         <div class="field">
@@ -1175,7 +1415,7 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
         </div>
         <div id="sheetSyncMsg" class="muted-note" style="margin-top:10px;"></div>
         <div id="sheetTestResult" class="muted-note" style="margin-top:6px;line-height:1.7;"></div>
-        <div style="background:#FCEEEC;border:1px solid #F7D9D5;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.3px;color:#8A2E1F;display:flex;gap:8px;">
+        <div style="background:var(--bad-bg);border:1px solid color-mix(in srgb,var(--red) 35%,var(--line));border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.3px;color:var(--red);display:flex;gap:8px;">
           <span>⚠️</span><span><b>Penyebab paling sering data "hilang":</b> setelah mengubah/tempel ulang kode Apps Script, URL lama TIDAK otomatis terupdate. Harus lewat <b>Deploy → Manage deployments → ikon pensil (Edit) → Version: New version → Deploy</b>, bukan bikin deployment baru (nanti URL-nya beda lagi). Selalu klik tombol <b>Tes Koneksi</b> di atas setelah deploy untuk memastikan benar-benar tersambung.</span>
         </div>
         <div class="muted-note" style="margin-top:16px;line-height:1.7;">
@@ -2525,12 +2765,12 @@ function renderLaporan(){
   D.af.forEach(e=>{ const d=byD[e.tanggal]=byD[e.tanggal]||{o:0,s:0,a:0}; d.a+=e.omzet||0; });
   const dates=Object.keys(byD).sort().slice(-45);
   lapChart('laporanTrendChart',{type:'line',data:{labels:dates.map(d=>fmtDate(d).slice(0,6)),datasets:[
-    {label:'Omzet Marketplace',data:dates.map(d=>byD[d].o),borderColor:'#2FA85A',backgroundColor:'#2FA85A22',fill:true,tension:.35,pointRadius:0,borderWidth:2},
-    {label:'Spending',data:dates.map(d=>byD[d].s),borderColor:'#F2B705',backgroundColor:'transparent',tension:.35,pointRadius:0,borderWidth:2},
-    {label:'Omzet Affiliate',data:dates.map(d=>byD[d].a),borderColor:'#7A56E0',backgroundColor:'transparent',tension:.35,pointRadius:0,borderWidth:2}]},
+    {label:'Omzet Marketplace',data:dates.map(d=>byD[d].o),borderColor:cssVar('--green'),backgroundColor:cssVar('--green')+'22',fill:true,tension:.35,pointRadius:0,borderWidth:2},
+    {label:'Spending',data:dates.map(d=>byD[d].s),borderColor:cssVar('--yellow'),backgroundColor:'transparent',tension:.35,pointRadius:0,borderWidth:2},
+    {label:'Omzet Affiliate',data:dates.map(d=>byD[d].a),borderColor:cssVar('--purple'),backgroundColor:'transparent',tension:.35,pointRadius:0,borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+rp(c.parsed.y)}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:10}},y:{grid:{color:'#EEF3EF'},ticks:{font:{size:10},callback:v=>'Rp'+(v/1000000).toFixed(0)+'jt'}}}}});
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:10}},y:{grid:{color:cssVar('--chart-grid')},ticks:{font:{size:10},callback:v=>'Rp'+(v/1000000).toFixed(0)+'jt'}}}}});
 
   /* --- Tab Marketplace --- */
   const plat=r=>`<span class="plat-pill ${r.pm.bgClass}"><span class="plat-dot ${r.pm.bgClass}"></span>${r.pm.name}</span>`;
@@ -2548,11 +2788,11 @@ function renderLaporan(){
   document.getElementById('laporanMkBody').innerHTML = body || empty(8,'Tidak ada data pada periode ini');
   const barCfg=(list,kO,kT,colO)=>({type:'bar',data:{labels:list.map(r=>r.s.name),datasets:[
       {label:'Realisasi',data:list.map(r=>r[kO]),backgroundColor:colO,borderRadius:5,maxBarThickness:22},
-      {label:'Target',data:list.map(r=>kT==='tg'?r.tg.omzet:r.tga.omzet),backgroundColor:'#C9D6CE',borderRadius:5,maxBarThickness:22}]},
+      {label:'Target',data:list.map(r=>kT==='tg'?r.tg.omzet:r.tga.omzet),backgroundColor:'rgba(139,147,167,.45)',borderRadius:5,maxBarThickness:22}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+rp(c.parsed.x)}}},
-      scales:{x:{grid:{color:'#EEF3EF'},ticks:{font:{size:10},callback:v=>'Rp'+(v/1000000).toFixed(0)+'jt'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+      scales:{x:{grid:{color:cssVar('--chart-grid')},ticks:{font:{size:10},callback:v=>'Rp'+(v/1000000).toFixed(0)+'jt'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
   document.getElementById('laporanMkBarWrap').style.height=Math.max(220,mkRows.length*46+70)+'px';
-  lapChart('laporanMkBarChart',barCfg(mkRows,'omzet','tg','#2FA85A'));
+  lapChart('laporanMkBarChart',barCfg(mkRows,'omzet','tg',cssVar('--green')));
 
   /* --- Tab Affiliate --- */
   const afRows=rows.filter(r=>r.hasA||r.tga.omzet>0);
@@ -3023,12 +3263,12 @@ function renderStoreDetail(){
     storeDetailChartRef = new Chart(ctx, {
       type:'line',
       data:{ labels:trendLabels, datasets:[
-        { label:'Omzet', data:trendOmzet, borderColor:'#2FA85A', backgroundColor:'rgba(47,168,90,.12)', fill:true, tension:.4, pointRadius:2 },
+        { label:'Omzet', data:trendOmzet, borderColor:cssVar('--green'), backgroundColor:cssVar('--green')+'20', fill:true, tension:.4, pointRadius:2 },
         { label:'Spending', data:trendSpend, borderColor:'#2F86EB', borderDash:[4,3], backgroundColor:'transparent', fill:false, tension:.4, pointRadius:2 },
       ]},
       options:{ responsive:true, maintainAspectRatio:false,
         plugins:{ legend:{ position:'top', align:'end', labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11}} } },
-        scales:{ y:{ grid:{color:'#EEF3EF'}, ticks:{ callback:v=>'Rp'+(v/1000000).toFixed(1)+'jt', font:{size:9.5} } }, x:{ grid:{display:false}, ticks:{font:{size:9.5}} } }
+        scales:{ y:{ grid:{color:cssVar('--chart-grid')}, ticks:{ callback:v=>'Rp'+(v/1000000).toFixed(1)+'jt', font:{size:9.5} } }, x:{ grid:{display:false}, ticks:{font:{size:9.5}} } }
       }
     });
   }
@@ -4018,7 +4258,7 @@ function buildOverviewCharts(){
   omzetSpendChartRef = new Chart(document.getElementById('omzetSpendChart'), {
     type:'bar',
     data:{ labels:PLAT_LABELS, datasets:[
-      {label:'Omzet', data:omzetData, backgroundColor:ctx=>dim('#2FA85A',ctx), borderRadius:6, maxBarThickness:34},
+      {label:'Omzet', data:omzetData, backgroundColor:ctx=>dim(cssVar('--green'),ctx), borderRadius:6, maxBarThickness:34},
       {label:'Spending', data:spendData, backgroundColor:ctx=>dim('#F2B705',ctx), borderRadius:6, maxBarThickness:34},
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
@@ -4038,7 +4278,7 @@ function buildOverviewCharts(){
           label:c=> c.dataset.label+': '+rp(c.parsed.y),
           afterBody:items=>{ const i=items[0].dataIndex; const o=omzetData[i], s=spendData[i]; return 'ROAS: '+(s>0?(o/s).toFixed(2)+'x':'-'); }
         } } },
-      scales:{ y:{ grid:{color:'#EEF3EF'}, ticks:{ callback:v=> 'Rp'+(v/1000000).toFixed(0)+'jt', font:{size:10.5} } }, x:{ grid:{display:false} } }
+      scales:{ y:{ grid:{color:cssVar('--chart-grid')}, ticks:{ callback:v=> 'Rp'+(v/1000000).toFixed(0)+'jt', font:{size:10.5} } }, x:{ grid:{display:false} } }
     }
   });
 
@@ -4057,9 +4297,9 @@ function buildOverviewCharts(){
   roasTrendChartRef = new Chart(document.getElementById('roasTrendChart'), {
     type:'line',
     data:{ labels, datasets:[
-      {label:'Omzet', data:omzetS, yAxisID:'y', borderColor:'#2FA85A', backgroundColor:'rgba(47,168,90,.10)', fill:true, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.omzet},
-      {label:'Spending', data:spendS, yAxisID:'y', borderColor:'#F2B705', backgroundColor:'rgba(242,183,5,.08)', fill:false, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.spending},
-      {label:'ROAS', data:roasS, yAxisID:'y1', borderColor:'#7A56E0', borderDash:[5,4], fill:false, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.roas},
+      {label:'Omzet', data:omzetS, yAxisID:'y', borderColor:cssVar('--green'), backgroundColor:cssVar('--green')+'1A', fill:true, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.omzet},
+      {label:'Spending', data:spendS, yAxisID:'y', borderColor:cssVar('--yellow'), backgroundColor:'rgba(242,183,5,.08)', fill:false, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.spending},
+      {label:'ROAS', data:roasS, yAxisID:'y1', borderColor:cssVar('--purple'), borderDash:[5,4], fill:false, tension:.35, pointRadius:pr, pointHoverRadius:6, hidden:!trendOn.roas},
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
       onHover:(e,els)=>{ e.native.target.style.cursor = 'pointer'; },
@@ -4073,7 +4313,7 @@ function buildOverviewCharts(){
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{ title:items=> fmtDate(dates[items[0].dataIndex]), label:c=> c.dataset.label+': '+(c.dataset.label==='ROAS' ? c.parsed.y.toFixed(2)+'x' : rp(c.parsed.y)) } } },
       scales:{
-        y:{ position:'left', display:trendOn.omzet||trendOn.spending, grid:{color:'#EEF3EF'}, ticks:{ callback:v=> 'Rp'+(v/1000000).toFixed(0)+'jt', font:{size:10} } },
+        y:{ position:'left', display:trendOn.omzet||trendOn.spending, grid:{color:cssVar('--chart-grid')}, ticks:{ callback:v=> 'Rp'+(v/1000000).toFixed(0)+'jt', font:{size:10} } },
         y1:{ position:'right', display:trendOn.roas, grid:{drawOnChartArea:false}, ticks:{ callback:v=>v+'x', font:{size:10} } },
         x:{ grid:{display:false}, ticks:{font:{size:9.5}, maxRotation:0, autoSkip:true} } }
     }
@@ -4683,21 +4923,21 @@ const globalRefreshNote = document.getElementById('globalRefreshNote');
 function fmtJamSingkat(){ return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}); }
 async function doGlobalRefresh(){
   const url = getAppsScriptUrl();
-  if(!url){ globalRefreshNote.textContent = 'Atur dulu URL Spreadsheet di menu Integrasi Sheet'; globalRefreshNote.style.color = '#F2B8A8'; return; }
+  if(!url){ globalRefreshNote.textContent = 'Atur dulu URL Spreadsheet di menu Integrasi Sheet'; globalRefreshNote.style.color = 'var(--red)'; return; }
   btnGlobalRefresh.disabled = true; btnGlobalRefresh.classList.add('spinning');
-  globalRefreshNote.textContent = 'Menarik data terbaru...'; globalRefreshNote.style.color = 'var(--sidebar-text)';
+  globalRefreshNote.textContent = 'Menarik data terbaru...'; globalRefreshNote.style.color = 'var(--muted)';
   try{
     const result = await pullFromSheet(true);
     if(result && result.ok){
       globalRefreshNote.textContent = 'Diperbarui pukul '+fmtJamSingkat();
-      globalRefreshNote.style.color = 'var(--sidebar-text)';
+      globalRefreshNote.style.color = 'var(--muted)';
     } else {
       globalRefreshNote.textContent = 'Gagal: '+(result && result.message ? result.message : 'coba lagi');
-      globalRefreshNote.style.color = '#F2B8A8';
+      globalRefreshNote.style.color = 'var(--red)';
     }
   }catch(err){
     globalRefreshNote.textContent = 'Gagal: '+err.message;
-    globalRefreshNote.style.color = '#F2B8A8';
+    globalRefreshNote.style.color = 'var(--red)';
   }finally{
     btnGlobalRefresh.disabled = false; btnGlobalRefresh.classList.remove('spinning');
   }
@@ -5476,6 +5716,34 @@ okrRenderAll();
       animate(el);
     });
   }); }).observe(document.body,{childList:true, subtree:true, characterData:true});
+})();
+</script>
+
+<script>
+/* ============== TEMA GELAP / TERANG (gaya Dashboard Iklan) ============== */
+function applyTheme(mode){
+  if(mode==='light'){ document.documentElement.setAttribute('data-theme','light'); }
+  else{ document.documentElement.removeAttribute('data-theme'); }
+  var bd=document.getElementById('btnThemeDark'), bl=document.getElementById('btnThemeLight');
+  if(bd&&bl){ bd.classList.toggle('active', mode!=='light'); bl.classList.toggle('active', mode==='light'); }
+  try{ localStorage.setItem('dashTheme', mode); }catch(e){}
+  applyChartDefaults();
+  // Chart.js menyimpan warna saat dibuat -> bangun ulang grafik agar ikut tema
+  try{ if(typeof buildOverviewCharts==='function') buildOverviewCharts(); }catch(e){ console.warn(e); }
+  try{
+    var lp=document.getElementById('page-laporan');
+    if(lp && lp.classList.contains('active') && typeof renderLaporan==='function') renderLaporan();
+  }catch(e){ console.warn(e); }
+  try{
+    if(typeof storeDetailChartRef!=='undefined' && storeDetailChartRef && storeDetailChartRef.canvas && storeDetailChartRef.canvas.isConnected && typeof renderStoreDetail==='function') renderStoreDetail();
+  }catch(e){ console.warn(e); }
+}
+document.getElementById('btnThemeDark').addEventListener('click', function(){ applyTheme('dark'); });
+document.getElementById('btnThemeLight').addEventListener('click', function(){ applyTheme('light'); });
+(function(){
+  var t='light'; try{ t=localStorage.getItem('dashTheme')||'light'; }catch(e){}
+  var bd=document.getElementById('btnThemeDark'), bl=document.getElementById('btnThemeLight');
+  bd.classList.toggle('active', t==='dark'); bl.classList.toggle('active', t!=='dark');
 })();
 </script>
 </body>
