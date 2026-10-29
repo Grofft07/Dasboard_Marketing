@@ -1260,7 +1260,7 @@ applyChartDefaults();
     <!-- ============ LAPORAN ============ -->
     <div class="page" id="page-laporan">
       <div class="topbar lap-noprint">
-        <div><h1>Laporan</h1><div class="sub">Rekap siap kirim hasil marketplace &amp; affiliate — ikut periode yang dipilih · <span id="laporanPeriodLabel">Semua Data</span></div></div>
+        <div><h1>Laporan</h1><div class="sub">Rekap siap kirim hasil marketplace, affiliate &amp; host live — ikut periode yang dipilih · <span id="laporanPeriodLabel">Semua Data</span></div></div>
         <div class="top-actions">
           <div class="dr-wrap" id="lpWrap">
             <button class="dr-trigger" id="lpTrigger">
@@ -1299,10 +1299,11 @@ applyChartDefaults();
         <div class="tabbtn active" data-laptab="ringkasan">📌 Ringkasan</div>
         <div class="tabbtn" data-laptab="marketplace">🛒 Marketplace</div>
         <div class="tabbtn" data-laptab="affiliate">🤝 Affiliate</div>
+        <div class="tabbtn" data-laptab="hostlive">🎙️ Host Live</div>
       </div>
 
       <div id="laporanReportArea">
-        <div class="section-header" style="margin-top:0;"><h2>Laporan Marketplace &amp; Affiliate — <span id="laporanPeriodLabel2">Semua Data</span></h2></div>
+        <div class="section-header" style="margin-top:0;"><h2>Laporan Marketplace, Affiliate &amp; Host Live — <span id="laporanPeriodLabel2">Semua Data</span></h2></div>
 
         <!-- TAB RINGKASAN -->
         <div class="lap-pane active" id="lapPane-ringkasan">
@@ -1313,6 +1314,8 @@ applyChartDefaults();
           <div class="lap-kpi-grid" id="lapMkKpi"></div>
           <div class="section-header"><h2>Ringkasan Affiliate</h2></div>
           <div class="lap-kpi-grid" id="lapAfKpi"></div>
+          <div class="section-header"><h2>Ringkasan Host Live</h2></div>
+          <div class="lap-kpi-grid" id="lapHlKpi"></div>
           <div class="muted-note" id="lapCompareNote" style="margin:-4px 0 14px;"></div>
 
           <div class="card" style="margin-bottom:16px;">
@@ -1357,6 +1360,34 @@ applyChartDefaults();
           <div class="card"><div class="table-scroll"><table>
             <thead><tr><th>Toko</th><th>Platform</th><th>Omzet Affiliate</th><th>Target Omzet</th><th>Capaian</th><th>Komisi</th><th>HPP Sampel</th><th>ROI</th><th>Sampel</th></tr></thead>
             <tbody id="laporanAfBody"></tbody></table></div></div>
+        </div>
+
+        <!-- TAB HOST LIVE -->
+        <div class="lap-pane" id="lapPane-hostlive">
+          <div class="lap-print-title">🎙️ Host Live</div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="lap-card-title">📈 GMV Live Harian</div>
+            <div class="lap-chart" style="height:240px;"><canvas id="laporanHlTrendChart"></canvas></div>
+          </div>
+          <div class="card" style="margin-bottom:18px;">
+            <div class="lap-card-title">🎙️ GMV per Host</div>
+            <div class="lap-chart" id="laporanHlHostWrap" style="height:240px;"><canvas id="laporanHlHostChart"></canvas></div>
+          </div>
+          <div class="section-header" style="margin-top:0;"><h2>Rekap per Host</h2></div>
+          <div class="muted-note" style="margin:-6px 0 12px;">Angka kecil berwarna di bawah nilai = perubahan dibanding periode sebelumnya (panjang periode sama). Hijau = membaik, merah = memburuk.</div>
+          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
+            <thead><tr><th>Host</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th></tr></thead>
+            <tbody id="laporanHlHostBody"></tbody></table></div></div>
+
+          <div class="section-header" style="margin-top:0;"><h2>Rekap per Toko</h2></div>
+          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
+            <thead><tr><th>Toko</th><th>Platform</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
+            <tbody id="laporanHlStoreBody"></tbody></table></div></div>
+
+          <div class="section-header" style="margin-top:0;"><h2>Rincian per Sesi</h2><span class="muted-note" id="laporanHlSesiNote"></span></div>
+          <div class="card"><div class="table-scroll"><table>
+            <thead><tr><th>Tanggal</th><th>Host</th><th>Toko</th><th>Jam Live</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th></tr></thead>
+            <tbody id="laporanHlSesiBody"></tbody></table></div></div>
         </div>
       </div>
     </div><!-- /page-laporan -->
@@ -2701,6 +2732,14 @@ function renderLaporan(){
   const prevR=affPreviousRange(range), P=prevR?lapAgg(prevR).T:null;
   const pv=k=> P?P[k]:null;
 
+  /* --- data Host Live (take talent sengaja tidak dimasukkan) --- */
+  const HLL=hlFilter(hlEntries,range), HL=hlAgg(HLL);
+  const HLP=prevR?hlAgg(hlFilter(hlEntries,prevR)):null;
+  const hlPrevList=prevR?hlFilter(hlEntries,prevR):[];
+  const hlGroup=(list,keyFn)=>{ const m={}; list.forEach(e=>{ const k=keyFn(e); (m[k]=m[k]||[]).push(e); }); return m; };
+  const hlHosts=Object.entries(hlGroup(HLL,e=>e.host||'(Tanpa nama)')).map(([k,l])=>Object.assign({host:k},hlAgg(l))).sort((a,b)=>b.gmv-a.gmv);
+  const hlPrevHost=hlGroup(hlPrevList,e=>e.host||'(Tanpa nama)');
+
   /* --- kartu insight + pesan otomatis --- */
   const roasOk = (T.spending>0&&T.tRoas>0)?(T.roas>=T.tRoas):null;
   const roasBadge = roasOk===null?'':`<span class="lap-ins-badge${roasOk?'':' bad'}">${roasOk?'Sesuai Target':'Di Bawah Target'}</span>`;
@@ -2709,7 +2748,7 @@ function renderLaporan(){
     <div class="lap-ins-target">Target ROAS: ${T.tRoas>0?lapX(T.tRoas)+' (rata-rata toko)':'belum diatur'}</div>
     <div class="lap-ins-foot" style="margin-top:8px;"><span>Selisih dari target</span><span class="v ${roasOk===null?'':(roasOk?'good':'bad')}">${roasOk===null?'-':((T.roas-T.tRoas>=0?'+':'')+(T.roas-T.tRoas).toFixed(2).replace('.',',')+'x')}</span></div></div>`;
   const parts=[];
-  if(T.omzet===0 && T.aOmzet===0){ var msg='Belum ada data pada periode ini — insight otomatis akan muncul begitu data mulai masuk.'; }
+  if(T.omzet===0 && T.aOmzet===0 && HL.sesi===0){ var msg='Belum ada data pada periode ini — insight otomatis akan muncul begitu data mulai masuk.'; }
   else{
     if(T.tOmzet>0) parts.push(T.omzet>=T.tOmzet?'omzet marketplace sudah melampaui target ('+lapPct(T.omzet/T.tOmzet*100)+')':'omzet marketplace baru '+lapPct(T.omzet/T.tOmzet*100)+' dari target, kurang '+rp(T.tOmzet-T.omzet));
     if(roasOk===true) parts.push('ROAS '+lapX(T.roas)+' sudah sesuai target '+lapX(T.tRoas));
@@ -2717,6 +2756,11 @@ function renderLaporan(){
     if(P&&P.omzet>0) parts.push('omzet marketplace '+(T.omzet>=P.omzet?'naik ':'turun ')+Math.abs((T.omzet-P.omzet)/P.omzet*100).toFixed(1).replace('.',',')+'% dibanding periode sebelumnya');
     if(T.taOmzet>0) parts.push(T.aOmzet>=T.taOmzet?'omzet affiliate sudah melampaui target':'omzet affiliate baru '+lapPct(T.aOmzet/T.taOmzet*100)+' dari target');
     else if(T.aOmzet>0) parts.push('omzet affiliate '+rp(T.aOmzet)+' dengan ROI '+lapX(T.roi));
+    if(HL.sesi){
+      let t='host live '+HL.sesi+' sesi dengan GMV '+rp(HL.gmv)+' (GMV/jam '+rp(HL.gmvJam)+')';
+      if(HLP&&HLP.gmv>0) t+=', GMV '+(HL.gmv>=HLP.gmv?'naik ':'turun ')+Math.abs((HL.gmv-HLP.gmv)/HLP.gmv*100).toFixed(1).replace('.',',')+'% dibanding periode sebelumnya';
+      parts.push(t);
+    }
     msg = parts.length ? (parts[0].charAt(0).toUpperCase()+parts[0].slice(1)+(parts.length>1?'; '+parts.slice(1).join('; '):'')+'.') : 'Data sudah masuk, belum ada catatan khusus (target belum diatur).';
   }
   document.getElementById('laporanSummary').innerHTML =
@@ -2735,6 +2779,11 @@ function renderLaporan(){
     lapKpi('var(--yellow)','Komisi',rp(T.komisi),lapDlt(T.komisi,pv('komisi'),false)) +
     lapKpi('var(--blue)','ROI Affiliate',lapX(T.roi),lapDlt(T.roi,P?P.roi:null,true),'Omzet ÷ (Komisi + HPP '+rpShort(T.hpp)+')') +
     lapKpi('var(--purple)','Sampel Terkirim',T.sampel+' pcs',lapDlt(T.sampel,pv('sampel'),true));
+  document.getElementById('lapHlKpi').innerHTML =
+    lapKpi('var(--green)','GMV Live',rp(HL.gmv),lapDlt(HL.gmv,HLP?HLP.gmv:null,true),HL.sesi+' sesi · GMV/jam '+rp(HL.gmvJam)) +
+    lapKpi('var(--yellow)','Total Durasi Live',hlFmtJam(HL.jam),lapDlt(HL.jam,HLP?HLP.jam:null,true),'Rata-rata '+hlFmtJam(HL.sesi?HL.jam/HL.sesi:0)+' / sesi') +
+    lapKpi('var(--blue)','Total Penonton',HL.penonton.toLocaleString('id-ID'),lapDlt(HL.penonton,HLP?HLP.penonton:null,true),'Rata-rata '+Math.round(HL.sesi?HL.penonton/HL.sesi:0).toLocaleString('id-ID')+' / sesi') +
+    lapKpi('var(--purple)','Total Komentar',HL.komentar.toLocaleString('id-ID'),lapDlt(HL.komentar,HLP?HLP.komentar:null,true),'Komentar / penonton '+hlPctTxt(HL.komentar,HL.penonton));
   document.getElementById('lapCompareNote').textContent = prevR ? 'Perubahan dibanding periode sebelumnya ('+fmtDate(prevR.start)+' - '+fmtDate(prevR.end)+').' : 'Pilih rentang tanggal (mis. Bulan Ini) untuk melihat perubahan vs periode sebelumnya.';
 
   /* --- Sorotan --- */
@@ -2763,6 +2812,12 @@ function renderLaporan(){
   }
   const underA=rows.filter(r=>r.tga.omzet>0&&r.aOmzet<r.tga.omzet);
   if(underA.length) items.push({k:'⚠️ Belum Capai Target Affiliate',v:underA.map(r=>r.s.name).join(', '),s:'Total kurang '+rp(underA.reduce((x,r)=>x+(r.tga.omzet-r.aOmzet),0)),cls:'bad'});
+  if(hlHosts.length){
+    const topH=hlHosts[0];
+    items.push({k:'🎙️ Host GMV Terbesar',v:topH.host,s:rp(topH.gmv)+' · '+topH.sesi+' sesi · GMV/jam '+rp(topH.gmvJam)});
+    const effH=hlHosts.filter(h=>h.jam>0);
+    if(effH.length>=2){ const b=effH.reduce((a,c)=>c.gmvJam>a.gmvJam?c:a); items.push({k:'⚡ GMV/Jam Tertinggi (Host)',v:b.host,s:rp(b.gmvJam)+' · '+hlFmtJam(b.jam)+' live',cls:'good'}); }
+  }
   document.getElementById('laporanSorotan').innerHTML = items.length ? '<div class="lap-hl-grid">'+items.map(i=>`<div class="lap-hl ${i.cls||''}"><div class="k">${i.k}</div><div class="v">${lapEsc(i.v)}</div><div class="s">${lapEsc(i.s)}</div></div>`).join('')+'</div>' : '<div class="muted-note">Belum ada data pada periode ini.</div>';
 
   /* --- Tren harian --- */
@@ -2807,6 +2862,31 @@ function renderLaporan(){
   document.getElementById('laporanAfBody').innerHTML = ab || empty(9,'Tidak ada data pada periode ini');
   document.getElementById('laporanAfBarWrap').style.height=Math.max(220,afRows.length*46+70)+'px';
   lapChart('laporanAfBarChart',barCfg(afRows,'aOmzet','tga','#7A56E0'));
+
+  /* --- Tab Host Live --- */
+  const hd={}; HLL.forEach(e=>{ const d=hd[e.tanggal]=hd[e.tanggal]||{g:0,j:0}; d.g+=e.gmv||0; d.j+=e.durasi||0; });
+  const hdates=Object.keys(hd).sort().slice(-45);
+  lapChart('laporanHlTrendChart',{type:'line',data:{labels:hdates.map(d=>fmtDate(d).slice(0,6)),datasets:[
+    {label:'GMV Live',data:hdates.map(d=>hd[d].g),borderColor:cssVar('--green'),backgroundColor:cssVar('--green')+'22',fill:true,tension:.35,pointRadius:2,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'GMV: '+rp(c.parsed.y),afterLabel:c=>'Durasi: '+hlFmtJam(hd[hdates[c.dataIndex]].j)}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:10}},y:{beginAtZero:true,grid:{color:cssVar('--chart-grid')},ticks:{font:{size:10},callback:v=>'Rp'+(v/1000000).toFixed(v>=1000000?0:1)+'jt'}}}}});
+  document.getElementById('laporanHlHostWrap').style.height=Math.max(220,hlHosts.length*46+70)+'px';
+  lapChart('laporanHlHostChart',{type:'bar',data:{labels:hlHosts.map(h=>h.host),datasets:[{label:'GMV',data:hlHosts.map(h=>h.gmv),backgroundColor:cssVar('--green'),borderRadius:5,maxBarThickness:22}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'GMV: '+rp(c.parsed.x)}}},
+      scales:{x:{grid:{color:cssVar('--chart-grid')},ticks:{font:{size:10},callback:v=>'Rp'+(v/1000000).toFixed(v>=1000000?0:1)+'jt'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  const hn=n=>(n||0).toLocaleString('id-ID');
+  let hb=hlHosts.map(g=>{ const q=hlAgg(hlPrevHost[g.host]||[]);
+    return `<tr><td><b>${lapEsc(g.host)}</b></td><td>${g.sesi}${lapDlt(g.sesi,q.sesi,true)}</td><td>${hlFmtJam(g.jam)}${lapDlt(g.jam,q.jam,true)}</td><td>${rp(g.gmv)}${lapDlt(g.gmv,q.gmv,true)}</td><td>${hn(g.penonton)}${lapDlt(g.penonton,q.penonton,true)}</td><td>${hn(g.komentar)}${lapDlt(g.komentar,q.komentar,true)}</td><td>${hlPctTxt(g.komentar,g.penonton)}</td><td>${rp(g.gmvJam)}${lapDlt(g.gmvJam,q.gmvJam,true)}</td></tr>`; }).join('');
+  if(hlHosts.length) hb+=`<tr style="font-weight:800;border-top:1px solid var(--line);"><td>TOTAL</td><td>${HL.sesi}${lapDlt(HL.sesi,HLP?HLP.sesi:null,true)}</td><td>${hlFmtJam(HL.jam)}${lapDlt(HL.jam,HLP?HLP.jam:null,true)}</td><td>${rp(HL.gmv)}${lapDlt(HL.gmv,HLP?HLP.gmv:null,true)}</td><td>${hn(HL.penonton)}${lapDlt(HL.penonton,HLP?HLP.penonton:null,true)}</td><td>${hn(HL.komentar)}${lapDlt(HL.komentar,HLP?HLP.komentar:null,true)}</td><td>${hlPctTxt(HL.komentar,HL.penonton)}</td><td>${rp(HL.gmvJam)}${lapDlt(HL.gmvJam,HLP?HLP.gmvJam:null,true)}</td></tr>`;
+  document.getElementById('laporanHlHostBody').innerHTML = hb || empty(8,'Belum ada data host live pada periode ini');
+  let sb=stores.map(st=>{ const l=HLL.filter(e=>e.storeId===st.id); if(!l.length) return ''; const g=hlAgg(l), q=hlAgg(hlPrevList.filter(e=>e.storeId===st.id)), pm=PLATFORM_META[st.platform];
+    return `<tr><td><b>${lapEsc(st.name)}</b></td><td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td><td>${g.sesi}${lapDlt(g.sesi,q.sesi,true)}</td><td>${hlFmtJam(g.jam)}${lapDlt(g.jam,q.jam,true)}</td><td>${rp(g.gmv)}${lapDlt(g.gmv,q.gmv,true)}</td><td>${hn(g.penonton)}${lapDlt(g.penonton,q.penonton,true)}</td><td>${hn(g.komentar)}${lapDlt(g.komentar,q.komentar,true)}</td><td>${rp(g.gmvJam)}${lapDlt(g.gmvJam,q.gmvJam,true)}</td></tr>`; }).join('');
+  document.getElementById('laporanHlStoreBody').innerHTML = sb || empty(8,'Belum ada data host live pada periode ini');
+  const sesi=HLL.slice().sort((a,b)=>(b.tanggal+(b.jamMulai||'')).localeCompare(a.tanggal+(a.jamMulai||''))), SMAX=50;
+  document.getElementById('laporanHlSesiNote').textContent = sesi.length>SMAX ? 'Menampilkan '+SMAX+' sesi terbaru dari '+sesi.length : (sesi.length?sesi.length+' sesi':'');
+  document.getElementById('laporanHlSesiBody').innerHTML = sesi.slice(0,SMAX).map(e=>{ const st=stores.find(x=>x.id===e.storeId);
+    return `<tr><td>${fmtDate(e.tanggal)}</td><td><b>${lapEsc(e.host||'-')}</b></td><td>${st?lapEsc(st.name):'<span class="muted-note">Toko tak dikenal</span>'}</td><td>${e.jamMulai||'-'} - ${e.jamSelesai||'-'}</td><td>${hlFmtJam(e.durasi)}</td><td>${rp(e.gmv)}</td><td>${hn(e.penonton)}</td><td>${hn(e.komentar)}</td></tr>`; }).join('') || empty(8,'Belum ada data host live pada periode ini');
   lapResizeCharts();
 }
 
@@ -2836,12 +2916,12 @@ async function exportLaporanPPT(){
   try{
     await lapLoadPptx(); area.classList.add('lap-print-all'); lapResizeCharts(); await new Promise(r=>setTimeout(r,400));
     const period=lapTxt(document.getElementById('laporanPeriodLabel2'))||'';
-    const pptx=new PptxGenJS(); pptx.layout='LAYOUT_WIDE'; pptx.title='Laporan Marketplace & Affiliate';
+    const pptx=new PptxGenJS(); pptx.layout='LAYOUT_WIDE'; pptx.title='Laporan Marketplace, Affiliate & Host Live';
     const DARK='123B2C', INK='0F172A', MUTED='64748B';
     const newSlide=t=>{ const s=pptx.addSlide(); s.background={color:'F8FAFC'};
       s.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:0.12,fill:{color:DARK},line:{color:DARK}});
       s.addText(t,{x:0.5,y:0.3,w:12.33,h:0.7,fontSize:24,bold:true,color:INK,fontFace:'Calibri'});
-      s.addText(period+' · Laporan Marketplace & Affiliate',{x:0.5,y:7.0,w:9,h:0.3,fontSize:10,color:MUTED,fontFace:'Calibri'});
+      s.addText(period+' · Laporan Marketplace, Affiliate & Host Live',{x:0.5,y:7.0,w:9,h:0.3,fontSize:10,color:MUTED,fontFace:'Calibri'});
       s.slideNumber={x:12.3,y:7.0,fontSize:10,color:MUTED}; return s; };
     const addCards=(title,cards)=>{ for(let i=0;i<cards.length;i+=8){ const s=newSlide(title+(cards.length>8?' ('+(i/8+1)+'/'+Math.ceil(cards.length/8)+')':''));
       const cw=2.93,gap=0.2,ch=2.3;
@@ -2875,7 +2955,7 @@ async function exportLaporanPPT(){
         s.addTable(tr,{x:0.5,y:1.25,w:12.33,colW,fontSize:n>8?9:10.5,fontFace:'Calibri',border:{type:'solid',pt:0.5,color:'CBD5E1'}}); } };
 
     const cover=pptx.addSlide(); cover.background={color:DARK};
-    cover.addText('Laporan Marketplace & Affiliate',{x:0.8,y:2.4,w:11.7,h:1.0,fontSize:40,bold:true,color:'FFFFFF',fontFace:'Calibri'});
+    cover.addText('Laporan Marketplace, Affiliate & Host Live',{x:0.8,y:2.4,w:11.7,h:1.0,fontSize:34,bold:true,color:'FFFFFF',fontFace:'Calibri'});
     cover.addText(period,{x:0.8,y:3.5,w:11.7,h:0.6,fontSize:20,color:'CBD5E1',fontFace:'Calibri'});
     cover.addText('Dibuat: '+new Date().toLocaleString('id-ID'),{x:0.8,y:4.3,w:11.7,h:0.4,fontSize:12,color:'94A3B8',fontFace:'Calibri'});
     const P1=document.getElementById('lapPane-ringkasan');
@@ -2887,8 +2967,12 @@ async function exportLaporanPPT(){
     addTable('Rincian Marketplace per Toko',document.getElementById('laporanMkBody'));
     addChart('Omzet Affiliate vs Target per Toko','laporanAfBarChart');
     addTable('Rincian Affiliate per Toko',document.getElementById('laporanAfBody'));
+    addChart('GMV Live Harian','laporanHlTrendChart');
+    addChart('GMV per Host','laporanHlHostChart');
+    addTable('Rekap Host Live per Host',document.getElementById('laporanHlHostBody'));
+    addTable('Rekap Host Live per Toko',document.getElementById('laporanHlStoreBody'));
     const safe=(period||'periode').replace(/[^\w\-]+/g,'_').replace(/^_+|_+$/g,'');
-    await pptx.writeFile({fileName:'Laporan_Marketplace_Affiliate_'+safe+'.pptx'});
+    await pptx.writeFile({fileName:'Laporan_Marketplace_Affiliate_HostLive_'+safe+'.pptx'});
   }catch(e){ console.error(e); alert('Gagal membuat PPT: '+(e&&e.message?e.message:e)); }
   finally{ area.classList.remove('lap-print-all'); lapResizeCharts(); btn.disabled=false; btn.textContent=old; }
 }
