@@ -1143,6 +1143,7 @@ applyChartDefaults();
               </div>
             </div>
           </div>
+          <button class="btn btn-ghost" id="btnTargetHl">🎯 Target Host Live</button>
           <button class="btn btn-wa" id="btnWaReportHostlive">📊 Buat Report WA</button>
         </div>
       </div>
@@ -1158,12 +1159,12 @@ applyChartDefaults();
 
         <div class="section-header" style="margin-top:26px;"><h2>Ringkasan per Host</h2><span class="muted-note">Klik judul kolom untuk mengurutkan</span></div>
         <div class="card" style="margin-bottom:18px;"><div class="table-scroll"><table>
-          <thead><tr><th>Host</th><th>Sesi</th><th>Durasi Live</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th></tr></thead>
+          <thead><tr><th>Host</th><th>Sesi</th><th>Durasi Live</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th><th>Target</th><th>Info Target</th></tr></thead>
           <tbody id="hlPersonBody"></tbody></table></div></div>
 
         <div class="section-header"><h2>Ringkasan per Toko</h2></div>
         <div class="card"><div class="table-scroll"><table>
-          <thead><tr><th>Toko</th><th>Platform</th><th>Sesi</th><th>Durasi Live</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
+          <thead><tr><th>Toko</th><th>Platform</th><th>Host Live</th><th>Sesi</th><th>Durasi Live</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
           <tbody id="hlStoreBody"></tbody></table></div></div>
 
         <div class="section-header" style="margin-top:26px;"><h2>Input Report Live</h2></div>
@@ -1316,6 +1317,7 @@ applyChartDefaults();
           <div class="lap-kpi-grid" id="lapAfKpi"></div>
           <div class="section-header"><h2>Ringkasan Host Live</h2></div>
           <div class="lap-kpi-grid" id="lapHlKpi"></div>
+          <div id="lapHlTarget" style="margin:0 0 16px;"></div>
           <div class="muted-note" id="lapCompareNote" style="margin:-4px 0 14px;"></div>
 
           <div class="card" style="margin-bottom:16px;">
@@ -1379,9 +1381,15 @@ applyChartDefaults();
             <thead><tr><th>Host</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th></tr></thead>
             <tbody id="laporanHlHostBody"></tbody></table></div></div>
 
+          <div class="section-header" style="margin-top:0;"><h2>Capaian Target per Host</h2></div>
+          <div class="muted-note" style="margin:-6px 0 12px;">Target live diatur per orang (host) per bulan lewat tombol 🎯 Target Host Live di halaman Host Live &amp; Talent. Baris TOTAL = jumlah semua host; jam live dihitung jam nyata per orang (live bersamaan di 2 toko tidak dihitung dobel).</div>
+          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
+            <thead><tr><th>Host</th><th>Toko</th><th>Jam Live</th><th>Target Jam</th><th>Capaian Jam</th><th>GMV</th><th>Target GMV</th><th>Capaian GMV</th><th>GMV / Jam</th><th>Target GMV/Jam</th><th>Capaian GMV/Jam</th></tr></thead>
+            <tbody id="laporanHlTargetBody"></tbody></table></div></div>
+
           <div class="section-header" style="margin-top:0;"><h2>Rekap per Toko</h2></div>
           <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
-            <thead><tr><th>Toko</th><th>Platform</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
+            <thead><tr><th>Toko</th><th>Platform</th><th>Host Live</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
             <tbody id="laporanHlStoreBody"></tbody></table></div></div>
 
           <div class="section-header" style="margin-top:0;"><h2>Rincian per Sesi</h2><span class="muted-note" id="laporanHlSesiNote"></span></div>
@@ -1462,6 +1470,7 @@ applyChartDefaults();
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Affiliate</code> (kolom: tanggal, tokoId, omzet, komisi, sampel, hppSampel, hppTotal, sampelW100, sampelW200, sampelN30, sampelN60, gmvLive, gmvVideo, gmvProduk, gmvMedsos — data affiliate specialist harian; gmvLive/gmvVideo/gmvProduk dipakai toko TikTokShop, gmvLive/gmvVideo/gmvMedsos dipakai toko Shopee, omzet = total dari kolom breakdown yang relevan; kalau sheet Affiliate-mu masih format lama tanpa kolom breakdown, kolomnya akan otomatis ditambahkan saat pertama kali disinkron ulang),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetAffiliate</code> (kolom: tokoId, bulan, targetomzetafiliasi, targetkomisi, targetsampel — target affiliate bulanan),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">HostLive</code> (kolom: tanggal, tokoId, host, jamMulai, jamSelesai, durasi, gmv, penonton, komentar — report sesi live host, 1 baris per sesi),
+          <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">TargetHostLive</code> (kolom: host, bulan, targetjam, targetgmv, targetgmvjam — target live bulanan per orang/host),
           <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">Talent</code> (kolom: tanggal, talent, take, target, catatan — take konten harian talent untuk tim creative, tidak terkait toko),
           dan <code style="background:var(--panel-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--green-dark);">OKR</code> (kolom: periode, objId, objTitle, objOwner, krId, krText, krTarget, krCurrent, krUnit, krDirection, initId, initText, initDone, initDeadline, reflSoWhat, reflNowWhat — 1 baris per Initiative, jadi kolom-kolomnya "menyesuaikan" isi OKR: Objective dengan 3 Key Result & masing-masing 2 Initiative otomatis jadi 6 baris, dengan objTitle/krText diulang di tiap barisnya; kalau sheet OKR-mu masih format lama (cuma kolom periode+data), akan otomatis dimigrasikan ke format ini saat pertama kali disinkron ulang) — otomatis terisi setiap kamu menambah toko, input harian, input affiliate, atur target, atau mengubah OKR.
         </div>
@@ -1590,6 +1599,85 @@ applyChartDefaults();
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeTargetAffModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TARGET HOST LIVE BULANAN (PER ORANG) -->
+<div class="overlay" id="targetHlOverlay">
+  <div class="modal modal-lg">
+    <h3>Target Host Live Bulanan</h3>
+    <div class="modal-sub">Target live diisi <b>per orang (host)</b> per bulan, berlaku untuk semua toko yang dia live-kan. Pilih/ketik nama host, pilih bulan, isi target, lalu simpan.</div>
+    <div class="field" style="margin-bottom:12px;"><label>Nama Host</label><input type="text" id="tghl-host" list="tghlHostList" placeholder="Pilih atau ketik nama host"><datalist id="tghlHostList"></datalist></div>
+    <div class="tg-monthbar">
+      <button type="button" class="tg-nav" title="Bulan sebelumnya" onclick="tgShiftMonth('tghl-month',-1)">‹</button>
+      <input type="month" id="tghl-month">
+      <button type="button" class="tg-nav" title="Bulan berikutnya" onclick="tgShiftMonth('tghl-month',1)">›</button>
+      <span class="tg-status" id="tghl-status"></span>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="copyPrevTargetHl()">Salin dari bulan lalu</button>
+    </div>
+    <div class="tg-grid">
+      <div class="field"><label>Target Jam Live (jam)</label><input type="number" id="tghl-jam" placeholder="Contoh: 120" step="0.5" min="0"></div>
+      <div class="field"><label>Target GMV Live (Rp)</label><input type="text" id="tghl-gmv" placeholder="0" inputmode="numeric"></div>
+      <div class="field"><label>Target GMV / Jam (Rp)</label><input type="text" id="tghl-gmvjam" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div class="tg-foot">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="hlTargetAutoGmvJam()" title="Isi GMV/jam = Target GMV ÷ Target Jam">Hitung GMV/jam dari GMV ÷ Jam</button>
+      <span style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-wa btn-sm" onclick="openHlWaModal(tghlHost(), document.getElementById('tghl-month').value)">📲 Info WA</button><button class="btn btn-primary btn-sm" onclick="saveMonthTargetHl()">Simpan Target</button></span>
+    </div>
+    <div class="tg-list-title">Target yang sudah diatur untuk host ini (klik baris untuk mengubah)</div>
+    <div class="table-scroll" style="max-height:240px;overflow-y:auto;">
+      <table>
+        <thead><tr><th>Bulan</th><th>Target Jam Live</th><th>Target GMV</th><th>Target GMV/Jam</th><th></th></tr></thead>
+        <tbody id="targetHlListBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeTargetHlModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INFO TARGET HOST VIA WA -->
+<div class="overlay" id="hlWaOverlay">
+  <div class="modal">
+    <h3>Info Target via WhatsApp</h3>
+    <div class="modal-sub">Pilih host &amp; bulan, cek pesannya, lalu kirim lewat WhatsApp.</div>
+    <div class="field"><label>Nama Host</label><input type="text" id="hlwa-host" list="hlwaHostList" placeholder="Pilih atau ketik nama host"><datalist id="hlwaHostList"></datalist></div>
+    <div class="field"><label>Bulan</label><input type="month" id="hlwa-month"></div>
+    <div class="field">
+      <label>Nomor WhatsApp Host (opsional)</label>
+      <input type="text" id="hlwa-phone" placeholder="Contoh: 628123456789">
+      <div class="muted-note">Format: 62xxxxxxxxxx (tanpa + atau 0 di depan). Nomor diingat per host di browser ini. Kosongkan untuk pilih kontak sendiri di WhatsApp.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin:6px 0 14px;font-weight:600;cursor:pointer;"><input type="checkbox" id="hlwa-progress" checked> Sertakan capaian saat ini &amp; kebutuhan per hari</label>
+    <label class="wa-section-label">Preview Pesan</label>
+    <div class="wa-preview-box" id="hlwa-preview"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeHlWaModal()">Tutup</button>
+      <button class="btn btn-ghost" id="hlwa-copy">📋 Salin Pesan</button>
+      <button class="btn btn-wa" id="hlwa-send">🟢 Kirim via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INFO TARGET PIC / AFFILIATE SPECIALIST VIA WA -->
+<div class="overlay" id="personWaOverlay" style="z-index:1200;">
+  <div class="modal">
+    <h3 id="personWaTitle">Info Target via WhatsApp</h3>
+    <div class="modal-sub">Cek pesannya, isi nomor WA, lalu kirim lewat WhatsApp. Angka diambil otomatis dari hasil aktual bulan ini.</div>
+    <div class="field">
+      <label>Nomor WhatsApp (opsional)</label>
+      <input type="text" id="personWa-phone" placeholder="Contoh: 628123456789">
+      <div class="muted-note">Format: 62xxxxxxxxxx (tanpa + atau 0 di depan). Nomor diingat per orang di browser ini. Kosongkan untuk pilih kontak sendiri di WhatsApp.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin:6px 0 14px;font-weight:600;cursor:pointer;"><input type="checkbox" id="personWa-analysis" checked> Sertakan analisis (Kondisi, Akibat, Harapan)</label>
+    <label class="wa-section-label">Preview Pesan</label>
+    <div class="wa-preview-box" id="personWa-preview"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePersonWa()">Tutup</button>
+      <button class="btn btn-ghost" id="personWa-copy">📋 Salin Pesan</button>
+      <button class="btn btn-wa" id="personWa-send">🟢 Kirim via WhatsApp</button>
     </div>
   </div>
 </div>
@@ -1835,7 +1923,7 @@ function loadData(key, seed){
   localStorage.setItem(key, JSON.stringify(seed)); return seed;
 }
 let stores = loadData('kh_stores_v2', seedStores);
-stores.forEach(s=>{ if(!s.targets || typeof s.targets!=='object') s.targets={}; if(!s.affTargets || typeof s.affTargets!=='object') s.affTargets={}; if(typeof s.cpasPpnRate!=='number') s.cpasPpnRate=0; if(typeof s.pic!=='string') s.pic=''; if(!s.picHist||typeof s.picHist!=='object') s.picHist={}; if(typeof s.affPic!=='string') s.affPic=''; if(!s.affPicHist||typeof s.affPicHist!=='object') s.affPicHist={}; });
+stores.forEach(s=>{ if(!s.targets || typeof s.targets!=='object') s.targets={}; if(!s.affTargets || typeof s.affTargets!=='object') s.affTargets={}; if(!s.hlTargets || typeof s.hlTargets!=='object') s.hlTargets={}; if(typeof s.cpasPpnRate!=='number') s.cpasPpnRate=0; if(typeof s.pic!=='string') s.pic=''; if(!s.picHist||typeof s.picHist!=='object') s.picHist={}; if(typeof s.affPic!=='string') s.affPic=''; if(!s.affPicHist||typeof s.affPicHist!=='object') s.affPicHist={}; });
 let entries = loadData('kh_entries_v2', seedEntries.map((e,i)=>({id:'e'+i, ...e})));
 function saveStores(){ localStorage.setItem('kh_stores_v2', JSON.stringify(stores)); }
 function saveEntries(){ localStorage.setItem('kh_entries_v2', JSON.stringify(entries)); }
@@ -1977,6 +2065,25 @@ function targetAffForRange(store, range){
   const months = monthsInRange(range);
   if(!months) return sumTargetAffMonths(store, Object.keys(store.affTargets||{}));
   return sumTargetAffMonths(store, months);
+}
+
+/* ===== Target Host Live: per ORANG (host) per bulan — jam live, GMV, GMV/jam ===== */
+const HL_TG_KEY = 'kh_hl_host_targets_v1';
+let hlHostTargets = (function(){ try{ const o=JSON.parse(localStorage.getItem(HL_TG_KEY)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } })();
+function saveHlHostTargets(){ try{ localStorage.setItem(HL_TG_KEY, JSON.stringify(hlHostTargets)); }catch(e){} }
+// Jam & GMV dijumlah antar bulan dalam range; GMV/jam dirata-rata bulan yang punya target (seperti target ROAS).
+function targetHlForHost(host, range){
+  const tg = hlHostTargets[host] || {};
+  const months = monthsInRange(range) || Object.keys(tg);
+  let jam=0, gmv=0, gjSum=0, gjN=0;
+  months.forEach(ym=>{ const t=tg[ym]; if(!t) return; jam+=t.jam||0; gmv+=t.gmv||0; if(t.gmvJam){ gjSum+=t.gmvJam; gjN++; } });
+  return {jam, gmv, gmvJam: gjN? gjSum/gjN : 0};
+}
+// Total target = jumlah target semua host (jam & GMV dijumlah); GMV/jam total = total GMV ÷ total jam bila keduanya ada.
+function targetHlTotal(range, hostList){
+  let jam=0, gmv=0, gjSum=0, gjN=0;
+  (hostList||Object.keys(hlHostTargets)).forEach(h=>{ const t=targetHlForHost(h,range); jam+=t.jam; gmv+=t.gmv; if(t.gmvJam){ gjSum+=t.gmvJam; gjN++; } });
+  return {jam, gmv, gmvJam: (jam>0&&gmv>0) ? gmv/jam : (gjN? gjSum/gjN : 0)};
 }
 
 /* ================= PERBANDINGAN PERIODE (indikator naik/turun) ================= */
@@ -2189,7 +2296,7 @@ function remCardHTML(r,i,copyFn){
     <div class="rem-sec"><span class="t">Kondisi</span>${ul(r.kondisi)}</div>
     <div class="rem-sec"><span class="t">Akibat</span>${ul(r.akibat)}</div>
     <div class="rem-sec"><span class="t">Harapan</span>${ul(r.harapan)}</div>
-    <div class="rem-foot"><button class="btn btn-ghost btn-sm" onclick="${copyFn}(${i},this)">Salin teks</button></div>
+    <div class="rem-foot"><button class="btn btn-ghost btn-sm" onclick="${copyFn}(${i},this)">Salin teks</button> <button class="btn btn-wa btn-sm" onclick="openPersonWa('${copyFn==='copyAffReminder'?'aff':'pic'}',${i})">📲 Kirim WA</button></div>
   </div>`;
 }
 function drawPicRemGrid(only){
@@ -2206,6 +2313,56 @@ function picRemText(r){
   const sec=(t,a)=>'*'+t+'*\n'+a.map(x=>'• '+x.replace(/<[^>]+>/g,'')).join('\n');
   return `*${r.label||'Reminder Target'} — ${r.g.name}* (${r.lvl[0]})\nCapaian ${Math.round(r.cap)}% · ${rpShort2(r.g.omzet)} dari ${rpShort2(r.g.tOmzet)}\n\n${sec('Kondisi',r.kondisi)}\n\n${sec('Akibat',r.akibat)}\n\n${sec('Harapan',r.harapan)}`;
 }
+/* ===== Kirim info target per orang via WhatsApp (PIC Marketplace & Affiliate Specialist) ===== */
+const PERSON_PHONE_KEY='kh_person_phones_v1';
+let personPhones=(function(){ try{ const o=JSON.parse(localStorage.getItem(PERSON_PHONE_KEY)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } })();
+let personWaState=null;
+function personWaText(kind,i,withAnalysis){
+  const r=(kind==='aff'?window._affRem:window._picRem||[])[i]; if(!r) return '';
+  const g=r.g, f2=n=>n.toFixed(2).replace('.',','), pc=n=>Math.round(n)+'%';
+  const sec=(t,a)=>'*'+t+'*\n'+a.map(x=>'• '+x.replace(/<[^>]+>/g,'')).join('\n');
+  let m=`*INFO TARGET ${kind==='aff'?'AFFILIATE SPECIALIST':'MARKETPLACE SPECIALIST'}*\nHalo ${g.name} 👋\nPeriode : ${fmtMonthLabel(curYm())} (data sampai tgl ${r.d} dari ${r.D})\n\n`;
+  if(kind==='aff'){
+    m+=`*Target kamu bulan ini:*\n💰 Omzet Affiliate : ${rp(g.tOmzet)}\n`+(g.tKomisi>0?`🧾 Komisi : ${rp(g.tKomisi)}\n`:'')+(g.tSampel>0?`📦 Sampel : ${g.tSampel} pcs\n`:'');
+    m+=`\n*Capaian saat ini:*\n💰 Omzet : ${rp(g.omzet)} (${pc(r.cap)})\n🧾 Komisi : ${rp(g.komisi)}`+(g.tKomisi>0?` (${pc(g.komisi/g.tKomisi*100)})`:'')+`\n📦 Sampel : ${g.sampel}`+(g.tSampel>0?`/${g.tSampel}`:'')+' pcs\n';
+  } else {
+    m+=`*Target kamu bulan ini:*\n💰 Omzet : ${rp(g.tOmzet)}\n`+(g.tSpend>0?`📢 Spending : ${rp(g.tSpend)}\n`:'')+(r.tRoas>0?`📈 ROAS : ${f2(r.tRoas)}x\n`:'');
+    m+=`\n*Capaian saat ini:*\n💰 Omzet : ${rp(g.omzet)} (${pc(r.cap)})\n📢 Spending : ${rp(g.spending)}`+(g.tSpend>0?` (${pc(g.spending/g.tSpend*100)})`:'')+`\n📈 ROAS : ${f2(r.roas)}x\n`;
+    const tk=(g.stores||[]).filter(x=>x.tOmzet>0);
+    if(tk.length>1) m+=`\n*Rincian per toko:*\n`+tk.map(x=>`• ${x.name}: ${rp(x.omzet)} / ${rp(x.tOmzet)} (${pc(x.omzet/x.tOmzet*100)})`).join('\n')+'\n';
+  }
+  m+=`\nStatus : ${r.lvl[0]}`;
+  if(withAnalysis) m+='\n\n'+sec('Kondisi',r.kondisi)+'\n\n'+sec('Akibat',r.akibat)+'\n\n'+sec('Harapan',r.harapan);
+  return m+'\n\n_Dikirim dari Dashboard Marketplace_';
+}
+function personWaCur(){ return personWaState ? personWaText(personWaState.kind, personWaState.i, document.getElementById('personWa-analysis').checked) : ''; }
+function personWaRefresh(){ document.getElementById('personWa-preview').textContent = personWaCur(); }
+function personWaKey(){ const r=(personWaState.kind==='aff'?window._affRem:window._picRem)[personWaState.i]; return personWaState.kind+':'+r.g.name; }
+function openPersonWa(kind,i){
+  const list = kind==='aff' ? window._affRem : window._picRem;
+  if(!list || !list[i]) return;
+  personWaState={kind,i};
+  document.getElementById('personWaTitle').textContent = 'Info Target via WhatsApp — '+list[i].g.name;
+  document.getElementById('personWa-phone').value = personPhones[personWaKey()] || '';
+  personWaRefresh();
+  document.getElementById('personWaOverlay').classList.add('open');
+}
+function closePersonWa(){ document.getElementById('personWaOverlay').classList.remove('open'); }
+document.getElementById('personWa-analysis').addEventListener('change', personWaRefresh);
+document.getElementById('personWa-phone').addEventListener('input', ()=>{
+  if(!personWaState) return;
+  const v=document.getElementById('personWa-phone').value.replace(/\D/g,''), k=personWaKey();
+  if(v) personPhones[k]=v; else delete personPhones[k];
+  try{ localStorage.setItem(PERSON_PHONE_KEY, JSON.stringify(personPhones)); }catch(e){}
+});
+document.getElementById('personWa-send').addEventListener('click', ()=>{
+  const text=personWaCur(), phone=document.getElementById('personWa-phone').value.replace(/\D/g,'');
+  window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+});
+document.getElementById('personWa-copy').addEventListener('click', ()=>{
+  const btn=document.getElementById('personWa-copy'), orig=btn.textContent;
+  copyTextWithFallback(personWaCur()).then(()=>{ btn.textContent='✅ Tersalin!'; setTimeout(()=>{ btn.textContent=orig; },1800); }).catch(()=>{ alert('Gagal menyalin otomatis. Blok teks di preview lalu salin manual ya.'); });
+});
 function copyPicReminder(i,btn){
   navigator.clipboard.writeText(picRemText(window._picRem[i])).then(()=>{ btn.textContent='Tersalin ✓'; setTimeout(()=>btn.textContent='Salin teks',1500); });
 }
@@ -2238,7 +2395,7 @@ function renderAffPicSummary(){
       <td>${rp(g.omzet)}</td><td>${rp(g.komisi)}</td><td>${roi?roi.toFixed(2)+'x':'-'}</td><td>${g.sampel} pcs</td>
       <td>${g.tOmzet?rp(g.tOmzet):'-'}</td>
       <td>${cap===null?'<span class="muted-note">Belum diatur</span>':`<span class="status-tag ${cap>=100?'tercapai':'kurang'}">${cap.toFixed(0)}%</span>`}</td>
-      <td>${r?`<button class="rem-btn ${remCls(r)}" onclick="openAffReminder(${ri})">${remIcon(r)} Reminder Target</button>`:''}</td></tr>`;
+      <td>${r?`<button class="rem-btn ${remCls(r)}" onclick="openAffReminder(${ri})">${remIcon(r)} Reminder Target</button> <button class="btn btn-wa btn-sm" onclick="openPersonWa('aff',${ri})">📲 WA</button>`:''}</td></tr>`;
   }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--muted);">Belum ada data. Isi Affiliate Specialist di menu Toko &amp; Target.</td></tr>`;
 }
 function renderAffReminder(){
@@ -2357,7 +2514,7 @@ function renderPicSummary(){
       <td>${rp(g.omzet)}</td><td>${rp(g.spending)}</td><td>${roas.toFixed(2)}x</td>
       <td>${g.tOmzet?rp(g.tOmzet):'-'}</td>
       <td>${cap===null?'<span class="muted-note">Belum diatur</span>':`<span class="status-tag ${cap>=100?'tercapai':'kurang'}">${cap.toFixed(0)}%</span>`}</td>
-      <td>${(()=>{ const ri=(window._picRem||[]).findIndex(x=>x.g.name===g.name); if(ri<0) return ''; const r=window._picRem[ri]; return `<button class="rem-btn ${remCls(r)}" onclick="openPicReminder(${ri})">${remIcon(r)} Reminder Target</button>`; })()}</td></tr>`;
+      <td>${(()=>{ const ri=(window._picRem||[]).findIndex(x=>x.g.name===g.name); if(ri<0) return ''; const r=window._picRem[ri]; return `<button class="rem-btn ${remCls(r)}" onclick="openPicReminder(${ri})">${remIcon(r)} Reminder Target</button> <button class="btn btn-wa btn-sm" onclick="openPersonWa('pic',${ri})">📲 WA</button>`; })()}</td></tr>`;
   }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Belum ada data PIC. Isi PIC di menu Toko &amp; Target.</td></tr>`;
 }
 function renderOverviewTable(){
@@ -2498,7 +2655,7 @@ function saveStoreForm(){
       s.pic=newPic;
     }
   }
-  else { s = {id:'s'+Date.now(), ...payload, pic:newPic, picHist:{}, affPic:'', affPicHist:{}, targets:{}, affTargets:{}}; stores.push(s); }
+  else { s = {id:'s'+Date.now(), ...payload, pic:newPic, picHist:{}, affPic:'', affPicHist:{}, targets:{}, affTargets:{}, hlTargets:{}}; stores.push(s); }
   const newAff = document.getElementById('f-aff-pic').value.replace(/[|=]/g,'').trim();
   const curAff = affPicFor(s, curYm())===NO_PIC ? '' : affPicFor(s, curYm());
   if(curAff!==newAff){
@@ -2700,6 +2857,19 @@ function lapCapCell(val, target){
   const p=val/target*100, kek=val-target;
   return '<td><span style="color:'+(p>=100?'var(--green-dark)':'#B58500')+';font-weight:700;">'+p.toFixed(0)+'%</span>'+(Math.abs(kek)<1?'':'<div class="lap-delta" style="color:'+(kek<0?'var(--red)':'var(--green-dark)')+';">'+(kek<0?'kurang ':'lebih ')+'Rp'+rpShort(Math.abs(kek))+'</div>')+'</td>';
 }
+function lapCapGen(val, target, fmt){
+  if(!(target>0)) return '<td class="muted-note">Belum diatur</td>';
+  const p=val/target*100, kek=val-target;
+  return '<td><span style="color:'+(p>=100?'var(--green-dark)':'#B58500')+';font-weight:700;">'+p.toFixed(0)+'%</span>'+(Math.abs(kek)<0.05?'':'<div class="lap-delta" style="color:'+(kek<0?'var(--red)':'var(--green-dark)')+';">'+(kek<0?'kurang ':'lebih ')+fmt(Math.abs(kek))+'</div>')+'</td>';
+}
+function lapInsGen(title, valueTxt, target, cur, fmt){
+  const pct=target>0?cur/target*100:null, sisa=target-cur;
+  return `<div class="lap-ins"><div class="lap-ins-head"><span class="lap-ins-title">${title}</span></div>
+    <div class="lap-ins-value">${valueTxt}</div>
+    <div class="lap-ins-target">${target>0?'Target: '+fmt(target)+' ('+lapPct(pct)+' tercapai)':'Target belum diatur'}</div>
+    <div class="lap-track"><div class="lap-fill${pct>100?' over':''}" style="width:${pct==null?0:Math.min(pct,100)}%;"></div></div>
+    <div class="lap-ins-foot"><span>Sisa menuju target</span><span class="v ${target>0?(sisa>0?'bad':'good'):''}">${target>0?(sisa>0?fmt(sisa)+' lagi':'Tercapai'):'-'}</span></div></div>`;
+}
 function lapKpi(color,label,value,dltHtml,note){
   return `<div class="card kpi"><div class="lap-acc" style="background:${color}"></div><div class="label">${label}</div><div class="value">${value}</div>${dltHtml||''}${note?`<div class="muted-note" style="margin-top:4px;">${note}</div>`:''}</div>`;
 }
@@ -2739,6 +2909,13 @@ function renderLaporan(){
   const hlGroup=(list,keyFn)=>{ const m={}; list.forEach(e=>{ const k=keyFn(e); (m[k]=m[k]||[]).push(e); }); return m; };
   const hlHosts=Object.entries(hlGroup(HLL,e=>e.host||'(Tanpa nama)')).map(([k,l])=>Object.assign({host:k},hlAgg(l))).sort((a,b)=>b.gmv-a.gmv);
   const hlPrevHost=hlGroup(hlPrevList,e=>e.host||'(Tanpa nama)');
+  const HT=targetHlTotal(range);
+  const hlTgRows=Array.from(new Set(hlHosts.map(h=>h.host).concat(Object.keys(hlHostTargets)))).map(h=>{
+      const a=hlHosts.find(x=>x.host===h)||hlAgg([]), t=targetHlForHost(h,range);
+      const toko=Array.from(new Set(HLL.filter(e=>(e.host||'(Tanpa nama)')===h).map(e=>{ const st=stores.find(x=>x.id===e.storeId); return st?st.name:''; }).filter(Boolean))).join(', ');
+      return {host:h, a, t, toko};
+    }).filter(r=>r.a.sesi>0||r.t.jam>0||r.t.gmv>0||r.t.gmvJam>0).sort((x,y)=>y.a.gmv-x.a.gmv);
+  const fRp=n=>rp(n), fJam=n=>hlFmtJam(n);
 
   /* --- kartu insight + pesan otomatis --- */
   const roasOk = (T.spending>0&&T.tRoas>0)?(T.roas>=T.tRoas):null;
@@ -2759,6 +2936,8 @@ function renderLaporan(){
     if(HL.sesi){
       let t='host live '+HL.sesi+' sesi dengan GMV '+rp(HL.gmv)+' (GMV/jam '+rp(HL.gmvJam)+')';
       if(HLP&&HLP.gmv>0) t+=', GMV '+(HL.gmv>=HLP.gmv?'naik ':'turun ')+Math.abs((HL.gmv-HLP.gmv)/HLP.gmv*100).toFixed(1).replace('.',',')+'% dibanding periode sebelumnya';
+      if(HT.gmv>0) t+=', '+(HL.gmv>=HT.gmv?'GMV sudah melampaui target':'GMV baru '+lapPct(HL.gmv/HT.gmv*100)+' dari target');
+      if(HT.jam>0) t+=', durasi live '+lapPct(HL.jam/HT.jam*100)+' dari target jam';
       parts.push(t);
     }
     msg = parts.length ? (parts[0].charAt(0).toUpperCase()+parts[0].slice(1)+(parts.length>1?'; '+parts.slice(1).join('; '):'')+'.') : 'Data sudah masuk, belum ada catatan khusus (target belum diatur).';
@@ -2784,6 +2963,9 @@ function renderLaporan(){
     lapKpi('var(--yellow)','Total Durasi Live',hlFmtJam(HL.jam),lapDlt(HL.jam,HLP?HLP.jam:null,true),'Rata-rata '+hlFmtJam(HL.sesi?HL.jam/HL.sesi:0)+' / sesi') +
     lapKpi('var(--blue)','Total Penonton',HL.penonton.toLocaleString('id-ID'),lapDlt(HL.penonton,HLP?HLP.penonton:null,true),'Rata-rata '+Math.round(HL.sesi?HL.penonton/HL.sesi:0).toLocaleString('id-ID')+' / sesi') +
     lapKpi('var(--purple)','Total Komentar',HL.komentar.toLocaleString('id-ID'),lapDlt(HL.komentar,HLP?HLP.komentar:null,true),'Komentar / penonton '+hlPctTxt(HL.komentar,HL.penonton));
+  document.getElementById('lapHlTarget').innerHTML = (HT.jam>0||HT.gmv>0||HT.gmvJam>0)
+    ? `<div class="lap-ins-grid">${lapInsGen('⏱️ Jam Live',hlFmtJam(HL.jam),HT.jam,HL.jam,fJam)}${lapInsGen('🎙️ GMV Live',rp(HL.gmv),HT.gmv,HL.gmv,fRp)}${lapInsGen('⚡ GMV / Jam',rp(HL.gmvJam),HT.gmvJam,HL.gmvJam,fRp)}</div>`
+    : '<div class="muted-note">Target Host Live belum diatur — atur lewat tombol 🎯 Target Host Live di halaman Host Live &amp; Talent.</div>';
   document.getElementById('lapCompareNote').textContent = prevR ? 'Perubahan dibanding periode sebelumnya ('+fmtDate(prevR.start)+' - '+fmtDate(prevR.end)+').' : 'Pilih rentang tanggal (mis. Bulan Ini) untuk melihat perubahan vs periode sebelumnya.';
 
   /* --- Sorotan --- */
@@ -2818,6 +3000,9 @@ function renderLaporan(){
     const effH=hlHosts.filter(h=>h.jam>0);
     if(effH.length>=2){ const b=effH.reduce((a,c)=>c.gmvJam>a.gmvJam?c:a); items.push({k:'⚡ GMV/Jam Tertinggi (Host)',v:b.host,s:rp(b.gmvJam)+' · '+hlFmtJam(b.jam)+' live',cls:'good'}); }
   }
+  { const gU=hlTgRows.filter(r=>r.t.gmv>0&&r.a.gmv<r.t.gmv), jU=hlTgRows.filter(r=>r.t.jam>0&&r.a.jam<r.t.jam);
+    if(gU.length) items.push({k:'⚠️ Host Belum Capai Target GMV',v:gU.map(r=>r.host).join(', '),s:'Total kurang '+rp(gU.reduce((x,r)=>x+(r.t.gmv-r.a.gmv),0)),cls:'bad'});
+    if(jU.length) items.push({k:'⚠️ Host Belum Capai Target Jam',v:jU.map(r=>r.host).join(', '),s:'Total kurang '+hlFmtJam(jU.reduce((x,r)=>x+(r.t.jam-r.a.jam),0)),cls:'bad'}); }
   document.getElementById('laporanSorotan').innerHTML = items.length ? '<div class="lap-hl-grid">'+items.map(i=>`<div class="lap-hl ${i.cls||''}"><div class="k">${i.k}</div><div class="v">${lapEsc(i.v)}</div><div class="s">${lapEsc(i.s)}</div></div>`).join('')+'</div>' : '<div class="muted-note">Belum ada data pada periode ini.</div>';
 
   /* --- Tren harian --- */
@@ -2880,9 +3065,12 @@ function renderLaporan(){
     return `<tr><td><b>${lapEsc(g.host)}</b></td><td>${g.sesi}${lapDlt(g.sesi,q.sesi,true)}</td><td>${hlFmtJam(g.jam)}${lapDlt(g.jam,q.jam,true)}</td><td>${rp(g.gmv)}${lapDlt(g.gmv,q.gmv,true)}</td><td>${hn(g.penonton)}${lapDlt(g.penonton,q.penonton,true)}</td><td>${hn(g.komentar)}${lapDlt(g.komentar,q.komentar,true)}</td><td>${hlPctTxt(g.komentar,g.penonton)}</td><td>${rp(g.gmvJam)}${lapDlt(g.gmvJam,q.gmvJam,true)}</td></tr>`; }).join('');
   if(hlHosts.length) hb+=`<tr style="font-weight:800;border-top:1px solid var(--line);"><td>TOTAL</td><td>${HL.sesi}${lapDlt(HL.sesi,HLP?HLP.sesi:null,true)}</td><td>${hlFmtJam(HL.jam)}${lapDlt(HL.jam,HLP?HLP.jam:null,true)}</td><td>${rp(HL.gmv)}${lapDlt(HL.gmv,HLP?HLP.gmv:null,true)}</td><td>${hn(HL.penonton)}${lapDlt(HL.penonton,HLP?HLP.penonton:null,true)}</td><td>${hn(HL.komentar)}${lapDlt(HL.komentar,HLP?HLP.komentar:null,true)}</td><td>${hlPctTxt(HL.komentar,HL.penonton)}</td><td>${rp(HL.gmvJam)}${lapDlt(HL.gmvJam,HLP?HLP.gmvJam:null,true)}</td></tr>`;
   document.getElementById('laporanHlHostBody').innerHTML = hb || empty(8,'Belum ada data host live pada periode ini');
+  let tb=hlTgRows.map(r=>`<tr><td><b>${lapEsc(r.host)}</b></td><td style="white-space:normal;min-width:120px;">${lapEsc(r.toko)||'-'}</td><td>${hlFmtJam(r.a.jam)}</td><td>${r.t.jam>0?hlFmtJam(r.t.jam):'<span class="muted-note">-</span>'}</td>${lapCapGen(r.a.jam,r.t.jam,fJam)}<td>${rp(r.a.gmv)}</td><td>${r.t.gmv>0?rp(r.t.gmv):'<span class="muted-note">-</span>'}</td>${lapCapGen(r.a.gmv,r.t.gmv,fRp)}<td>${r.a.jam>0?rp(r.a.gmvJam):'-'}</td><td>${r.t.gmvJam>0?rp(r.t.gmvJam):'<span class="muted-note">-</span>'}</td>${lapCapGen(r.a.gmvJam,r.t.gmvJam,fRp)}</tr>`).join('');
+  if(hlTgRows.length) tb+=`<tr style="font-weight:800;border-top:1px solid var(--line);"><td>TOTAL</td><td>${hlTgRows.length} host</td><td>${hlFmtJam(HL.jam)}</td><td>${HT.jam>0?hlFmtJam(HT.jam):'-'}</td>${lapCapGen(HL.jam,HT.jam,fJam)}<td>${rp(HL.gmv)}</td><td>${HT.gmv>0?rp(HT.gmv):'-'}</td>${lapCapGen(HL.gmv,HT.gmv,fRp)}<td>${HL.jam>0?rp(HL.gmvJam):'-'}</td><td>${HT.gmvJam>0?rp(HT.gmvJam):'-'}</td>${lapCapGen(HL.gmvJam,HT.gmvJam,fRp)}</tr>`;
+  document.getElementById('laporanHlTargetBody').innerHTML = tb || empty(11,'Belum ada data host live pada periode ini');
   let sb=stores.map(st=>{ const l=HLL.filter(e=>e.storeId===st.id); if(!l.length) return ''; const g=hlAgg(l), q=hlAgg(hlPrevList.filter(e=>e.storeId===st.id)), pm=PLATFORM_META[st.platform];
-    return `<tr><td><b>${lapEsc(st.name)}</b></td><td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td><td>${g.sesi}${lapDlt(g.sesi,q.sesi,true)}</td><td>${hlFmtJam(g.jam)}${lapDlt(g.jam,q.jam,true)}</td><td>${rp(g.gmv)}${lapDlt(g.gmv,q.gmv,true)}</td><td>${hn(g.penonton)}${lapDlt(g.penonton,q.penonton,true)}</td><td>${hn(g.komentar)}${lapDlt(g.komentar,q.komentar,true)}</td><td>${rp(g.gmvJam)}${lapDlt(g.gmvJam,q.gmvJam,true)}</td></tr>`; }).join('');
-  document.getElementById('laporanHlStoreBody').innerHTML = sb || empty(8,'Belum ada data host live pada periode ini');
+    return `<tr><td><b>${lapEsc(st.name)}</b></td><td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td><td style="white-space:normal;min-width:120px;">${lapEsc(hlHostNames(l))||'-'}</td><td>${g.sesi}${lapDlt(g.sesi,q.sesi,true)}</td><td>${hlFmtJam(g.jam)}${lapDlt(g.jam,q.jam,true)}</td><td>${rp(g.gmv)}${lapDlt(g.gmv,q.gmv,true)}</td><td>${hn(g.penonton)}${lapDlt(g.penonton,q.penonton,true)}</td><td>${hn(g.komentar)}${lapDlt(g.komentar,q.komentar,true)}</td><td>${rp(g.gmvJam)}${lapDlt(g.gmvJam,q.gmvJam,true)}</td></tr>`; }).join('');
+  document.getElementById('laporanHlStoreBody').innerHTML = sb || empty(9,'Belum ada data host live pada periode ini');
   const sesi=HLL.slice().sort((a,b)=>(b.tanggal+(b.jamMulai||'')).localeCompare(a.tanggal+(a.jamMulai||''))), SMAX=50;
   document.getElementById('laporanHlSesiNote').textContent = sesi.length>SMAX ? 'Menampilkan '+SMAX+' sesi terbaru dari '+sesi.length : (sesi.length?sesi.length+' sesi':'');
   document.getElementById('laporanHlSesiBody').innerHTML = sesi.slice(0,SMAX).map(e=>{ const st=stores.find(x=>x.id===e.storeId);
@@ -2969,6 +3157,7 @@ async function exportLaporanPPT(){
     addTable('Rincian Affiliate per Toko',document.getElementById('laporanAfBody'));
     addChart('GMV Live Harian','laporanHlTrendChart');
     addChart('GMV per Host','laporanHlHostChart');
+    addTable('Capaian Target Host Live per Host',document.getElementById('laporanHlTargetBody'));
     addTable('Rekap Host Live per Host',document.getElementById('laporanHlHostBody'));
     addTable('Rekap Host Live per Toko',document.getElementById('laporanHlStoreBody'));
     const safe=(period||'periode').replace(/[^\w\-]+/g,'_').replace(/^_+|_+$/g,'');
@@ -3051,6 +3240,154 @@ function deleteMonthTargetAff(storeId, ym, btn){
   pushOneToSheet('targetAffiliate', {tokoId:storeId, bulan:ym, hapus:true});
   renderTargetAffList(storeId);
   renderAffKPI();
+}
+
+/* ================= TARGET HOST LIVE BULANAN (MODAL, PER HOST) ================= */
+function hlKnownHosts(){ return Array.from(new Set(hlEntries.map(e=>(e.host||'').trim()).concat(Object.keys(hlHostTargets)).filter(Boolean))).sort(); }
+function tghlHost(){ return document.getElementById('tghl-host').value.replace(/[|]/g,'').trim(); }
+function openTargetHlModal(host){
+  const hosts = hlKnownHosts();
+  document.getElementById('tghlHostList').innerHTML = hosts.map(n=>`<option value="${lapEsc(n)}">`).join('');
+  document.getElementById('tghl-host').value = host || hosts[0] || '';
+  const now = new Date();
+  document.getElementById('tghl-month').value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  fillMonthTargetHlInputs(); renderTargetHlList();
+  document.getElementById('targetHlOverlay').classList.add('open');
+}
+function closeTargetHlModal(){ document.getElementById('targetHlOverlay').classList.remove('open'); }
+function fillMonthTargetHlInputs(){
+  const h = tghlHost(), ym = document.getElementById('tghl-month').value, ex = h && hlHostTargets[h] && hlHostTargets[h][ym];
+  document.getElementById('tghl-jam').value = ex && ex.jam ? ex.jam : '';
+  document.getElementById('tghl-gmv').value = ex ? formatRibuan(Math.round(ex.gmv||0)||'') : '';
+  document.getElementById('tghl-gmvjam').value = ex ? formatRibuan(Math.round(ex.gmvJam||0)||'') : '';
+  tgSetStatus('tghl-status', !!ex, !h ? 'Isi nama host dulu' : (ex ? '✓ Sudah diatur' : 'Belum ada target'));
+  tgHighlightRow('targetHlListBody', ym);
+}
+function copyPrevTargetHl(){
+  const h = tghlHost(); if(!h){ tgSetStatus('tghl-status', false, 'Isi nama host dulu'); return; }
+  const prev = hlHostTargets[h] && hlHostTargets[h][tgPrevYm(document.getElementById('tghl-month').value)];
+  if(!prev){ tgSetStatus('tghl-status', false, 'Bulan lalu belum ada target'); return; }
+  document.getElementById('tghl-jam').value = prev.jam||'';
+  document.getElementById('tghl-gmv').value = formatRibuan(Math.round(prev.gmv||0)||'');
+  document.getElementById('tghl-gmvjam').value = formatRibuan(Math.round(prev.gmvJam||0)||'');
+  tgSetStatus('tghl-status', false, 'Disalin — klik Simpan');
+}
+function hlTargetAutoGmvJam(){
+  const jam = parseFloat(document.getElementById('tghl-jam').value)||0, gmv = rawNumber('tghl-gmv');
+  if(!(jam>0 && gmv>0)){ tgSetStatus('tghl-status', false, 'Isi Target Jam & Target GMV dulu'); return; }
+  document.getElementById('tghl-gmvjam').value = formatRibuan(Math.round(gmv/jam));
+  tgSetStatus('tghl-status', false, 'Terhitung — klik Simpan');
+}
+attachRibuanFormatting('tghl-gmv');
+attachRibuanFormatting('tghl-gmvjam');
+document.getElementById('tghl-month').addEventListener('change', fillMonthTargetHlInputs);
+document.getElementById('tghl-host').addEventListener('change', ()=>{ fillMonthTargetHlInputs(); renderTargetHlList(); });
+document.getElementById('tghl-host').addEventListener('input', ()=>{ if(hlKnownHosts().includes(tghlHost())){ fillMonthTargetHlInputs(); renderTargetHlList(); } });
+document.getElementById('btnTargetHl').addEventListener('click', ()=> openTargetHlModal());
+function renderTargetHlList(){
+  const h = tghlHost(), tg = (h && hlHostTargets[h]) || {};
+  const months = Object.keys(tg).sort().reverse();
+  document.getElementById('targetHlListBody').innerHTML = months.map(ym=>{
+    const t = tg[ym];
+    return `<tr data-ym="${ym}" onclick="tgPickMonth('tghl-month','${ym}')">
+      <td><b>${fmtMonthLabel(ym)}</b></td>
+      <td>${t.jam? hlFmtJam(t.jam):'-'}</td>
+      <td>${t.gmv? rp(t.gmv):'-'}</td>
+      <td>${t.gmvJam? rp(t.gmvJam):'-'}</td>
+      <td style="white-space:nowrap;"><button class="btn btn-wa btn-sm" onclick="event.stopPropagation();openHlWaModal(this.dataset.host,'${ym}')" data-host="${lapEsc(h)}">📲 WA</button> <button class="btn btn-danger-ghost btn-sm" onclick="event.stopPropagation();deleteMonthTargetHl(this.dataset.host,'${ym}', this)" data-host="${lapEsc(h)}">Hapus</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);">${h?'Belum ada target untuk host ini.':'Isi nama host untuk melihat target-nya.'}</td></tr>`;
+  tgHighlightRow('targetHlListBody', document.getElementById('tghl-month').value);
+}
+/* ===== Info target per host via WhatsApp ===== */
+const HL_PHONE_KEY='kh_hl_host_phones_v1';
+let hlHostPhones=(function(){ try{ const o=JSON.parse(localStorage.getItem(HL_PHONE_KEY)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } })();
+function hlPctStr(x){ return x.toFixed(1).replace('.',',')+'%'; }
+function buildHlTargetWaText(host, ym, withProgress){
+  const t=(hlHostTargets[host]||{})[ym]||{jam:0,gmv:0,gmvJam:0};
+  const has=t.jam>0||t.gmv>0||t.gmvJam>0;
+  let msg=`*INFO TARGET LIVE*\nHalo ${host||'...'} 👋\nPeriode : ${ym?fmtMonthLabel(ym):'-'}\n\n`;
+  if(!has) return msg+'_Target bulan ini belum diatur._';
+  msg+=`*Target kamu bulan ini:*\n⏱️ Jam Live : ${t.jam>0?hlFmtJam(t.jam):'-'}\n💰 GMV Live : ${t.gmv>0?rp(t.gmv):'-'}\n⚡ GMV / Jam : ${t.gmvJam>0?rp(t.gmvJam):'-'}`;
+  if(withProgress && ym){
+    const [y,m]=ym.split('-').map(Number), lastD=new Date(y,m,0).getDate();
+    const first=ym+'-01', last=ym+'-'+String(lastD).padStart(2,'0');
+    const a=hlAgg(hlEntries.filter(e=>(e.host||'')===host && e.tanggal>=first && e.tanggal<=last));
+    msg+=`\n\n*Capaian saat ini:*`;
+    msg+=`\n⏱️ Jam Live : ${hlFmtJam(a.jam)}`+(t.jam>0?` (${hlPctStr(a.jam/t.jam*100)})`:'');
+    msg+=`\n💰 GMV Live : ${rp(a.gmv)}`+(t.gmv>0?` (${hlPctStr(a.gmv/t.gmv*100)})`:'');
+    msg+=`\n⚡ GMV / Jam : ${a.jam>0?rp(a.gmvJam):'-'}`;
+    const now=new Date(), nowYm=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    const sisaJam=Math.max(t.jam-a.jam,0), sisaGmv=Math.max(t.gmv-a.gmv,0);
+    if(ym===nowYm){
+      const remDays=lastD-now.getDate()+1;
+      if((t.jam>0||t.gmv>0) && sisaJam===0 && sisaGmv===0) msg+=`\n\n🎉 Target bulan ini sudah tercapai, mantap!`;
+      else if(remDays>0){
+        msg+=`\n\n*Sisa menuju target (${remDays} hari lagi):*`;
+        if(t.jam>0) msg+=`\n⏱️ Jam Live : ${hlFmtJam(sisaJam)} → sekitar ${hlFmtJam(sisaJam/remDays)} / hari`;
+        if(t.gmv>0) msg+=`\n💰 GMV Live : ${rp(sisaGmv)} → sekitar ${rp(Math.round(sisaGmv/remDays))} / hari`;
+      }
+    } else if(ym<nowYm){
+      if(t.jam>0 && sisaJam>0) msg+=`\n\nKurang jam live : ${hlFmtJam(sisaJam)}`;
+      if(t.gmv>0 && sisaGmv>0) msg+=`\nKurang GMV : ${rp(sisaGmv)}`;
+    }
+  }
+  return msg+`\n\nSemangat ya! 💪\n_Dikirim dari Dashboard Marketplace_`;
+}
+function hlwaText(){ return buildHlTargetWaText(document.getElementById('hlwa-host').value.trim(), document.getElementById('hlwa-month').value, document.getElementById('hlwa-progress').checked); }
+function hlwaRefresh(){ document.getElementById('hlwa-preview').textContent = hlwaText(); }
+function hlwaLoadPhone(){ document.getElementById('hlwa-phone').value = hlHostPhones[document.getElementById('hlwa-host').value.trim()] || ''; }
+function openHlWaModal(host, ym){
+  document.getElementById('hlwaHostList').innerHTML = hlKnownHosts().map(n=>`<option value="${lapEsc(n)}">`).join('');
+  document.getElementById('hlwa-host').value = host || '';
+  if(!ym){ const ms = monthsInRange(currentRangeOrNull()); const d=new Date(); ym = (ms&&ms.length)?ms[ms.length-1]:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+  document.getElementById('hlwa-month').value = ym;
+  hlwaLoadPhone(); hlwaRefresh();
+  document.getElementById('hlWaOverlay').classList.add('open');
+}
+function closeHlWaModal(){ document.getElementById('hlWaOverlay').classList.remove('open'); }
+document.getElementById('hlwa-host').addEventListener('input', ()=>{ hlwaLoadPhone(); hlwaRefresh(); });
+document.getElementById('hlwa-month').addEventListener('change', hlwaRefresh);
+document.getElementById('hlwa-progress').addEventListener('change', hlwaRefresh);
+document.getElementById('hlwa-phone').addEventListener('input', ()=>{
+  const h=document.getElementById('hlwa-host').value.trim(); if(!h) return;
+  const v=document.getElementById('hlwa-phone').value.replace(/\D/g,'');
+  if(v) hlHostPhones[h]=v; else delete hlHostPhones[h];
+  try{ localStorage.setItem(HL_PHONE_KEY, JSON.stringify(hlHostPhones)); }catch(e){}
+});
+document.getElementById('hlwa-send').addEventListener('click', ()=>{
+  const text=hlwaText(), phone=document.getElementById('hlwa-phone').value.replace(/\D/g,'');
+  window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+});
+document.getElementById('hlwa-copy').addEventListener('click', ()=>{
+  const btn=document.getElementById('hlwa-copy'), orig=btn.textContent;
+  copyTextWithFallback(hlwaText()).then(()=>{ btn.textContent='✅ Tersalin!'; setTimeout(()=>{ btn.textContent=orig; },1800); }).catch(()=>{ alert('Gagal menyalin otomatis. Blok teks di preview lalu salin manual ya.'); });
+});
+
+function afterTargetHlChange(){
+  renderHostLive();
+  if(typeof renderLaporan==='function' && document.getElementById('page-laporan').classList.contains('active')) renderLaporan();
+}
+function saveMonthTargetHl(){
+  const h = tghlHost(); if(!h){ alert('Isi nama host dulu ya.'); return; }
+  const ym = document.getElementById('tghl-month').value;
+  if(!ym){ alert('Pilih bulan dulu ya.'); return; }
+  const jam = parseFloat(document.getElementById('tghl-jam').value)||0, gmv = rawNumber('tghl-gmv'), gmvJam = rawNumber('tghl-gmvjam');
+  if(!hlHostTargets[h]) hlHostTargets[h]={};
+  hlHostTargets[h][ym] = {jam, gmv, gmvJam};
+  saveHlHostTargets();
+  pushOneToSheet('targetHostLive', {host:h, bulan:ym, targetjam:jam, targetgmv:gmv, targetgmvjam:gmvJam});
+  document.getElementById('tghlHostList').innerHTML = hlKnownHosts().map(n=>`<option value="${lapEsc(n)}">`).join('');
+  renderTargetHlList(); tgSetStatus('tghl-status', true, '✓ Tersimpan');
+  afterTargetHlChange();
+}
+function deleteMonthTargetHl(host, ym, btn){
+  if(btn && !armConfirm(btn)) return;
+  if(!hlHostTargets[host]) return;
+  delete hlHostTargets[host][ym]; if(!Object.keys(hlHostTargets[host]).length) delete hlHostTargets[host];
+  saveHlHostTargets();
+  pushOneToSheet('targetHostLive', {host, bulan:ym, hapus:true});
+  renderTargetHlList(); fillMonthTargetHlInputs(); afterTargetHlChange();
 }
 
 /* ================= INPUT HARIAN ================= */
@@ -4127,10 +4464,35 @@ function hlFilter(list, range){ return range ? list.filter(e=> (!range.start||e.
 function hlToMin(t){ const m=String(t||'').match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1])*60+(+m[2]) : null; }
 function hlDurasi(a,b){ let x=hlToMin(a), y=hlToMin(b); if(x===null||y===null) return 0; if(y<=x) y+=1440; return (y-x)/60; }
 function hlFmtJam(n){ return (Math.round((n||0)*10)/10).toLocaleString('id-ID')+' jam'; }
+function hlPersonTargetCells(host, range){
+  const t=targetHlForHost(host,range), has=t.jam>0||t.gmv>0||t.gmvJam>0;
+  const tg = has ? `${t.jam>0?hlFmtJam(t.jam):'-'}<div class="muted-note" style="margin:0;">${t.gmv>0?rp(t.gmv):'-'}</div>` : '<span class="muted-note">Belum diatur</span>';
+  const btn = host==='(Tanpa nama)' ? '' : `<button class="btn btn-wa btn-sm" data-host="${lapEsc(host)}" onclick="openHlWaModal(this.dataset.host)">📲 Info Target</button>`;
+  return `<td>${tg}</td><td>${btn}</td>`;
+}
+function hlHostNames(list){ return Array.from(new Set(list.map(e=>(e.host||'').trim()).filter(Boolean))).sort().join(', '); }
 function hlPctTxt(a,b){ return b>0 ? (a/b*100).toFixed(1).replace('.',',')+'%' : '-'; }
+// Jam live NYATA: interval waktu yang tumpang tindih (mis. live bersamaan di 2 toko) digabung, tidak dihitung dobel.
+// Sesi tanpa jam mulai valid tetap dihitung apa adanya (durasinya ditambahkan).
+function hlUnionJam(list){
+  const ivs=[]; let extra=0;
+  list.forEach(e=>{
+    const m=hlToMin(e.jamMulai), d=e.durasi||0, t=Date.parse((e.tanggal||'')+'T00:00:00Z');
+    if(m===null || isNaN(t) || !(d>0)){ extra+=d; return; }
+    const st=t/60000+m; ivs.push([st, st+d*60]);
+  });
+  ivs.sort((a,b)=>a[0]-b[0]);
+  let tot=0, cs=null, ce=null;
+  ivs.forEach(([a,b])=>{ if(cs===null){ cs=a; ce=b; } else if(a<=ce){ ce=Math.max(ce,b); } else { tot+=ce-cs; cs=a; ce=b; } });
+  if(cs!==null) tot+=ce-cs;
+  return tot/60+extra;
+}
 function hlAgg(list){
   const o = {sesi:list.length, gmv:0, jam:0, penonton:0, komentar:0};
-  list.forEach(e=>{ o.gmv+=e.gmv||0; o.jam+=e.durasi||0; o.penonton+=e.penonton||0; o.komentar+=e.komentar||0; });
+  list.forEach(e=>{ o.gmv+=e.gmv||0; o.penonton+=e.penonton||0; o.komentar+=e.komentar||0; });
+  // jam live per orang: sesi host yang sama yang tumpang tindih (mis. live bersamaan di 2 toko) tidak dihitung dobel
+  const byHost={}; list.forEach(e=>{ const k=e.host||''; (byHost[k]=byHost[k]||[]).push(e); });
+  o.jam = Object.values(byHost).reduce((a,l)=>a+hlUnionJam(l),0);
   o.gmvJam = o.jam>0 ? o.gmv/o.jam : 0;
   return o;
 }
@@ -4164,7 +4526,7 @@ function populateHlStores(){
 
 /* ---------- HOST LIVE ---------- */
 function renderHlKPI(){
-  const range = currentRangeOrNull(), cur = hlFilter(hlEntries, range), A = hlAgg(cur);
+  const range = currentRangeOrNull(), cur = hlFilter(hlEntries, range), A = hlAgg(cur), HT = targetHlTotal(range);
   const prevRange = affPreviousRange(range);
   const P = prevRange ? hlAgg(hlFilter(hlEntries, prevRange)) : null;
   const d = (k)=> P ? deltaBadgeHTML(A[k], P[k]) : '';
@@ -4175,19 +4537,26 @@ function renderHlKPI(){
     eye:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
     chat:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12Z"/></svg>'};
   document.getElementById('hlKpiRow').innerHTML =
-    kpiCardHTML({dark:true, label:'GMV Live', value:rp(A.gmv), ic:KPI_ICONS.omzet, hasTarget:false, delta:A.sesi+' sesi · GMV/jam '+rp(A.gmvJam), deltaBadge:d('gmv')}) +
-    kpiCardHTML({label:'Total Durasi Live', value:hlFmtJam(A.jam), ic:ic.clock, hasTarget:false, delta:'Rata-rata '+hlFmtJam(A.sesi?A.jam/A.sesi:0)+' / sesi', deltaBadge:d('jam')}) +
+    kpiCardHTML({dark:true, label:'GMV Live', value:rp(A.gmv), ic:KPI_ICONS.omzet, hasTarget:HT.gmv>0, delta:A.sesi+' sesi · GMV/jam '+rp(A.gmvJam), deltaBadge:d('gmv'),
+      targetLine:`Target: ${rp(HT.gmv)} (${(A.gmv/(HT.gmv||1)*100).toFixed(1)}% tercapai)`, barPct:Math.min(A.gmv/(HT.gmv||1)*100,100),
+      remainLabel:A.gmv>=HT.gmv?'Melebihi target':'Sisa menuju target', remainValue:A.gmv>=HT.gmv?'+'+rp(A.gmv-HT.gmv)+' lebih':rp(HT.gmv-A.gmv)+' lagi',
+      extraHtml:HT.gmv>0 ? A.sesi+' sesi · GMV/jam '+rp(A.gmvJam)+(HT.gmvJam>0?' (target '+rp(HT.gmvJam)+')':'') : ''}) +
+    kpiCardHTML({label:'Total Durasi Live', value:hlFmtJam(A.jam), ic:ic.clock, hasTarget:HT.jam>0, delta:'Rata-rata '+hlFmtJam(A.sesi?A.jam/A.sesi:0)+' / sesi', deltaBadge:d('jam'),
+      targetLine:`Target: ${hlFmtJam(HT.jam)} (${(A.jam/(HT.jam||1)*100).toFixed(1)}% tercapai)`, barPct:Math.min(A.jam/(HT.jam||1)*100,100),
+      remainLabel:A.jam>=HT.jam?'Melebihi target':'Sisa menuju target', remainValue:A.jam>=HT.jam?'+'+hlFmtJam(A.jam-HT.jam)+' lebih':hlFmtJam(HT.jam-A.jam)+' lagi',
+      extraHtml:HT.jam>0 ? 'Rata-rata '+hlFmtJam(A.sesi?A.jam/A.sesi:0)+' / sesi' : ''}) +
     kpiCardHTML({label:'Total Penonton', value:A.penonton.toLocaleString('id-ID'), ic:ic.eye, hasTarget:false, delta:'Rata-rata '+Math.round(A.sesi?A.penonton/A.sesi:0).toLocaleString('id-ID')+' / sesi', deltaBadge:d('penonton')}) +
     kpiCardHTML({label:'Total Komentar', value:A.komentar.toLocaleString('id-ID'), ic:ic.chat, hasTarget:false, delta:'Komentar / penonton '+hlPctTxt(A.komentar,A.penonton), deltaBadge:d('komentar')});
 
   const map = {}; cur.forEach(e=>{ const k=e.host||'(Tanpa nama)'; (map[k]=map[k]||{host:k,list:[]}).list.push(e); });
+  Object.keys(hlHostTargets).forEach(h=>{ if(!map[h]){ const t=targetHlForHost(h,range); if(t.jam>0||t.gmv>0||t.gmvJam>0) map[h]={host:h,list:[]}; } });
   const people = Object.values(map).map(g=>Object.assign(g, hlAgg(g.list))).sort((a,b)=>b.gmv-a.gmv);
-  document.getElementById('hlPersonBody').innerHTML = people.map(g=>`<tr><td><b>${g.host}</b></td><td>${g.sesi}</td><td>${hlFmtJam(g.jam)}</td><td>${rp(g.gmv)}</td><td>${g.penonton.toLocaleString('id-ID')}</td><td>${g.komentar.toLocaleString('id-ID')}</td><td>${hlPctTxt(g.komentar,g.penonton)}</td><td>${rp(g.gmvJam)}</td></tr>`).join('') || hlEmpty(8,'Belum ada data pada periode ini.');
+  document.getElementById('hlPersonBody').innerHTML = people.map(g=>`<tr><td><b>${g.host}</b></td><td>${g.sesi}</td><td>${hlFmtJam(g.jam)}</td><td>${rp(g.gmv)}</td><td>${g.penonton.toLocaleString('id-ID')}</td><td>${g.komentar.toLocaleString('id-ID')}</td><td>${hlPctTxt(g.komentar,g.penonton)}</td><td>${rp(g.gmvJam)}</td>${hlPersonTargetCells(g.host,range)}</tr>`).join('') || hlEmpty(10,'Belum ada data pada periode ini.');
   document.getElementById('hlStoreBody').innerHTML = stores.map(s=>{
     const l = cur.filter(e=>e.storeId===s.id); if(!l.length) return '';
     const g = hlAgg(l), pm = PLATFORM_META[s.platform];
-    return `<tr><td><b>${s.name}</b></td><td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td><td>${g.sesi}</td><td>${hlFmtJam(g.jam)}</td><td>${rp(g.gmv)}</td><td>${g.penonton.toLocaleString('id-ID')}</td><td>${g.komentar.toLocaleString('id-ID')}</td><td>${rp(g.gmvJam)}</td></tr>`;
-  }).join('') || hlEmpty(8,'Belum ada data pada periode ini.');
+    return `<tr><td><b>${s.name}</b></td><td><span class="plat-pill ${pm.bgClass}"><span class="plat-dot ${pm.bgClass}"></span>${pm.name}</span></td><td style="white-space:normal;min-width:120px;">${lapEsc(hlHostNames(l))||'-'}</td><td>${g.sesi}</td><td>${hlFmtJam(g.jam)}</td><td>${rp(g.gmv)}</td><td>${g.penonton.toLocaleString('id-ID')}</td><td>${g.komentar.toLocaleString('id-ID')}</td><td>${rp(g.gmvJam)}</td></tr>`;
+  }).join('') || hlEmpty(9,'Belum ada data pada periode ini.');
 }
 const HL_PAGE_SIZE = 20; let hlPage = 1;
 function renderHlEntries(){
@@ -4473,7 +4842,8 @@ function doGet(e){
       var okr = sheetToObjects(getOkrSheetMigrated(ss));
       var hostlive = sheetToObjects(ss.getSheetByName('HostLive'));
       var talent = sheetToObjects(ss.getSheetByName('Talent'));
-      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate, okr: okr, hostlive: hostlive, talent: talent};
+      var targetHostLive = sheetToObjects(ss.getSheetByName('TargetHostLive'));
+      result = {toko: toko, input: input, target: target, affiliate: affiliate, targetAffiliate: targetAffiliate, okr: okr, hostlive: hostlive, talent: talent, targetHostLive: targetHostLive};
     }catch(err){
       result = {status:'error', message:'Gagal membaca spreadsheet: '+err.message};
     }
@@ -4498,17 +4868,17 @@ function doPost(e){
 function handlePing(){
   try{
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR','HostLive','Talent'];
+    var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR','HostLive','Talent','TargetHostLive'];
     var existing = ss.getSheets().map(function(s){ return s.getName(); });
     var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
-    return {status:'ok', version:'v36', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
+    return {status:'ok', version:'v38', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent','targetHostLive'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
   }catch(err){
     return {status:'error', message: 'Ping gagal: '+err.message};
   }
 }
 
 function handleWrite(data){
-  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel','hppSampel','hppTotal','sampelW100','sampelW200','sampelN30','sampelN60','gmvLive','gmvVideo','gmvProduk','gmvMedsos','durasi','gmv','penonton','komentar','take','target'];
+  var NUMERIC_KEYS = ['omzet','spending','targetomzet','targetspending','targetroas','ppncpas','komisi','sampel','targetomzetafiliasi','targetkomisi','targetsampel','hppSampel','hppTotal','sampelW100','sampelW200','sampelN30','sampelN60','gmvLive','gmvVideo','gmvProduk','gmvMedsos','durasi','gmv','penonton','komentar','take','target','targetjam','targetgmv','targetgmvjam'];
   NUMERIC_KEYS.forEach(function(k){ if(data[k] !== undefined && data[k] !== null && data[k] !== '') data[k] = Number(data[k]) || 0; });
   data.hapus = (data.hapus === true || data.hapus === 'true');
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -4523,6 +4893,7 @@ function handleWrite(data){
     else if(data.type === 'okr') upsertOkr(ss, data);
     else if(data.type === 'hostlive') upsertHostLive(ss, data);
     else if(data.type === 'talent') upsertTalent(ss, data);
+    else if(data.type === 'targetHostLive') upsertTargetHostLive(ss, data);
     else return {status:'error', message:'Tipe data tidak dikenal: '+data.type};
   } catch(err){
     return {status:'error', message: 'Gagal menyimpan ke sheet "'+data.type+'": '+err.message};
@@ -4657,6 +5028,21 @@ function upsertTargetAffiliate(ss, data){
   }
   if(data.hapus) return;
   sh.appendRow([data.tokoId,data.bulan,data.targetomzetafiliasi,data.targetkomisi,data.targetsampel]);
+}
+
+// Sheet "TargetHostLive": upsert berdasarkan (host + bulan) — 1 baris per host (orang) per bulan.
+function upsertTargetHostLive(ss, data){
+  var sh = getOrCreateSheet(ss, 'TargetHostLive', ['host','bulan','targetjam','targetgmv','targetgmvjam']);
+  var rows = sh.getDataRange().getValues();
+  for(var i=1;i<rows.length;i++){
+    if(String(rows[i][0]).trim() === String(data.host).trim() && String(rows[i][1]).trim() === String(data.bulan).trim()){
+      if(data.hapus){ sh.deleteRow(i+1); return; }
+      sh.getRange(i+1,1,1,5).setValues([[data.host,data.bulan,data.targetjam,data.targetgmv,data.targetgmvjam]]);
+      return;
+    }
+  }
+  if(data.hapus) return;
+  sh.appendRow([data.host,data.bulan,data.targetjam,data.targetgmv,data.targetgmvjam]);
 }
 
 // Sheet "HostLive": upsert berdasarkan (tokoId + tanggal + host + jamMulai) — 1 baris per sesi live.
@@ -4814,6 +5200,10 @@ function affEntryToRow(e){ return {tanggal:e.tanggal, tokoId:e.storeId, omzet:e.
 function targetRowsForStore(s){
   return Object.keys(s.targets||{}).map(ym=> ({tokoId:s.id, bulan:ym, targetomzet:s.targets[ym].omzet, targetspending:s.targets[ym].spending, targetroas:s.targets[ym].roas}));
 }
+function targetHlRowsAll(){
+  const rows=[]; Object.keys(hlHostTargets).forEach(h=> Object.keys(hlHostTargets[h]).forEach(ym=>{ const t=hlHostTargets[h][ym]; rows.push({host:h, bulan:ym, targetjam:t.jam, targetgmv:t.gmv, targetgmvjam:t.gmvJam}); }));
+  return rows;
+}
 function targetAffRowsForStore(s){
   return Object.keys(s.affTargets||{}).map(ym=> ({tokoId:s.id, bulan:ym, targetomzetafiliasi:s.affTargets[ym].omzet, targetkomisi:s.affTargets[ym].komisi, targetsampel:s.affTargets[ym].sampel}));
 }
@@ -4894,6 +5284,7 @@ async function pushAllToSheet(){
     for(const e of hlEntries) await send('hostlive', hlEntryToRow(e));
     for(const e of tlEntries) await send('talent', tlEntryToRow(e));
     for(const s of stores) for(const row of targetAffRowsForStore(s)) await send('targetAffiliate', row);
+    for(const row of targetHlRowsAll()) await send('targetHostLive', row);
     if(typeof okrPushAllPeriods === 'function') await okrPushAllPeriods();
   }catch(err){ setSyncMsg('Pengiriman terhenti: '+err.message, 'var(--red)'); return; }
   const failed = Object.keys(stat).filter(k=>stat[k].fail>0);
@@ -4916,12 +5307,13 @@ async function pullFromSheet(silent){
       return {ok:false, message: msg};
     }
     if(Array.isArray(json.toko)){
+      const oldHlTargets = {}; stores.forEach(o=>{ oldHlTargets[o.id]=o.hlTargets||{}; });
       stores = json.toko.map(r=>({
         id:String(r.id), platform:String(r.platform||'shopee').toLowerCase(), name:r.nama||'(Tanpa nama)',
         username:r.username||'', status:String(r.status||'aktif').toLowerCase(),
         cpasPpnRate: parseFloat(r.ppncpas)||0,
         pic:String(r.pic||'').trim(), picHist:picHistFromStr(r.pichist), affPic:String(r.affpic||'').trim(), affPicHist:picHistFromStr(r.affpichist),
-        targets:{}, affTargets:{}
+        targets:{}, affTargets:{}, hlTargets:Object.assign({}, oldHlTargets[String(r.id)]||{})
       }));
       if(Array.isArray(json.target)){
         json.target.forEach(r=>{
@@ -4936,6 +5328,15 @@ async function pullFromSheet(silent){
           const ym = String(r.bulan).slice(0,7);
           s.affTargets[ym] = {omzet:parseFloat(r.targetomzetafiliasi)||0, komisi:parseFloat(r.targetkomisi)||0, sampel:parseInt(r.targetsampel)||0};
         });
+      }
+      if(Array.isArray(json.targetHostLive) && json.targetHostLive.some(r=>r && r.host)){
+        const nt={};
+        json.targetHostLive.forEach(r=>{
+          const h=String(r.host||'').trim(); if(!h) return;
+          const ym=String(r.bulan).slice(0,7);
+          (nt[h]=nt[h]||{})[ym]={jam:parseFloat(r.targetjam)||0, gmv:parseFloat(r.targetgmv)||0, gmvJam:parseFloat(r.targetgmvjam)||0};
+        });
+        hlHostTargets = nt; saveHlHostTargets();
       }
       saveStores();
     }
@@ -4992,13 +5393,16 @@ async function testConnection(){
     if(missing.length){
       html += `<br><span style="color:var(--red);">⚠️ Sheet belum ada: ${missing.join(', ')} — akan dibuat otomatis saat pertama kali ada data yang tersimpan ke sana, atau bisa dibuat manual dulu.</span>`;
     } else {
-      html += `<br><span style="color:var(--green-dark);">✓ Kedelapan sheet (Toko, Input, Target, Affiliate, TargetAffiliate, OKR, HostLive, Talent) sudah lengkap.</span>`;
+      html += `<br><span style="color:var(--green-dark);">✓ Kesembilan sheet (Toko, Input, Target, Affiliate, TargetAffiliate, OKR, HostLive, Talent, TargetHostLive) sudah lengkap.</span>`;
     }
     const supportsHl = Array.isArray(body.supports) && body.supports.indexOf('hostlive') !== -1;
     if(supportsHl){
       html += `<br><span style="color:var(--green-dark);">✓ Versi script yang ter-deploy: ${body.version} (mendukung Host Live & Talent).</span>`;
     } else {
       html += `<br><span style="color:var(--red);">⚠️ Script yang ter-deploy masih VERSI LAMA (tidak punya penanda versi / tidak mendukung Host Live). Tempel ulang kode terbaru dari "Lihat Kode Apps Script", lalu Deploy → Manage deployments → Edit (pensil) → Version: New version → Deploy.</span>`;
+    }
+    if(supportsHl && !(Array.isArray(body.supports) && body.supports.indexOf('targetHostLive') !== -1)){
+      html += `<br><span style="color:#B58500;">⚠️ Script belum mendukung Target Host Live (target tetap tersimpan di browser ini, tapi belum masuk spreadsheet). Tempel ulang kode terbaru dari "Lihat Kode Apps Script" lalu deploy New version.</span>`;
     }
     resultEl.innerHTML = html;
   }catch(err){
