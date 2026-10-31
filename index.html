@@ -343,6 +343,14 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
 .lap-card-title{font-size:13.5px;font-weight:800;margin-bottom:10px;}
 .lap-chart{position:relative;width:100%;}
 .lap-print-title{display:none;}
+#laporanReportArea .section-header h2{font-size:15px;padding-left:10px;border-left:4px solid var(--green);}
+#laporanReportArea table{font-variant-numeric:tabular-nums;}
+#laporanReportArea tbody tr:nth-child(even) td{background:var(--panel-2);}
+#laporanReportArea tbody tr:hover td{background:rgba(31,157,85,.09);}
+#laporanReportArea thead th:first-child,#laporanReportArea tbody td:first-child{position:sticky;left:0;z-index:1;}
+#laporanReportArea tbody tr:nth-child(odd) td:first-child{background:var(--panel);}
+.lap-mini{height:4px;border-radius:4px;background:var(--line);margin-top:4px;overflow:hidden;min-width:56px;}
+.lap-mini i{display:block;height:100%;border-radius:4px;}
 #laporanReportArea.lap-print-all .lap-pane{display:block;margin-bottom:20px;}
 @media print{
   .sidebar,.lap-noprint,.dr-wrap{display:none!important;}
@@ -1311,19 +1319,19 @@ applyChartDefaults();
           <div class="lap-print-title">📌 Ringkasan</div>
           <div id="laporanSummary"></div>
 
-          <div class="section-header"><h2>Ringkasan Marketplace</h2></div>
-          <div class="lap-kpi-grid" id="lapMkKpi"></div>
-          <div class="section-header"><h2>Ringkasan Affiliate</h2></div>
-          <div class="lap-kpi-grid" id="lapAfKpi"></div>
-          <div class="section-header"><h2>Ringkasan Host Live</h2></div>
-          <div class="lap-kpi-grid" id="lapHlKpi"></div>
-          <div id="lapHlTarget" style="margin:0 0 16px;"></div>
-          <div class="muted-note" id="lapCompareNote" style="margin:-4px 0 14px;"></div>
-
-          <div class="card" style="margin-bottom:16px;">
+                    <div class="card" style="margin-bottom:16px;">
             <div class="lap-card-title">⭐ Sorotan Periode Ini</div>
             <div id="laporanSorotan"></div>
           </div>
+                    <div class="muted-note" id="lapCompareNote" style="margin:-4px 0 14px;"></div>
+          <div class="section-header"><h2>🛒 Marketplace</h2></div>
+          <div class="lap-kpi-grid" id="lapMkKpi"></div>
+          <div class="section-header"><h2>🤝 Affiliate</h2></div>
+          <div class="lap-kpi-grid" id="lapAfKpi"></div>
+          <div class="section-header"><h2>🎙️ Host Live</h2></div>
+          <div class="lap-kpi-grid" id="lapHlKpi"></div>
+          <div id="lapHlTarget" style="margin:0 0 16px;"></div>
+
           <div class="card" style="margin-bottom:16px;">
             <div class="lap-card-title">📈 Tren Performa Harian</div>
             <div class="lap-chart" style="height:240px;"><canvas id="laporanTrendChart"></canvas></div>
@@ -1333,60 +1341,79 @@ applyChartDefaults();
         <!-- TAB MARKETPLACE -->
         <div class="lap-pane" id="lapPane-marketplace">
           <div class="lap-print-title">🛒 Marketplace</div>
-          <div class="section-header" style="margin-top:0;"><h2>Rekap per Platform</h2></div>
+          <div class="lap-kpi-grid" id="lapMkKpi2"></div>
+          <div class="section-header" style="margin-top:0;"><h2>Rekap per PIC Marketplace</h2></div>
           <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
-            <thead><tr><th>Platform</th><th>Toko</th><th>Omzet</th><th>% dari Total</th><th>Spending</th><th>ROAS</th></tr></thead>
-            <tbody id="laporanPlatBody"></tbody></table></div></div>
-
-          <div class="card" style="margin-bottom:18px;">
-            <div class="lap-card-title">📊 Omzet vs Target per Toko</div>
-            <div class="lap-chart" id="laporanMkBarWrap" style="height:240px;"><canvas id="laporanMkBarChart"></canvas></div>
-          </div>
-
+            <thead><tr><th>PIC</th><th>Toko</th><th>Omzet</th><th>% dari Total</th><th>Target Omzet</th><th>Capaian</th><th>Spending</th><th>ROAS</th></tr></thead>
+            <tbody id="laporanPicBody"></tbody></table></div></div>
           <div class="section-header" style="margin-top:0;"><h2>Rincian per Toko</h2></div>
           <div class="muted-note" style="margin:-6px 0 12px;">Angka kecil berwarna di bawah nilai = perubahan dibanding periode sebelumnya (panjang periode sama). Hijau = membaik, merah = memburuk.</div>
           <div class="card"><div class="table-scroll"><table>
             <thead><tr><th>Toko</th><th>Platform</th><th>Omzet</th><th>Target Omzet</th><th>Capaian</th><th>Spending</th><th>ROAS</th><th>Target ROAS</th></tr></thead>
             <tbody id="laporanMkBody"></tbody></table></div></div>
+          <div class="card" style="margin-bottom:18px;">
+            <div class="lap-card-title">📊 Omzet vs Target per Toko</div>
+            <div class="lap-chart" id="laporanMkBarWrap" style="height:240px;"><canvas id="laporanMkBarChart"></canvas></div>
+          </div>
+
+          
+          <div class="section-header" style="margin-top:0;"><h2>Rekap per Platform</h2></div>
+          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
+            <thead><tr><th>Platform</th><th>Toko</th><th>Omzet</th><th>% dari Total</th><th>Spending</th><th>ROAS</th></tr></thead>
+            <tbody id="laporanPlatBody"></tbody></table></div></div>
+
+          
         </div>
 
         <!-- TAB AFFILIATE -->
         <div class="lap-pane" id="lapPane-affiliate">
           <div class="lap-print-title">🤝 Affiliate</div>
-          <div class="card" style="margin-bottom:18px;">
-            <div class="lap-card-title">📊 Omzet Affiliate vs Target per Toko</div>
-            <div class="lap-chart" id="laporanAfBarWrap" style="height:240px;"><canvas id="laporanAfBarChart"></canvas></div>
-          </div>
+          <div class="lap-kpi-grid" id="lapAfKpi2"></div>
+          <div class="section-header" style="margin-top:0;"><h2>Rekap per Affiliate Specialist</h2></div>
+          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
+            <thead><tr><th>Specialist</th><th>Toko</th><th>Omzet Affiliate</th><th>% dari Total</th><th>Target Omzet</th><th>Capaian</th><th>Komisi</th><th>ROI</th><th>Sampel</th></tr></thead>
+            <tbody id="laporanAfPicBody"></tbody></table></div></div>
           <div class="section-header" style="margin-top:0;"><h2>Rincian per Toko</h2></div>
           <div class="muted-note" style="margin:-6px 0 12px;">ROI = Omzet Affiliate ÷ (Komisi + HPP Sampel). Angka kecil berwarna = perubahan dibanding periode sebelumnya.</div>
           <div class="card"><div class="table-scroll"><table>
             <thead><tr><th>Toko</th><th>Platform</th><th>Omzet Affiliate</th><th>Target Omzet</th><th>Capaian</th><th>Komisi</th><th>HPP Sampel</th><th>ROI</th><th>Sampel</th></tr></thead>
             <tbody id="laporanAfBody"></tbody></table></div></div>
+          <div class="card" style="margin-bottom:18px;">
+            <div class="lap-card-title">📊 Omzet Affiliate vs Target per Toko</div>
+            <div class="lap-chart" id="laporanAfBarWrap" style="height:240px;"><canvas id="laporanAfBarChart"></canvas></div>
+          </div>
+          
         </div>
 
         <!-- TAB HOST LIVE -->
         <div class="lap-pane" id="lapPane-hostlive">
           <div class="lap-print-title">🎙️ Host Live</div>
-          <div class="card" style="margin-bottom:16px;">
-            <div class="lap-card-title">📈 GMV Live Harian</div>
-            <div class="lap-chart" style="height:240px;"><canvas id="laporanHlTrendChart"></canvas></div>
-          </div>
-          <div class="card" style="margin-bottom:18px;">
-            <div class="lap-card-title">🎙️ GMV per Host</div>
-            <div class="lap-chart" id="laporanHlHostWrap" style="height:240px;"><canvas id="laporanHlHostChart"></canvas></div>
-          </div>
-          <div class="section-header" style="margin-top:0;"><h2>Rekap per Host</h2></div>
-          <div class="muted-note" style="margin:-6px 0 12px;">Angka kecil berwarna di bawah nilai = perubahan dibanding periode sebelumnya (panjang periode sama). Hijau = membaik, merah = memburuk.</div>
-          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
-            <thead><tr><th>Host</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th></tr></thead>
-            <tbody id="laporanHlHostBody"></tbody></table></div></div>
-
+          <div class="lap-kpi-grid" id="lapHlKpi2"></div>
+          <div id="lapHlTarget2" style="margin:0 0 16px;"></div>
           <div class="section-header" style="margin-top:0;"><h2>Capaian Target per Host</h2></div>
           <div class="muted-note" style="margin:-6px 0 12px;">Target live diatur per orang (host) per bulan lewat tombol 🎯 Target Host Live di halaman Host Live &amp; Talent. Baris TOTAL = jumlah semua host; jam live dihitung jam nyata per orang (live bersamaan di 2 toko tidak dihitung dobel).</div>
           <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
             <thead><tr><th>Host</th><th>Toko</th><th>Jam Live</th><th>Target Jam</th><th>Capaian Jam</th><th>GMV</th><th>Target GMV</th><th>Capaian GMV</th><th>GMV / Jam</th><th>Target GMV/Jam</th><th>Capaian GMV/Jam</th></tr></thead>
             <tbody id="laporanHlTargetBody"></tbody></table></div></div>
 
+          
+          <div class="section-header" style="margin-top:0;"><h2>Rekap per Host</h2></div>
+          <div class="muted-note" style="margin:-6px 0 12px;">Angka kecil berwarna di bawah nilai = perubahan dibanding periode sebelumnya (panjang periode sama). Hijau = membaik, merah = memburuk.</div>
+          <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
+            <thead><tr><th>Host</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>Komentar / Penonton</th><th>GMV / Jam</th></tr></thead>
+            <tbody id="laporanHlHostBody"></tbody></table></div></div>
+
+          
+          <div class="card" style="margin-bottom:18px;">
+            <div class="lap-card-title">🎙️ GMV per Host</div>
+            <div class="lap-chart" id="laporanHlHostWrap" style="height:240px;"><canvas id="laporanHlHostChart"></canvas></div>
+          </div>
+          
+          <div class="card" style="margin-bottom:16px;">
+            <div class="lap-card-title">📈 GMV Live Harian</div>
+            <div class="lap-chart" style="height:240px;"><canvas id="laporanHlTrendChart"></canvas></div>
+          </div>
+          
           <div class="section-header" style="margin-top:0;"><h2>Rekap per Toko</h2></div>
           <div class="card" style="margin-bottom:16px;"><div class="table-scroll"><table>
             <thead><tr><th>Toko</th><th>Platform</th><th>Host Live</th><th>Sesi</th><th>Durasi</th><th>GMV</th><th>Penonton</th><th>Komentar</th><th>GMV / Jam</th></tr></thead>
@@ -2874,15 +2901,16 @@ function lapDlt(cur, prev, goodWhenUp){
   const up=p>0;
   return '<div class="lap-delta" style="color:'+((up===goodWhenUp)?'var(--green-dark)':'var(--red)')+';">'+(up?'▲':'▼')+' '+Math.abs(p).toFixed(1).replace('.',',')+'%</div>';
 }
+function lapBar(p){ return '<div class="lap-mini"><i style="width:'+Math.max(0,Math.min(p,100))+'%;background:'+(p>=100?'var(--green)':p>=70?'var(--yellow)':'var(--red)')+';"></i></div>'; }
 function lapCapCell(val, target){
   if(!(target>0)) return '<td class="muted-note">Belum diatur</td>';
   const p=val/target*100, kek=val-target;
-  return '<td><span style="color:'+(p>=100?'var(--green-dark)':'#B58500')+';font-weight:700;">'+p.toFixed(0)+'%</span>'+(Math.abs(kek)<1?'':'<div class="lap-delta" style="color:'+(kek<0?'var(--red)':'var(--green-dark)')+';">'+(kek<0?'kurang ':'lebih ')+'Rp'+rpShort(Math.abs(kek))+'</div>')+'</td>';
+  return '<td><span style="color:'+(p>=100?'var(--green-dark)':'#B58500')+';font-weight:700;">'+p.toFixed(0)+'%</span>'+(Math.abs(kek)<1?'':'<div class="lap-delta" style="color:'+(kek<0?'var(--red)':'var(--green-dark)')+';">'+(kek<0?'kurang ':'lebih ')+'Rp'+rpShort(Math.abs(kek))+'</div>')+lapBar(p)+'</td>';
 }
 function lapCapGen(val, target, fmt){
   if(!(target>0)) return '<td class="muted-note">Belum diatur</td>';
   const p=val/target*100, kek=val-target;
-  return '<td><span style="color:'+(p>=100?'var(--green-dark)':'#B58500')+';font-weight:700;">'+p.toFixed(0)+'%</span>'+(Math.abs(kek)<0.05?'':'<div class="lap-delta" style="color:'+(kek<0?'var(--red)':'var(--green-dark)')+';">'+(kek<0?'kurang ':'lebih ')+fmt(Math.abs(kek))+'</div>')+'</td>';
+  return '<td><span style="color:'+(p>=100?'var(--green-dark)':'#B58500')+';font-weight:700;">'+p.toFixed(0)+'%</span>'+(Math.abs(kek)<0.05?'':'<div class="lap-delta" style="color:'+(kek<0?'var(--red)':'var(--green-dark)')+';">'+(kek<0?'kurang ':'lebih ')+fmt(Math.abs(kek))+'</div>')+lapBar(p)+'</td>';
 }
 function lapInsGen(title, valueTxt, target, cur, fmt){
   const pct=target>0?cur/target*100:null, sisa=target-cur;
@@ -3097,6 +3125,38 @@ function renderLaporan(){
   document.getElementById('laporanHlSesiNote').textContent = sesi.length>SMAX ? 'Menampilkan '+SMAX+' sesi terbaru dari '+sesi.length : (sesi.length?sesi.length+' sesi':'');
   document.getElementById('laporanHlSesiBody').innerHTML = sesi.slice(0,SMAX).map(e=>{ const st=stores.find(x=>x.id===e.storeId);
     return `<tr><td>${fmtDate(e.tanggal)}</td><td><b>${lapEsc(e.host||'-')}</b></td><td>${st?lapEsc(st.name):'<span class="muted-note">Toko tak dikenal</span>'}</td><td>${e.jamMulai||'-'} - ${e.jamSelesai||'-'}</td><td>${hlFmtJam(e.durasi)}</td><td>${rp(e.gmv)}</td><td>${hn(e.penonton)}</td><td>${hn(e.komentar)}</td></tr>`; }).join('') || empty(8,'Belum ada data host live pada periode ini');
+  /* --- Rekap per PIC & Affiliate Specialist --- */
+  const affPicSummary=(rg)=>{
+    const months=monthsInRange(rg), map={};
+    const get=n=>map[n]||(map[n]={name:n,omzet:0,komisi:0,hpp:0,sampel:0,tOmzet:0,stores:new Set()});
+    affEntries.forEach(e=>{
+      if(rg){ if(rg.start && e.tanggal<rg.start) return; if(rg.end && e.tanggal>rg.end) return; }
+      const st=stores.find(x=>x.id===e.storeId); if(!st) return;
+      const g=get(affPicFor(st,e.tanggal.slice(0,7))); g.omzet+=e.omzet||0; g.komisi+=e.komisi||0; g.sampel+=e.sampel||0; g.hpp+=affHpp(e); g.stores.add(st.name);
+    });
+    stores.forEach(st=>{ (months||Object.keys(st.affTargets||{})).forEach(ym=>{ const t=monthTargetAff(st,ym); if(t.omzet){ const g=get(affPicFor(st,ym)); g.tOmzet+=t.omzet; g.stores.add(st.name); } }); });
+    return Object.values(map).filter(g=>g.name!==NO_PIC||g.omzet>0||g.tOmzet>0).sort((a,b)=>b.omzet-a.omzet);
+  };
+  const picRowsFill=(bodyId, rows, prevRows, cols, totalLabel)=>{
+    const pm={}; prevRows.forEach(g=>{ pm[g.name]=g; });
+    const tot=rows.reduce((a,g)=>({omzet:a.omzet+g.omzet,t:a.t+g.tOmzet,x:a.x+(g.spending||0),k:a.k+(g.komisi||0),h:a.h+(g.hpp||0),sm:a.sm+(g.sampel||0)}),{omzet:0,t:0,x:0,k:0,h:0,sm:0});
+    const td=(g,q)=>{
+      const share=tot.omzet>0?g.omzet/tot.omzet*100:0, names=[...g.stores].join(', ')||'-';
+      const base=`<td><b>${lapEsc(g.name)}</b></td><td style="white-space:normal;min-width:120px;">${lapEsc(names)}</td><td>${rp(g.omzet)}${lapDlt(g.omzet,q?q.omzet:null,true)}</td><td>${share.toFixed(1).replace('.',',')}%</td><td>${g.tOmzet>0?rp(g.tOmzet):'<span class="muted-note">-</span>'}</td>${lapCapCell(g.omzet,g.tOmzet)}`;
+      return base+cols(g,q);
+    };
+    let h=rows.map(g=>'<tr>'+td(g,pm[g.name])+'</tr>').join('');
+    if(rows.length>1){
+      const T={name:totalLabel,omzet:tot.omzet,tOmzet:tot.t,spending:tot.x,komisi:tot.k,hpp:tot.h,sampel:tot.sm,stores:new Set()};
+      h+='<tr style="font-weight:800;border-top:1px solid var(--line);">'+td(T,null).replace(/<td style="white-space:normal;min-width:120px;">-<\/td>/,'<td>'+rows.length+' orang</td>')+'</tr>';
+    }
+    document.getElementById(bodyId).innerHTML=h||empty(cols.n,'Belum ada data pada periode ini');
+  };
+  const mkCols=(g,q)=>`<td>${rp(g.spending)}${lapDlt(g.spending,q?q.spending:null,false)}</td><td>${g.spending>0?(g.omzet/g.spending).toFixed(2).replace('.',',')+'x':'-'}</td>`; mkCols.n=8;
+  const afCols=(g,q)=>{ const roi=(g.komisi+g.hpp)>0?g.omzet/(g.komisi+g.hpp):0; return `<td>${rp(g.komisi)}</td><td>${roi>0?roi.toFixed(2).replace('.',',')+'x':'-'}</td><td>${g.sampel} pcs</td>`; }; afCols.n=9;
+  picRowsFill('laporanPicBody', picSummary(range), prevR?picSummary(prevR):[], mkCols, 'TOTAL');
+  picRowsFill('laporanAfPicBody', affPicSummary(range), prevR?affPicSummary(prevR):[], afCols, 'TOTAL');
+  [['lapMkKpi','lapMkKpi2'],['lapAfKpi','lapAfKpi2'],['lapHlKpi','lapHlKpi2'],['lapHlTarget','lapHlTarget2']].forEach(([a,b])=>{ const x=document.getElementById(a), y=document.getElementById(b); if(x&&y) y.innerHTML=x.innerHTML; });
   lapResizeCharts();
 }
 
@@ -3174,8 +3234,10 @@ async function exportLaporanPPT(){
     addChart('Tren Performa Harian','laporanTrendChart');
     addTable('Rekap per Platform',document.getElementById('laporanPlatBody'));
     addChart('Omzet vs Target per Toko','laporanMkBarChart');
+    addTable('Rekap per PIC Marketplace',document.getElementById('laporanPicBody'));
     addTable('Rincian Marketplace per Toko',document.getElementById('laporanMkBody'));
     addChart('Omzet Affiliate vs Target per Toko','laporanAfBarChart');
+    addTable('Rekap per Affiliate Specialist',document.getElementById('laporanAfPicBody'));
     addTable('Rincian Affiliate per Toko',document.getElementById('laporanAfBody'));
     addChart('GMV Live Harian','laporanHlTrendChart');
     addChart('GMV per Host','laporanHlHostChart');
