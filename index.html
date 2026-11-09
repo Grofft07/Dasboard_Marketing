@@ -760,6 +760,28 @@ input[type=text],input[type=number],input[type=date],input[type=month],input[typ
   :root,:root[data-theme="light"],:root:not([data-theme]){--bg:#fff;--panel:#fff;--text:#12161C;--muted:#5B6577;--line:#DCE7E1;}
   .theme-toggle{display:none!important;}
 }
+
+/* ===== Form input rapi (Host Live & Talent): dikelompokkan per bagian ===== */
+.in-form{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
+.in-sec{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;}
+.in-sec-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text);margin-bottom:12px;}
+.in-sec-title .n{width:20px;height:20px;border-radius:50%;background:var(--green);color:#06150E;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.in-sec-title em{font-style:normal;font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11.5px;}
+.in-grid{display:grid;gap:12px;}
+.in-g3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.in-g2{grid-template-columns:repeat(2,minmax(0,1fr));}
+@media(max-width:760px){.in-g3,.in-g2{grid-template-columns:1fr;}}
+.in-fld{min-width:0;}
+.in-fld label{display:block;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:5px;}
+.in-fld small{display:block;font-size:11px;color:var(--muted-2);margin-top:4px;}
+.in-fld input,.in-fld select{background:var(--panel);height:40px;}
+.in-pre{position:relative;}
+.in-pre>span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--muted);pointer-events:none;}
+.in-pre>input{padding-left:36px;}
+.in-time input{text-align:center;font-size:16px;font-weight:700;letter-spacing:.08em;}
+.in-hint{display:block;font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.5;}
+#hlPane-host .af-footer,#hlPane-talent .af-footer{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+#hlPane-host .af-footer>.btn,#hlPane-talent .af-footer>.btn{padding:11px 32px;font-size:14px;}
 </style>
 <script>
 /* Tema: sama seperti Dashboard Iklan (kunci 'dashTheme', default terang) */
@@ -1178,15 +1200,31 @@ applyChartDefaults();
         <div class="section-header" style="margin-top:26px;"><h2>Input Report Live</h2></div>
         <div class="card">
           <div class="panel-desc">Satu baris per sesi live. Kalau toko + tanggal + host + jam mulai sama sudah pernah diisi, data lama otomatis ditimpa. Live lewat tengah malam (mis. 22:00 sampai 02:00) dihitung otomatis.</div>
-          <div class="quick-form quick-form-aff" style="margin-top:14px;">
-            <div><label>Toko</label><select id="hl-store"></select></div>
-            <div><label>Tanggal</label><input type="date" id="hl-date"></div>
-            <div><label>Nama Host</label><input type="text" id="hl-host" list="hlHostList" placeholder="Contoh: Sari"><datalist id="hlHostList"></datalist></div>
-            <div><label>Jam Mulai (WIB, 24 jam)</label><input type="text" id="hl-start" inputmode="numeric" maxlength="5" placeholder="19:00" autocomplete="off"></div>
-            <div><label>Jam Selesai (WIB, 24 jam)</label><input type="text" id="hl-end" inputmode="numeric" maxlength="5" placeholder="23:00" autocomplete="off"></div>
-            <div><label>GMV (Rp)</label><input type="text" id="hl-gmv" placeholder="Contoh: 5.000.000"></div>
-            <div><label>Penonton</label><input type="number" id="hl-penonton" min="0" placeholder="0"></div>
-            <div><label>Komentar</label><input type="number" id="hl-komentar" min="0" placeholder="0"></div>
+          <div class="in-form">
+            <div class="in-sec">
+              <div class="in-sec-title"><span class="n">1</span>Sesi Live</div>
+              <div class="in-grid in-g3">
+                <div class="in-fld"><label>Toko</label><select id="hl-store"></select></div>
+                <div class="in-fld"><label>Tanggal</label><input type="date" id="hl-date"></div>
+                <div class="in-fld"><label>Nama Host</label><input type="text" id="hl-host" list="hlHostList" placeholder="Contoh: Sari" autocomplete="off"><datalist id="hlHostList"></datalist></div>
+              </div>
+            </div>
+            <div class="in-sec">
+              <div class="in-sec-title"><span class="n">2</span>Waktu Live <em>WIB · format 24 jam</em></div>
+              <div class="in-grid in-g2 in-time">
+                <div class="in-fld"><label>Jam Mulai</label><input type="text" id="hl-start" inputmode="numeric" maxlength="5" placeholder="19:00" autocomplete="off"></div>
+                <div class="in-fld"><label>Jam Selesai</label><input type="text" id="hl-end" inputmode="numeric" maxlength="5" placeholder="23:00" autocomplete="off"></div>
+              </div>
+              <small class="in-hint">Cukup ketik angka (1900 jadi 19:00). Live lewat tengah malam, mis. 22:00 sampai 02:00, dihitung otomatis.</small>
+            </div>
+            <div class="in-sec">
+              <div class="in-sec-title"><span class="n">3</span>Hasil Live</div>
+              <div class="in-grid in-g3">
+                <div class="in-fld"><label>GMV</label><div class="in-pre"><span>Rp</span><input type="text" id="hl-gmv" placeholder="5.000.000"></div></div>
+                <div class="in-fld"><label>Penonton</label><input type="number" id="hl-penonton" min="0" placeholder="0"></div>
+                <div class="in-fld"><label>Komentar</label><input type="number" id="hl-komentar" min="0" placeholder="0"></div>
+              </div>
+            </div>
           </div>
           <div class="af-footer">
             <div class="af-summary" id="hl-summary"></div>
@@ -1231,12 +1269,22 @@ applyChartDefaults();
         <div class="section-header" style="margin-top:26px;"><h2>Input Take Harian</h2></div>
         <div class="card">
           <div class="panel-desc">Tidak terkait toko. Isi jumlah take konten yang berhasil dibuat talent pada tanggal itu dan target take hari itu. Kalau tanggal + talent sama sudah pernah diisi, data lama ditimpa.</div>
-          <div class="quick-form quick-form-aff" style="margin-top:14px;">
-            <div><label>Tanggal</label><input type="date" id="tl-date"></div>
-            <div><label>Nama Talent</label><input type="text" id="tl-name" list="tlNameList" placeholder="Contoh: Dina"><datalist id="tlNameList"></datalist></div>
-            <div><label>Jumlah Take</label><input type="number" id="tl-take" min="0" placeholder="0"></div>
-            <div><label>Target Take Hari Ini</label><input type="number" id="tl-target" min="0" placeholder="Contoh: 10"></div>
-            <div style="flex:2 1 260px;"><label>Catatan (opsional)</label><input type="text" id="tl-note" placeholder="Contoh: produk Waraso 100, 3 variasi hook"></div>
+          <div class="in-form">
+            <div class="in-sec">
+              <div class="in-sec-title"><span class="n">1</span>Talent &amp; Tanggal</div>
+              <div class="in-grid in-g2">
+                <div class="in-fld"><label>Tanggal</label><input type="date" id="tl-date"></div>
+                <div class="in-fld"><label>Nama Talent</label><input type="text" id="tl-name" list="tlNameList" placeholder="Contoh: Dina" autocomplete="off"><datalist id="tlNameList"></datalist></div>
+              </div>
+            </div>
+            <div class="in-sec">
+              <div class="in-sec-title"><span class="n">2</span>Take Konten</div>
+              <div class="in-grid in-g2">
+                <div class="in-fld"><label>Jumlah Take</label><input type="number" id="tl-take" min="0" placeholder="0"></div>
+                <div class="in-fld"><label>Target Take Hari Ini</label><input type="number" id="tl-target" min="0" placeholder="Contoh: 10"><small>Target terakhir diingat otomatis.</small></div>
+              </div>
+              <div class="in-fld" style="margin-top:12px;"><label>Catatan <span style="text-transform:none;font-weight:400;">(opsional)</span></label><input type="text" id="tl-note" placeholder="Contoh: produk Waraso 100, 3 variasi hook"></div>
+            </div>
           </div>
           <div class="af-footer">
             <div class="af-summary" id="tl-summary"></div>
@@ -4976,7 +5024,7 @@ function handlePing(){
     var expected = ['Toko','Input','Target','Affiliate','TargetAffiliate','OKR','HostLive','Talent','TargetHostLive'];
     var existing = ss.getSheets().map(function(s){ return s.getName(); });
     var missing = expected.filter(function(n){ return existing.indexOf(n) === -1; });
-    return {status:'ok', version:'v38', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent','targetHostLive'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
+    return {status:'ok', version:'v39', supports:['toko','input','target','affiliate','targetAffiliate','okr','hostlive','talent','targetHostLive'], spreadsheet: ss.getName(), spreadsheetId: ss.getId(), sheets: existing, missingSheets: missing};
   }catch(err){
     return {status:'error', message: 'Ping gagal: '+err.message};
   }
@@ -5156,9 +5204,12 @@ function upsertHostLive(ss, data){
   var sh = getOrCreateSheet(ss, 'HostLive', ['tanggal','tokoId','host','jamMulai','jamSelesai','durasi','gmv','penonton','komentar']);
   sh.getRange(1,4,sh.getMaxRows(),2).setNumberFormat('@');
   var vals = [[data.tanggal,data.tokoId,data.host,data.jamMulai||'',data.jamSelesai||'',data.durasi||0,data.gmv||0,data.penonton||0,data.komentar||0]];
-  var rows = sh.getDataRange().getValues();
+  var rng = sh.getDataRange();
+  var rows = rng.getValues();
+  var disp = rng.getDisplayValues(); // teks apa adanya di sel (mis. "19:00") - kebal terhadap sel jam yang diubah Sheets jadi nilai waktu
+  var wantJam = formatCellTime(data.jamMulai||'');
   for(var i=1;i<rows.length;i++){
-    if(String(rows[i][1]).trim() === String(data.tokoId).trim() && formatCellDate(rows[i][0]) === String(data.tanggal).trim() && String(rows[i][2]).trim() === String(data.host).trim() && String(rows[i][3]).trim() === String(data.jamMulai||'').trim()){
+    if(String(rows[i][1]).trim() === String(data.tokoId).trim() && formatCellDate(rows[i][0]) === String(data.tanggal).trim() && String(rows[i][2]).trim() === String(data.host).trim() && formatCellTime(disp[i][3]) === wantJam){
       if(data.hapus){ sh.deleteRow(i+1); return; }
       sh.getRange(i+1,1,1,9).setValues(vals);
       return;
@@ -5166,6 +5217,20 @@ function upsertHostLive(ss, data){
   }
   if(data.hapus) return;
   sh.appendRow(vals[0]);
+}
+
+// Normalisasi jam ke "HH:mm". Mendukung "19:00", "7:00", "19:00:00", "7:00 PM", dan nilai Date.
+function formatCellTime(v){
+  if(Object.prototype.toString.call(v) === '[object Date]'){
+    return ('0'+v.getHours()).slice(-2)+':'+('0'+v.getMinutes()).slice(-2);
+  }
+  var t = String(v==null?'':v).trim();
+  var m = t.match(/^([0-9]{1,2})[:.]([0-9]{2})/);
+  if(!m) return t;
+  var h = parseInt(m[1],10);
+  if(/pm/i.test(t) && h<12) h += 12;
+  if(/am/i.test(t) && h===12) h = 0;
+  return ('0'+h).slice(-2)+':'+m[2];
 }
 
 // Sheet "Talent": upsert berdasarkan (tanggal + talent) — 1 baris per talent per hari. Tidak terkait toko.
@@ -6342,6 +6407,19 @@ document.getElementById('btnThemeLight').addEventListener('click', function(){ a
   var t='light'; try{ t=localStorage.getItem('dashTheme')||'light'; }catch(e){}
   var bd=document.getElementById('btnThemeDark'), bl=document.getElementById('btnThemeLight');
   bd.classList.toggle('active', t==='dark'); bl.classList.toggle('active', t!=='dark');
+})();
+</script>
+<script>
+/* Tekan Enter di kolom angka/jam = Simpan (kolom nama host/talent dikecualikan karena ada daftar saran) */
+(function(){
+  function wire(sel, fn, skip){
+    document.querySelectorAll(sel+' .in-form input').forEach(function(el){
+      if(skip.indexOf(el.id)>-1) return;
+      el.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); fn(); } });
+    });
+  }
+  wire('#hlPane-host', function(){ saveHlEntry(); }, ['hl-host']);
+  wire('#hlPane-talent', function(){ saveTlEntry(); }, ['tl-name']);
 })();
 </script>
 </body>
