@@ -1442,6 +1442,7 @@ document.addEventListener('DOMContentLoaded',function(){if(!TOKEN)showGate()});
       <div class="lap-sub lap-noprint">
         <button class="btn btn-ghost btn-sm" id="btnPrintLaporan">🖨️ Cetak / Simpan PDF</button>
         <button class="btn btn-ghost btn-sm" id="btnExportPptLaporan">📑 Export PPT</button>
+        <button class="btn btn-wa btn-sm" id="btnWaReportGabungan">📋 Report WA Gabungan</button>
       </div>
       <div class="tabbar lap-noprint" id="laporanTabs" style="margin-bottom:18px;">
         <div class="tabbtn active" data-laptab="ringkasan">📌 Ringkasan</div>
@@ -1966,6 +1967,7 @@ document.addEventListener('DOMContentLoaded',function(){if(!TOKEN)showGate()});
       <button type="button" class="wa-type-btn active" id="waTypeMarketplace">📣 Report Marketplace</button>
       <button type="button" class="wa-type-btn" id="waTypeAffiliate">🤝 Report Affiliate</button>
       <button type="button" class="wa-type-btn" id="waTypeHostlive">🎙️ Report Host Live</button>
+      <button type="button" class="wa-type-btn" id="waTypeGabungan">📋 Report Gabungan (Manager)</button>
     </div>
 
     <div class="wa-grid">
@@ -2003,6 +2005,7 @@ document.addEventListener('DOMContentLoaded',function(){if(!TOKEN)showGate()});
           <button type="button" class="wa-chip" data-h="🌅 Laporan Pagi Team Marketing">🌅 Pagi</button>
           <button type="button" class="wa-chip" data-h="☀️ Update Siang Team Marketing">☀️ Siang</button>
           <button type="button" class="wa-chip" data-h="🌙 Laporan Penutupan Hari Ini">🌙 Penutupan</button>
+          <button type="button" class="wa-chip" data-h="Laporan Team Marketing kepada Manager">📋 Ke Manager</button>
           <button type="button" class="wa-chip" data-h="">✕ Kosongkan</button>
         </div>
         <div class="field"><input type="text" id="waHeaderMsg" placeholder="Header pesan (opsional)"></div>
@@ -2010,7 +2013,7 @@ document.addEventListener('DOMContentLoaded',function(){if(!TOKEN)showGate()});
       </div>
 
       <div class="wa-right">
-        <label class="wa-section-label" style="margin-top:0;">Kirim Sebagai</label>
+        <label class="wa-section-label" id="waSendLabel" style="margin-top:0;">Kirim Sebagai</label>
         <div class="wa-mode-toggle" id="waSendMode" style="margin-bottom:8px;">
           <button type="button" class="wa-mode-btn active" data-send="all">📄 Satu pesan gabungan</button>
           <button type="button" class="wa-mode-btn" data-send="split">👥 Pisah per staff</button>
@@ -4013,8 +4016,17 @@ const WA_COLUMNS_HOSTLIVE = [
   {key:'penonton', label:'Penonton'},
   {key:'komentar', label:'Komentar'},
 ];
-function waColumnsForType(){ return waReportType==='affiliate' ? WA_COLUMNS_AFFILIATE : waReportType==='hostlive' ? WA_COLUMNS_HOSTLIVE : WA_COLUMNS_MARKETPLACE; }
-function waRelevantStores(){ return waReportType==='affiliate' ? stores.filter(s=> affEntries.some(e=>e.storeId===s.id)) : waReportType==='hostlive' ? stores.filter(s=> hlEntries.some(e=>e.storeId===s.id)) : stores; }
+const WA_COLUMNS_GABUNGAN = [
+  {key:'total', label:'Total Keseluruhan'},
+  {key:'mp', label:'Marketplace'},
+  {key:'aff', label:'Affiliate'},
+  {key:'hl', label:'Host Live'},
+  {key:'platform', label:'Rekap per Platform'},
+  {key:'sorotan', label:'Sorotan Toko'},
+  {key:'rincian', label:'Rincian per Toko'},
+];
+function waColumnsForType(){ return waReportType==='gabungan' ? WA_COLUMNS_GABUNGAN : waReportType==='affiliate' ? WA_COLUMNS_AFFILIATE : waReportType==='hostlive' ? WA_COLUMNS_HOSTLIVE : WA_COLUMNS_MARKETPLACE; }
+function waRelevantStores(){ return waReportType==='gabungan' ? stores : waReportType==='affiliate' ? stores.filter(s=> affEntries.some(e=>e.storeId===s.id)) : waReportType==='hostlive' ? stores.filter(s=> hlEntries.some(e=>e.storeId===s.id)) : stores; }
 
 // Susun baris rincian toko per nama staff (PIC / Affiliate Specialist) supaya nama staff tampil di report
 function waGroupByStaff(items){
@@ -4047,6 +4059,7 @@ function openWaReportModal(type){
   document.getElementById('waTypeMarketplace').classList.toggle('active', type==='marketplace');
   document.getElementById('waTypeAffiliate').classList.toggle('active', type==='affiliate');
   document.getElementById('waTypeHostlive').classList.toggle('active', type==='hostlive');
+  document.getElementById('waTypeGabungan').classList.toggle('active', type==='gabungan');
   waSelectedStores = new Set(waRelevantStores().map(s=>s.id));
   waSelectedHosts = new Set(waHostNames());
   waShowStores = false;
@@ -4059,6 +4072,7 @@ function openWaReportModal(type){
   document.getElementById('waDateFrom').valueAsDate = new Date();
   document.getElementById('waDateTo').valueAsDate = new Date();
   waPreset=null; waSendMode='all'; waSent=new Set(); waLoadPrefs();
+  if(type==='gabungan'){ waSendMode='all'; if(!(waPrefs().cols && waPrefs().cols.gabungan)) waSelectedColumns.delete('rincian'); }
   renderWaModal();
   document.getElementById('waReportOverlay').classList.add('open');
 }
@@ -4067,7 +4081,9 @@ function closeWaReportModal(){ document.getElementById('waReportOverlay').classL
 function renderWaModal(){
   const relevant = waRelevantStores();
   waStaffList = waStaffGroups();
-  document.getElementById('waStaffBlock').style.display = '';
+  document.getElementById('waStaffBlock').style.display = waReportType==='gabungan' ? 'none' : '';
+  document.getElementById('waSendLabel').style.display = waReportType==='gabungan' ? 'none' : '';
+  document.getElementById('waSendMode').style.display = waReportType==='gabungan' ? 'none' : '';
   document.getElementById('waStaffLabel').textContent = waReportType==='affiliate' ? 'Pilih Affiliate Specialist' : waReportType==='hostlive' ? 'Pilih Host Live' : 'Pilih PIC Marketplace';
   const allOn = waStaffList.length>0 && waStaffList.every(waStaffActive);
   const esc = t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -4128,6 +4144,7 @@ document.getElementById('waColumnChips').addEventListener('click', e=>{
 document.getElementById('waTypeMarketplace').addEventListener('click', ()=> openWaReportModal('marketplace'));
 document.getElementById('waTypeAffiliate').addEventListener('click', ()=> openWaReportModal('affiliate'));
 document.getElementById('waTypeHostlive').addEventListener('click', ()=> openWaReportModal('hostlive'));
+document.getElementById('waTypeGabungan').addEventListener('click', ()=> openWaReportModal('gabungan'));
 document.getElementById('btnWaReportHostlive').addEventListener('click', ()=>{
   const t = document.querySelector('#hlTabs .tabbtn.active');
   openWaReportModal('hostlive');
@@ -4174,7 +4191,77 @@ function buildWaReportText(){
   let msg = '';
   if(header) msg += header+'\n\n';
 
-  if(waReportType==='marketplace'){
+  if(waReportType==='gabungan'){
+    const has = k=> cols.some(c=>c.key===k);
+    const f1 = n=> (n||0).toFixed(2).replace('.',',');
+    const sh = n=>{ n=n||0; const a=Math.abs(n); if(a>=1e9) return 'Rp'+(n/1e9).toFixed(2).replace('.',',')+' M'; if(a>=1e6) return 'Rp'+(n/1e6).toFixed(1).replace('.',',').replace(/,0$/,'')+' jt'; return rp(n); };
+    const inR = e=> !range || ((!range.start||e.tanggal>=range.start) && (!range.end||e.tanggal<=range.end));
+    const rows = selectedStoreObjs.map(s=>{
+      const t = totalsForStore(s.id, range), tg = targetForRange(s, range);
+      const af = affEntries.filter(e=>e.storeId===s.id && inR(e));
+      const afO = af.reduce((a,x)=>a+(x.omzet||0),0), afK = af.reduce((a,x)=>a+(x.komisi||0),0), afH = af.reduce((a,x)=>a+affHpp(x),0);
+      const hl = hlFilter(hlEntries, range).filter(e=>e.storeId===s.id), hA = hlAgg(hl);
+      return {s, t, tg, afO, afK, afH, afN:af.length, hl, hA, cap: tg.omzet>0 ? t.omzet/tg.omzet*100 : null};
+    });
+    const sum = (arr,fn)=> arr.reduce((a,x)=>a+fn(x),0);
+    const tOmzet = sum(rows,r=>r.t.omzet), tSpend = sum(rows,r=>r.t.spending), tTarget = sum(rows,r=>r.tg.omzet);
+    msg += `*LAPORAN TEAM MARKETING*\nPeriode: ${waRangeLabel(range)}\n`;
+    if(has('total')){
+      const kom = has('aff') ? sum(rows,r=>r.afK) : 0, hpp = has('aff') ? sum(rows,r=>r.afH) : 0;
+      const biaya = tSpend + kom + hpp;
+      msg += `\n*TOTAL KESELURUHAN*\nTotal Omzet: ${rp(tOmzet)}\nTotal Biaya: ${rp(biaya)}\nROAS Keseluruhan: ${f1(biaya>0?tOmzet/biaya:0)}x\n`;
+      if(tTarget>0) msg += `Capaian Target: ${(tOmzet/tTarget*100).toFixed(0)}%\n`;
+    }
+    if(has('mp')){
+      msg += `\n*MARKETPLACE*\nOmzet: ${rp(tOmzet)}\nSpending: ${rp(tSpend)}\nROAS: ${f1(tSpend>0?tOmzet/tSpend:0)}x\n`;
+      if(tTarget>0) msg += `Capaian: ${(tOmzet/tTarget*100).toFixed(0)}% (target ${rp(tTarget)})\n`;
+    }
+    if(has('aff')){
+      const aO=sum(rows,r=>r.afO), aK=sum(rows,r=>r.afK), aH=sum(rows,r=>r.afH);
+      msg += `\n*AFFILIATE*\nOmzet: ${rp(aO)}\nKomisi: ${rp(aK)}\nROI: ${(aK+aH)>0 ? f1(aO/(aK+aH))+'x' : '-'}\n`;
+    }
+    if(has('hl')){
+      const A = hlAgg(rows.flatMap(r=>r.hl));
+      msg += `\n*HOST LIVE*\nSesi: ${A.sesi} (${hlFmtJam(A.jam)})\nGMV: ${rp(A.gmv)}\n`;
+    }
+    if(has('platform')){
+      const pOrder=[], pMap={};
+      rows.forEach(r=>{ const k=r.s.platform; if(!pMap[k]){ pMap[k]=[]; pOrder.push(k); } pMap[k].push(r); });
+      const blocks = pOrder.map(k=>{
+        const g=pMap[k], pm=PLATFORM_META[k], nm=pm?pm.name:k;
+        const o=sum(g,r=>r.t.omzet), sp=sum(g,r=>r.t.spending), ao=sum(g,r=>r.afO), gm=sum(g,r=>r.hA.gmv);
+        const sesi=sum(g,r=>r.hl.length), afn=sum(g,r=>r.afN);
+        if(!(o>0||sp>0||afn>0||sesi>0)) return '';
+        const l=[`*${nm}*`];
+        if(has('mp') && (o>0||sp>0)){
+          l.push(`Omzet: ${rp(o)}`+(tOmzet>0?` (${(o/tOmzet*100).toFixed(0)}%)`:''));
+          l.push(`Spending: ${rp(sp)}`);
+          l.push(`ROAS: ${f1(sp>0?o/sp:0)}x`);
+        }
+        if(has('aff') && afn>0) l.push(`Affiliate: ${rp(ao)}`);
+        if(has('hl') && sesi>0) l.push(`GMV Live: ${rp(gm)}`);
+        return l.length>1 ? l.join('\n') : '';
+      }).filter(Boolean);
+      if(blocks.length) msg += `\n*PER PLATFORM*\n${blocks.join('\n\n')}\n`;
+    }
+    if(has('sorotan')){
+      const top = rows.filter(r=>r.t.omzet>0).sort((a,b)=>b.t.omzet-a.t.omzet).slice(0,3);
+      const low = rows.filter(r=>r.cap!==null).sort((a,b)=>a.cap-b.cap).slice(0,3);
+      if(top.length) msg += `\n*OMZET TERTINGGI*\n${top.map((r,i)=>`${i+1}. ${r.s.name}: ${sh(r.t.omzet)}`).join('\n')}\n`;
+      if(low.length) msg += `\n*CAPAIAN TERENDAH*\n${low.map((r,i)=>`${i+1}. ${r.s.name}: ${r.cap.toFixed(0)}%`).join('\n')}\n`;
+    }
+    if(has('rincian')){
+      const det = rows.filter(r=>r.t.omzet>0||r.afN>0||r.hl.length>0).map(r=>{
+        const l=[r.s.name];
+        if(has('mp') && r.t.omzet>0) l.push(`Marketplace: ${sh(r.t.omzet)}`+(r.cap!==null?` (${r.cap.toFixed(0)}%)`:''));
+        if(has('aff') && r.afN>0) l.push(`Affiliate: ${sh(r.afO)}`);
+        if(has('hl') && r.hl.length>0) l.push(`Live: ${sh(r.hA.gmv)}`);
+        return l.length>1 ? l.join('\n') : '';
+      }).filter(Boolean);
+      msg += `\n*PER TOKO*\n${det.join('\n\n') || '_Tidak ada data pada periode/toko yang dipilih._'}\n`;
+    }
+    msg = msg.replace(/\n+$/,'');
+  } else if(waReportType==='marketplace'){
     let totalOmzet=0, totalSpending=0, totalTarget=0;
     const lines = [];
     selectedStoreObjs.forEach(s=>{
@@ -4320,7 +4407,7 @@ function waBuildFor(g){
 }
 function updateWaPreview(){
   waSavePrefs();
-  const split = waSendMode==='split', stats=document.getElementById('waStats');
+  const split = waSendMode==='split' && waReportType!=='gabungan', stats=document.getElementById('waStats');
   document.getElementById('waCombinedWrap').style.display = split?'none':'';
   document.getElementById('waSplitList').style.display = split?'':'none';
   document.getElementById('btnCopyWaReport').style.display = split?'none':'';
@@ -4375,6 +4462,7 @@ document.getElementById('waSplitList').addEventListener('click', e=>{
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && document.getElementById('waReportOverlay').classList.contains('open')) closeWaReportModal(); });
 document.getElementById('btnWaReportOverview').addEventListener('click', ()=> openWaReportModal('marketplace'));
 document.getElementById('btnWaReportAffiliate').addEventListener('click', ()=> openWaReportModal('affiliate'));
+document.getElementById('btnWaReportGabungan').addEventListener('click', ()=> openWaReportModal('gabungan'));
 document.getElementById('btnSendWaReport').addEventListener('click', ()=>{
   const text = buildWaReportText();
   const phone = document.getElementById('waPhone').value.replace(/\D/g,'');
